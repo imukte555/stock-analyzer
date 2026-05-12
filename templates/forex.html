@@ -248,11 +248,28 @@
         <div class="bt-field">
           <label>戦略</label>
           <select id="btStrategy" class="bt-select">
-            <option value="combined">🎯 総合（RSI+MACD+MA）</option>
-            <option value="rsi">⚡ RSI逆張り（30/70）</option>
-            <option value="macd">📉 MACDクロス（GC/DC）</option>
-            <option value="ma_cross">📐 移動平均クロス（MA5×MA25）</option>
-            <option value="bollinger">🎯 ボリンジャー逆張り</option>
+            <optgroup label="基本戦略">
+              <option value="combined">🎯 総合（RSI+MACD+MA）</option>
+              <option value="rsi">⚡ RSI逆張り（30/70）</option>
+              <option value="macd">📉 MACDクロス（GC/DC）</option>
+              <option value="ma_cross">📐 移動平均クロス（MA5×MA25）</option>
+              <option value="bollinger">🎯 ボリンジャー逆張り</option>
+            </optgroup>
+            <optgroup label="プロ手法（NEW）">
+              <option value="day_trade">⚡ デイトレ（RSI3+BB即時逆張り）</option>
+              <option value="swing">🌊 スイング（MA25×MA75+ADX確認）</option>
+              <option value="pro_forex" selected>💱 プロ式為替（ADX+MACD+RSI+ATR）</option>
+              <option value="ichimoku">☁️ 一目均衡表（基準線ブレイク）</option>
+              <option value="stochastic">📊 ストキャスティクス（%K/%D逆張り）</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="bt-field">
+          <label>方向</label>
+          <select id="btDirection" class="bt-select">
+            <option value="long" selected>📈 買って売る（ロング）</option>
+            <option value="short">📉 売って買う（ショート）</option>
+            <option value="both">🔄 両建て切替</option>
           </select>
         </div>
         <div class="bt-field">
@@ -914,6 +931,7 @@ function renderScanGrid(pairs){
 async function runBacktest(){
   const symbol = document.getElementById('btSymbol').value.trim();
   const strategy = document.getElementById('btStrategy').value;
+  const direction = (document.getElementById('btDirection')||{value:'long'}).value;
   const period = document.getElementById('btPeriod').value;
   const capital = parseInt(document.getElementById('btCapital').value)||1000000;
   const btn = document.getElementById('btRunBtn');
@@ -923,7 +941,7 @@ async function runBacktest(){
   out.innerHTML = `<div style="text-align:center;padding:40px;color:var(--sub)"><div class="loading-spinner" style="margin:0 auto 12px"></div>過去のレートで売買をシミュレーション中...</div>`;
   if(backtestEquityChart){backtestEquityChart.destroy(); backtestEquityChart=null;}
   try{
-    const r = await fetch(API+'/backtest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol,strategy,period,capital})});
+    const r = await fetch(API+'/backtest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol,strategy,direction,period,capital})});
     const d = await r.json();
     if(!r.ok) throw new Error(d.error||'エラー');
     renderBacktest(d);

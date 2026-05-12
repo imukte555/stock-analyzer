@@ -1256,8 +1256,14 @@ def chart_data_endpoint():
 # 売買シミュレーション (バックテスト)
 # ============================================================
 
-def run_backtest(symbol, strategy, period, initial_capital):
-    """過去データに対して戦略を適用してシミュレーション"""
+def run_backtest(symbol, strategy, period, initial_capital, direction='long'):
+    """過去データに対して戦略を適用してシミュレーション
+
+    direction:
+      'long'  : 買って売る（買いシグナルで建てて、売りシグナルで仕舞う）
+      'short' : 売って買い戻す（売りシグナルで建てて、買いシグナルで仕舞う）
+      'both'  : 両建て切替（買い↔売りで都度ポジションを反転）
+    """
     import re
     if re.fullmatch(r'\d{4,5}', symbol):
         symbol = symbol + '.T'
@@ -1296,6 +1302,7 @@ def run_backtest(symbol, strategy, period, initial_capital):
 
     # 各種指標を事前計算
     rsi    = ta.momentum.RSIIndicator(close, window=14).rsi()
+    rsi3   = ta.momentum.RSIIndicator(close, window=3).rsi()    # day_trade 用
     macd_o = ta.trend.MACD(close)
     macd_l = macd_o.macd()
     macd_s = macd_o.macd_signal()
@@ -1305,6 +1312,24 @@ def run_backtest(symbol, strategy, period, initial_capital):
     ma5    = close.rolling(5).mean()
     ma25   = close.rolling(25).mean()
     ma75   = close.rolling(75).mean()
+    # スイング・プロ手法用の追加指標
+    try:
+        adx_o = ta.trend.ADXIndicator(hist['High'], hist['Low'], close, window=14)
+        adx_v = adx_o.adx()
+    except Exception:
+        adx_v = close * 0 + 25  # フォールバック
+    try:
+        atr_o = ta.volatility.AverageTrueRange(hist['High'], hist['Low'], close, window=14)
+        atr_v = atr_o.average_true_range()
+    except Exception:
+        atr_v = close.rolling(14).std()
+    try:
+        stoch_o = ta.momentum.StochasticOscillator(hist['High'], hist['Low'], close, window=14, smooth_window=3)
+        stoch_k = stoch_o.stoch()
+        stoch_d = stoch_o.stoch_signal()
+    except Exception:
+        stoch_k = close * 0 + 50
+        stoch_d = close * 0 + 50
 
     # ───────── シグナル判定（理由つき）─────────
     def signal_at(i):
@@ -1350,68 +1375,183 @@ def run_backtest(symbol, strategy, period, initial_capital):
                 return 'buy', '買いシグナル2つ以上一致: ' + ' / '.join(reasons)
             if sell_votes >= 2 and buy_votes == 0:
                 return 'sell', '売りシグナル2つ以上一致: ' + ' / '.join(reasons)
+        elif strategy == 'day_trade':
+            # デイトレード: 超短期RSI(3)＋ボリンジャー下限/上限の即時逆張り。1〜2バーで仕舞う前提
+            r3   = rsi3.iloc[i]
+            r3_p = rsi3.iloc[i-1] if i > 0 else r3
+            if not (np.isnan(r3) or np.isnan(bbl) or np.isnan(bbu)):
+                if r3_p >= 20 and r3 < 20 and c <= bbl * 1.005:
+                    return 'buy', f'デイトレ買い: 超短期RSI3 {r3:.1f}が20割れ＆下限BB接近 → 即時リバウンド狙い'
+                if r3_p <= 80 and r3 > 80 and c >= bbu * 0.995:
+                    return 'sell', f'デイトレ売り: 超短期RSI3 {r3:.1f}が80超え＆上限BB接近 → 即時反落狙い'
+        elif strategy == 'swing':
+            # スイングトレード: MA25/MA75 のクロス＋ ADX>20 の確認。中期保有想定
+            m25_now = m25; m25_p = ma25.iloc[i-1] if i > 0 else m25_now
+            m75     = ma75.iloc[i]
+            m75_p   = ma75.iloc[i-1] if i > 0 else m75
+            adxv    = adx_v.iloc[i] if i < len(adx_v) else float('nan')
+            if not (np.isnan(m25_now) or np.isnan(m75) or np.isnan(m25_p) or np.isnan(m75_p)):
+                if m25_p <= m75_p and m25_now > m75 and (np.isnan(adxv) or adxv > 20):
+                    return 'buy', f'スイング買い: MA25がMA75を上抜け（ADX {adxv:.1f}でトレンド確認）→ 中期上昇'
+                if m25_p >= m75_p and m25_now < m75 and (np.isnan(adxv) or adxv > 20):
+                    return 'sell', f'スイング売り: MA25がMA75を下抜け（ADX {adxv:.1f}でトレンド確認）→ 中期下落'
+        elif strategy == 'pro_forex':
+            # プロ式為替: トレンド(ADX>25) + モメンタム(MACD) + 逆張りフィルタ(RSI極値) + ATR でリスク調整
+            adxv = adx_v.iloc[i] if i < len(adx_v) else float('nan')
+            atrv = atr_v.iloc[i] if i < len(atr_v) else float('nan')
+            if not (np.isnan(ml) or np.isnan(ms) or np.isnan(rv) or np.isnan(adxv)):
+                if adxv > 25 and ml > ms and rv < 70 and rv > 40:
+                    return 'buy', f'プロ式買い: ADX {adxv:.1f}（強トレンド）＋MACD強気＋RSI {rv:.1f}（過熱前）→ 順張りエントリ'
+                if adxv > 25 and ml < ms and rv > 30 and rv < 60:
+                    return 'sell', f'プロ式売り: ADX {adxv:.1f}（強トレンド）＋MACD弱気＋RSI {rv:.1f}（売られ過ぎ前）→ 順張り売り'
+        elif strategy == 'ichimoku':
+            # 一目均衡表: 価格が雲を上抜ければ買い・下抜ければ売り（簡易版: 26日高安平均＝基準線で代替）
+            high26 = hist['High'].rolling(26).max().iloc[i] if i < len(hist) else float('nan')
+            low26  = hist['Low'].rolling(26).min().iloc[i] if i < len(hist) else float('nan')
+            high26_p = hist['High'].rolling(26).max().iloc[i-1] if i > 0 else high26
+            low26_p  = hist['Low'].rolling(26).min().iloc[i-1] if i > 0 else low26
+            if not (np.isnan(high26) or np.isnan(low26)):
+                mid = (high26 + low26) / 2
+                mid_p = (high26_p + low26_p) / 2 if not np.isnan(high26_p) else mid
+                c_p = close.iloc[i-1] if i > 0 else c
+                if c_p <= mid_p and c > mid:
+                    return 'buy', f'一目買い: 基準線 {mid:.2f}を上抜け → 雲ブレイク上昇'
+                if c_p >= mid_p and c < mid:
+                    return 'sell', f'一目売り: 基準線 {mid:.2f}を下抜け → 雲ブレイク下降'
+        elif strategy == 'stochastic':
+            # ストキャスティクス: %K と %D のクロス × 過熱/過売ゾーン
+            k_v = stoch_k.iloc[i] if i < len(stoch_k) else float('nan')
+            d_v = stoch_d.iloc[i] if i < len(stoch_d) else float('nan')
+            k_p = stoch_k.iloc[i-1] if i > 0 else k_v
+            d_p = stoch_d.iloc[i-1] if i > 0 else d_v
+            if not (np.isnan(k_v) or np.isnan(d_v) or np.isnan(k_p) or np.isnan(d_p)):
+                if k_p <= d_p and k_v > d_v and k_v < 30:
+                    return 'buy', f'ストキャ買い: %K {k_v:.1f}が%D {d_v:.1f}を売られ過ぎゾーンで上抜け'
+                if k_p >= d_p and k_v < d_v and k_v > 70:
+                    return 'sell', f'ストキャ売り: %K {k_v:.1f}が%D {d_v:.1f}を買われ過ぎゾーンで下抜け'
         return 'hold', ''
 
-    # ───────── シミュレーション ─────────
+    # ───────── シミュレーション（ロング/ショート両対応）─────────
     cash = float(initial_capital)
-    shares = 0
-    trades = []          # 各取引の記録
-    equity_curve = []    # 資産推移
-    cur_buy_price = None
-    cur_buy_date = None
-    cur_buy_reason = ''
+    shares = 0           # ポジションの株数（>0 = ロング保有株数、<0 = ショート建玉株数）
+    trades = []
+    equity_curve = []
+    cur_entry_price = None
+    cur_entry_date = None
+    cur_entry_reason = ''
+    position = 'flat'    # 'flat' / 'long' / 'short'
+
+    from datetime import datetime as _dt
+
+    def _close_position(exit_price, exit_date, exit_reason):
+        """現在のポジションを exit_price で仕舞う"""
+        nonlocal cash, shares, position, cur_entry_price, cur_entry_date, cur_entry_reason
+        if position == 'flat' or shares == 0 or cur_entry_price is None:
+            return
+        abs_shares = abs(shares)
+        if position == 'long':
+            proceeds = abs_shares * exit_price
+            profit = proceeds - (abs_shares * cur_entry_price)
+            profit_pct = (exit_price - cur_entry_price) / cur_entry_price * 100
+            cash += proceeds
+        else:  # short
+            # ショート: 建玉時に得た現金（cash 増）を返却して仕舞う
+            cost_to_cover = abs_shares * exit_price
+            profit = (cur_entry_price - exit_price) * abs_shares
+            profit_pct = (cur_entry_price - exit_price) / cur_entry_price * 100
+            cash -= cost_to_cover
+        try:
+            holding_days = (_dt.strptime(exit_date, '%Y-%m-%d') - _dt.strptime(cur_entry_date, '%Y-%m-%d')).days
+        except Exception:
+            holding_days = 0
+        trades.append({
+            'side': position,                       # 'long' or 'short'
+            'buy_date':  cur_entry_date if position == 'long' else exit_date,
+            'sell_date': exit_date     if position == 'long' else cur_entry_date,
+            'entry_date': cur_entry_date,
+            'exit_date':  exit_date,
+            'buy_price':  round(cur_entry_price if position == 'long' else exit_price, 4),
+            'sell_price': round(exit_price if position == 'long' else cur_entry_price, 4),
+            'entry_price': round(cur_entry_price, 4),
+            'exit_price':  round(exit_price, 4),
+            'shares': abs_shares,
+            'profit': round(profit, 2),
+            'profit_pct': round(profit_pct, 2),
+            'win': profit > 0,
+            'buy_reason':  cur_entry_reason if position == 'long' else exit_reason,
+            'sell_reason': exit_reason if position == 'long' else cur_entry_reason,
+            'entry_reason': cur_entry_reason,
+            'exit_reason': exit_reason,
+            'holding_days': holding_days,
+        })
+        shares = 0
+        position = 'flat'
+        cur_entry_price = None
+        cur_entry_date = None
+        cur_entry_reason = ''
+
+    def _open_position(side, entry_price, entry_date, entry_reason):
+        """新規ポジションを建てる"""
+        nonlocal cash, shares, position, cur_entry_price, cur_entry_date, cur_entry_reason
+        if cash <= entry_price:
+            return
+        n_shares = int(cash / entry_price)
+        if n_shares <= 0:
+            return
+        if side == 'long':
+            cost = n_shares * entry_price
+            cash -= cost
+            shares = n_shares
+        else:  # short
+            proceeds = n_shares * entry_price
+            cash += proceeds
+            shares = -n_shares
+        position = side
+        cur_entry_price = entry_price
+        cur_entry_date = entry_date
+        cur_entry_reason = entry_reason
 
     for i in range(n):
         date = hist.index[i].strftime('%Y-%m-%d')
         price = float(close.iloc[i])
         sig, reason = signal_at(i)
-        # 取引（翌日寄り想定で当日終値で約定）
-        if sig == 'buy' and shares == 0 and cash > price:
-            shares = int(cash / price)
-            if shares > 0:
-                cost = shares * price
-                cash -= cost
-                cur_buy_price = price
-                cur_buy_date = date
-                cur_buy_reason = reason
-        elif sig == 'sell' and shares > 0:
-            proceeds = shares * price
-            profit = proceeds - (shares * cur_buy_price)
-            profit_pct = (price - cur_buy_price) / cur_buy_price * 100
-            # 保有日数
-            from datetime import datetime as _dt
-            try:
-                holding_days = (_dt.strptime(date, '%Y-%m-%d') - _dt.strptime(cur_buy_date, '%Y-%m-%d')).days
-            except:
-                holding_days = 0
-            trades.append({
-                'buy_date': cur_buy_date,
-                'sell_date': date,
-                'buy_price': round(cur_buy_price, 2),
-                'sell_price': round(price, 2),
-                'shares': shares,
-                'profit': round(profit, 2),
-                'profit_pct': round(profit_pct, 2),
-                'win': profit > 0,
-                'buy_reason': cur_buy_reason,
-                'sell_reason': reason,
-                'holding_days': holding_days,
-            })
-            cash += proceeds
-            shares = 0
-            cur_buy_price = None
-            cur_buy_date = None
-            cur_buy_reason = ''
 
-        # 資産推移記録 (週次サンプリングでデータ削減)
+        if sig == 'buy':
+            # ショート中なら買い戻し → 仕舞う
+            if position == 'short':
+                _close_position(price, date, reason)
+            # ロング許可されてて flat なら新規ロング
+            if position == 'flat' and direction in ('long', 'both'):
+                _open_position('long', price, date, reason)
+        elif sig == 'sell':
+            # ロング中なら売却 → 仕舞う
+            if position == 'long':
+                _close_position(price, date, reason)
+            # ショート許可されてて flat なら新規ショート
+            if position == 'flat' and direction in ('short', 'both'):
+                _open_position('short', price, date, reason)
+
+        # 資産推移記録（評価額 = 現金 + 含み損益）
         if i % 5 == 0 or i == n - 1:
-            total = cash + shares * price
+            if position == 'long':
+                total = cash + abs(shares) * price
+            elif position == 'short' and cur_entry_price is not None:
+                total = cash - abs(shares) * price  # ショート: 価格上昇は損
+            else:
+                total = cash
             equity_curve.append({'date': date, 'equity': round(total, 2)})
 
     # 最後にポジション残ってたら最終価格で清算扱い（評価額計算）
     final_price = float(close.iloc[-1])
-    final_value = cash + shares * final_price
-    unrealized = shares * (final_price - cur_buy_price) if shares > 0 and cur_buy_price else 0
+    if position == 'long':
+        final_value = cash + abs(shares) * final_price
+        unrealized = abs(shares) * (final_price - cur_entry_price) if cur_entry_price else 0
+    elif position == 'short':
+        final_value = cash - abs(shares) * final_price
+        unrealized = abs(shares) * (cur_entry_price - final_price) if cur_entry_price else 0
+    else:
+        final_value = cash
+        unrealized = 0
 
     # ───────── 指標計算 ─────────
     total_return = final_value - initial_capital
@@ -1481,6 +1621,36 @@ def run_backtest(symbol, strategy, period, initial_capital):
             'rule_sell': '3指標のうち2つ以上が売りシグナルで、買いシグナルが0の時 → 売り',
             'description': 'RSIの過熱感、MACDのトレンド勢い、移動平均のトレンド方向を総合判定する複合戦略。複数指標の合意を要求するため取引頻度は少なめですが、ダマシのリスクを下げ、より確度の高いタイミングで売買します。',
         },
+        'day_trade': {
+            'name': 'デイトレード戦略（短期RSI3 + ボリンジャー）',
+            'rule_buy': 'RSI3が20を下抜けかつ価格がBB下限に接近 → 即時リバウンド狙いで買い',
+            'rule_sell': 'RSI3が80を上抜けかつ価格がBB上限に接近 → 即時反落狙いで売り',
+            'description': 'プロのデイトレーダーが使う「超短期RSI(3日)」と「ボリンジャーバンド逆張り」を組み合わせた戦略。1〜2バーで決着する想定で、極端な押し目買い・吹き値売りを狙います。エントリ頻度が高く、レンジ相場で機能しますが、強いトレンドでは負けが続くことがあります。',
+        },
+        'swing': {
+            'name': 'スイングトレード戦略（MA25/MA75 + ADX確認）',
+            'rule_buy': 'MA25がMA75を上抜けかつADX>20（トレンド明確）→ 中期上昇エントリ',
+            'rule_sell': 'MA25がMA75を下抜けかつADX>20（トレンド明確）→ 中期下落エントリ',
+            'description': '数日〜数週間の中期保有を想定したスイング戦略。中期移動平均クロス（MA25/MA75）でトレンド転換を捉え、ADX>20でトレンドの強さを確認してからエントリします。デイトレほど忙しくなく、長期投資よりは機敏に資金を回せる、サラリーマン投資家に人気の手法です。',
+        },
+        'pro_forex': {
+            'name': 'プロ式為替戦略（ADX + MACD + RSI + ATR）',
+            'rule_buy': 'ADX>25（強トレンド）+ MACD強気 + RSI 40-70（過熱前ゾーン）→ 順張り買い',
+            'rule_sell': 'ADX>25（強トレンド）+ MACD弱気 + RSI 30-60（売られ過ぎ前）→ 順張り売り',
+            'description': '為替プロが使う複合判定戦略。ADXで「そもそもトレンドが出てるか」を確認し、MACDで方向、RSIで「過熱しすぎてないか」をチェックします。ATRも参照してボラティリティを見ながらの順張り。レンジ相場ではエントリせず、強いトレンドに乗ることでドローダウンを抑える狙い。',
+        },
+        'ichimoku': {
+            'name': '一目均衡表（基準線ブレイク）',
+            'rule_buy': '価格が26日基準線（高安平均）を上抜け → 雲ブレイク上昇で買い',
+            'rule_sell': '価格が26日基準線を下抜け → 雲ブレイク下降で売り',
+            'description': '日本発の有名指標「一目均衡表」のシンプル版。26日の高値・安値の中値を基準線とし、価格がそれを抜けるとトレンド転換と判断します。雲（先行スパン）を完全に再現する代わりに基準線で代用しており、本物より反応が早めです。',
+        },
+        'stochastic': {
+            'name': 'ストキャスティクス（%K/%D逆張り）',
+            'rule_buy': '%K(14,3)が%Dを売られ過ぎゾーン(<30)で上抜け → 反発狙いで買い',
+            'rule_sell': '%K(14,3)が%Dを買われ過ぎゾーン(>70)で下抜け → 反落狙いで売り',
+            'description': 'ストキャスティクスは過去14日の値幅における現在価格の位置を表す指標。%K（高速）と%D（低速）のクロスで売買タイミングを取り、極端なゾーン（<30 / >70）でのみ動作させることでダマシを減らします。レンジ相場の精度が高い逆張り戦略。',
+        },
     }
     strat = STRATEGY_DESC.get(strategy, STRATEGY_DESC['combined'])
 
@@ -1518,6 +1688,7 @@ def run_backtest(symbol, strategy, period, initial_capital):
         'current_price': round(current_price, 2),
         'market_cap': mc_str,
         'strategy': strategy,
+        'direction': direction,
         'strategy_name': strat['name'],
         'strategy_rule_buy': strat['rule_buy'],
         'strategy_rule_sell': strat['rule_sell'],
@@ -1552,15 +1723,18 @@ def run_backtest(symbol, strategy, period, initial_capital):
 @app.route('/api/backtest', methods=['POST'])
 def backtest_endpoint():
     data = request.get_json()
-    symbol   = (data.get('symbol') or '').strip()
-    strategy = data.get('strategy', 'combined')
-    period   = data.get('period', '2y')
-    capital  = float(data.get('capital', 1000000))
+    symbol    = (data.get('symbol') or '').strip()
+    strategy  = data.get('strategy', 'combined')
+    period    = data.get('period', '2y')
+    capital   = float(data.get('capital', 1000000))
+    direction = data.get('direction', 'long')
+    if direction not in ('long', 'short', 'both'):
+        direction = 'long'
 
     if not symbol:
         return jsonify({'error':'銘柄を指定してください'}), 400
     try:
-        result = run_backtest(symbol, strategy, period, capital)
+        result = run_backtest(symbol, strategy, period, capital, direction=direction)
         if 'error' in result:
             return jsonify(result), 400
         return jsonify(result)
