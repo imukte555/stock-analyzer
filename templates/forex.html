@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>為替（FX）分析ダッシュボード</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:#0d1117; --card:#161b22; --card2:#1c2128; --border:#30363d;
+    --text:#e6edf3; --sub:#8b949e;
+    --buy:#3fb950; --buy-bg:#0a2713;
+    --sell:#f85149; --sell-bg:#2a0d09;
+    --weak-buy:#58a6ff; --weak-sell:#ffa657; --neutral:#8b949e;
+    --gold:#ffd700; --accent:#238636;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Hiragino Sans',sans-serif;min-height:100vh}
+  .header{background:linear-gradient(135deg,#161b22,#0d1117);border-bottom:1px solid var(--border);padding:20px 32px;display:flex;align-items:center;gap:16px}
+  .header-icon{font-size:32px}
+  .header h1{font-size:22px;font-weight:700}
+  .header p{font-size:13px;color:var(--sub)}
+  .header-link{margin-left:auto;color:var(--weak-buy);text-decoration:none;font-size:13px;padding:6px 14px;border:1px solid var(--border);border-radius:20px;transition:all .2s}
+  .header-link:hover{background:var(--card2);border-color:var(--weak-buy)}
+
+  .search-bar{background:var(--card);border-bottom:1px solid var(--border);padding:20px 32px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .search-bar input{flex:1;max-width:260px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 16px;border-radius:8px;font-size:16px;letter-spacing:1px;outline:none}
+  .search-bar input:focus{border-color:var(--weak-buy)}
+  .btn{padding:10px 24px;border-radius:8px;border:none;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
+  .btn-primary{background:#238636;color:#fff}
+  .btn-primary:hover{background:#2ea043}
+  .btn-primary:disabled{background:#333;color:#555;cursor:not-allowed}
+  .quick-btns{display:flex;gap:8px;flex-wrap:wrap}
+  .quick-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--sub);font-size:13px;cursor:pointer;transition:all .2s}
+  .quick-btn:hover{border-color:var(--weak-buy);color:var(--weak-buy)}
+
+  .main{padding:24px 32px;max-width:1400px;margin:0 auto}
+  .loading{text-align:center;padding:80px 20px;color:var(--sub)}
+  .loading-spinner{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--weak-buy);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .error-box{background:var(--sell-bg);border:1px solid var(--sell);border-radius:12px;padding:20px 24px;color:var(--sell);display:flex;gap:12px;align-items:center}
+
+  .verdict-card{border-radius:16px;padding:28px 32px;margin-bottom:24px;border:2px solid;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+  .verdict-card.STRONG_BUY{background:#0a2713;border-color:#3fb950}
+  .verdict-card.BUY{background:#0c2416;border-color:#2ea043}
+  .verdict-card.WEAK_BUY{background:#0d1b2e;border-color:#58a6ff}
+  .verdict-card.NEUTRAL{background:var(--card);border-color:var(--border)}
+  .verdict-card.WEAK_SELL{background:#1f1a0d;border-color:#ffa657}
+  .verdict-card.SELL{background:#1e0d09;border-color:#da3633}
+  .verdict-card.STRONG_SELL{background:#2a0d09;border-color:#f85149}
+  .verdict-emoji{font-size:48px}
+  .verdict-info h2{font-size:24px;margin-bottom:6px}
+  .verdict-info .pair-name{font-size:14px;color:var(--sub);margin-bottom:4px}
+  .verdict-info p{font-size:14px;color:var(--sub)}
+  .price-box{margin-left:auto;text-align:right}
+  .price{font-size:36px;font-weight:800;letter-spacing:-1px}
+  .price-change{font-size:16px;font-weight:600;margin-top:4px}
+  .price-change.pos{color:var(--buy)}
+  .price-change.neg{color:var(--sell)}
+  .pos{color:var(--buy)}
+  .neg{color:var(--sell)}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+  .card-big-title{font-size:14px;color:var(--sub);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+  .section-title{font-size:18px;font-weight:700;margin:24px 0 12px;border-bottom:1px solid var(--border);padding-bottom:8px}
+  .chart-container{height:380px;position:relative}
+  .chart-sm{height:200px;position:relative}
+
+  .ind-card{background:var(--card2);border-left:4px solid;border-radius:8px;padding:14px 18px;margin-bottom:12px}
+  .ind-card.buy{border-left-color:var(--buy)}
+  .ind-card.weak_buy{border-left-color:var(--weak-buy)}
+  .ind-card.neutral{border-left-color:var(--neutral)}
+  .ind-card.weak_sell{border-left-color:var(--weak-sell)}
+  .ind-card.sell{border-left-color:var(--sell)}
+  .ind-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .ind-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
+  .ind-badge.buy{background:var(--buy-bg);color:var(--buy)}
+  .ind-badge.weak_buy{background:#0d1b2e;color:var(--weak-buy)}
+  .ind-badge.neutral{background:#21262d;color:var(--sub)}
+  .ind-badge.weak_sell{background:#1f1a0d;color:var(--weak-sell)}
+  .ind-badge.sell{background:var(--sell-bg);color:var(--sell)}
+  .ind-name{font-size:15px;font-weight:700}
+  .ind-value{font-size:13px;color:var(--sub);line-height:1.6}
+
+  /* タブ */
+  .tab-bar{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto}
+  .tab-btn{padding:12px 24px;background:none;border:none;color:var(--sub);font-size:14px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+  .tab-btn:hover{color:var(--text)}
+  .tab-btn.active{color:var(--weak-buy);border-bottom-color:var(--weak-buy)}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+
+  /* スキャンカード */
+  .scan-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px;cursor:pointer;transition:all .2s;border-left:4px solid;display:flex;flex-direction:column}
+  .scan-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.5);background:var(--card2)}
+  .scan-card.STRONG_BUY{border-left-color:#3fb950}
+  .scan-card.BUY{border-left-color:#2ea043}
+  .scan-card.WEAK_BUY{border-left-color:#58a6ff}
+  .scan-card.NEUTRAL{border-left-color:var(--neutral)}
+  .scan-card.WEAK_SELL{border-left-color:#ffa657}
+  .scan-card.SELL{border-left-color:#da3633}
+  .scan-card.STRONG_SELL{border-left-color:#f85149}
+  .sc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+  .sc-name{font-size:11px;color:var(--sub);line-height:1.3}
+  .sc-symbol{font-size:17px;font-weight:800;line-height:1.2}
+  .sc-price{font-size:18px;font-weight:700;text-align:right}
+  .sc-change{font-size:12px;font-weight:600;text-align:right}
+  .sc-verdict-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .sc-verdict{font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px}
+  .sc-verdict.vSTRONG_BUY,.sc-verdict.vBUY{background:var(--buy-bg);color:var(--buy)}
+  .sc-verdict.vWEAK_BUY{background:#0d1b2e;color:var(--weak-buy)}
+  .sc-verdict.vNEUTRAL{background:#21262d;color:var(--sub)}
+  .sc-verdict.vWEAK_SELL{background:#1f1a0d;color:var(--weak-sell)}
+  .sc-verdict.vSELL,.sc-verdict.vSTRONG_SELL{background:var(--sell-bg);color:var(--sell)}
+  .sc-score{font-size:12px;font-weight:800}
+  .sc-score-bar{height:3px;border-radius:2px;background:var(--border);overflow:hidden;margin-bottom:10px}
+  .sc-score-fill{height:100%;border-radius:2px}
+  .sc-comment{font-size:11px;color:var(--sub);line-height:1.5;margin-bottom:10px;border-left:2px solid var(--border);padding-left:8px}
+  .sc-desc{font-size:11px;color:var(--sub);margin-bottom:10px;padding:5px 8px;background:var(--bg);border-radius:6px;line-height:1.5}
+  .sc-range-wrap{margin-bottom:10px}
+  .sc-range-label{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-bottom:3px}
+  .sc-range-bar{height:6px;border-radius:3px;background:var(--border);position:relative}
+  .sc-range-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#da3633,#ffa657,#3fb950)}
+  .sc-range-dot{position:absolute;top:-3px;width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid var(--weak-buy);transform:translateX(-50%)}
+  .sc-signals{display:flex;gap:3px}
+  .scan-sig{width:26px;height:22px;border-radius:4px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:700}
+  .scan-sig.buy{background:var(--buy-bg);color:var(--buy)}
+  .scan-sig.weak_buy{background:#0d1b2e;color:var(--weak-buy)}
+  .scan-sig.neutral{background:#21262d;color:var(--sub)}
+  .scan-sig.weak_sell{background:#1f1a0d;color:var(--weak-sell)}
+  .scan-sig.sell{background:var(--sell-bg);color:var(--sell)}
+
+  .scan-loading{text-align:center;padding:32px;color:var(--sub)}
+  .filter-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--sub);font-size:12px;cursor:pointer;transition:all .2s}
+  .filter-btn.active,.filter-btn:hover{border-color:var(--weak-buy);color:var(--weak-buy);background:#0d1b2e}
+
+  /* ペアタブ */
+  .pair-tabs-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+  .pair-tab{display:flex;align-items:center;gap:6px;padding:6px 14px;background:var(--card2);border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;transition:all .2s}
+  .pair-tab:hover{background:var(--card)}
+  .pair-tab.active{background:#0d1b2e;border-color:var(--weak-buy);color:var(--weak-buy)}
+  .pair-tab .close-btn{background:none;border:none;color:var(--sub);cursor:pointer;font-size:14px;padding:0;margin-left:4px}
+  .pair-tab .close-btn:hover{color:var(--sell)}
+  .pair-tab .chg{font-weight:700}
+
+  /* 期間セレクター */
+  .period-bar{display:flex;gap:5px;flex-wrap:wrap}
+  .period-btn{padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--sub);font-size:12px;font-weight:600;cursor:pointer}
+  .period-btn:hover{border-color:var(--weak-buy);color:var(--weak-buy)}
+  .period-btn.active{background:#0d1b2e;border-color:var(--weak-buy);color:var(--weak-buy)}
+
+  /* バックテスト */
+  .bt-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+  .bt-field label{display:block;font-size:12px;color:var(--sub);font-weight:600;margin-bottom:5px}
+  .bt-select{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:6px;font-size:14px;width:100%}
+  .bt-metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+  .bt-metric{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+  .bt-metric .lbl{font-size:11px;color:var(--sub);margin-bottom:6px}
+  .bt-metric .val{font-size:22px;font-weight:800}
+  .bt-metric .sub{font-size:11px;color:var(--sub);margin-top:3px}
+  .bt-metric.good .val{color:var(--buy)}
+  .bt-metric.bad  .val{color:var(--sell)}
+  .bt-trade-table{width:100%;border-collapse:collapse;font-size:13px}
+  .bt-trade-table th,.bt-trade-table td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right}
+  .bt-trade-table th{background:var(--card2);color:var(--sub);font-size:11px;font-weight:600}
+  .bt-trade-table th:first-child,.bt-trade-table td:first-child{text-align:left}
+  .bt-trade-table tr.win  td{color:var(--buy)}
+  .bt-trade-table tr.lose td{color:var(--sell)}
+
+  /* 範囲バー */
+  .range-bar-card{background:var(--card2);border-radius:12px;padding:16px 20px;margin-bottom:20px}
+  .range-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px}
+  .range-bar-bg{height:8px;background:linear-gradient(90deg,#3fb950,#ffd700,#f85149);border-radius:4px;position:relative;margin:8px 0}
+  .range-marker{position:absolute;top:-6px;width:4px;height:20px;background:#fff;border-radius:2px;transform:translateX(-50%)}
+  .range-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--sub)}
+
+  .badge-fx{display:inline-block;background:var(--weak-buy);color:#0d1b2e;font-weight:700;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:8px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">💱</div>
+  <div>
+    <h1>為替（FX）分析ダッシュボード</h1>
+    <p>主要通貨ペアのテクニカル分析・スキャン・売買シミュレーション</p>
+  </div>
+  <a href="/" class="header-link">📈 株式版へ</a>
+</div>
+
+<div class="search-bar">
+  <input type="text" id="symbolInput" placeholder="例: USDJPY / EURJPY / EURUSD" autocomplete="off">
+  <button class="btn btn-primary" id="analyzeBtn" onclick="analyze()">🔍 分析する</button>
+  <div class="quick-btns">
+    <span style="font-size:12px;color:var(--sub);margin-right:4px">人気:</span>
+    <button class="quick-btn" onclick="quickSearch('USDJPY')">USD/JPY</button>
+    <button class="quick-btn" onclick="quickSearch('EURJPY')">EUR/JPY</button>
+    <button class="quick-btn" onclick="quickSearch('GBPJPY')">GBP/JPY</button>
+    <button class="quick-btn" onclick="quickSearch('AUDJPY')">AUD/JPY</button>
+    <button class="quick-btn" onclick="quickSearch('EURUSD')">EUR/USD</button>
+    <button class="quick-btn" onclick="quickSearch('GBPUSD')">GBP/USD</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-scan-btn" onclick="switchTab('scan')">🔭 通貨ペアスキャン</button>
+    <button class="tab-btn" id="tab-result-btn" onclick="switchTab('result')">📊 分析結果</button>
+    <button class="tab-btn" id="tab-backtest-btn" onclick="switchTab('backtest')">🧪 売買シミュレーション</button>
+  </div>
+
+  <!-- スキャンパネル -->
+  <div class="tab-panel active" id="panel-scan">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:12px">
+      <div>
+        <span style="font-size:20px;font-weight:700">🔭 通貨ペアスキャン</span>
+        <span style="font-size:12px;color:var(--sub);margin-left:10px" id="scanUpdated"></span>
+      </div>
+      <button class="btn btn-primary" id="scanBtn" onclick="runScan()" style="padding:8px 20px;font-size:14px">▶ スキャン開始</button>
+    </div>
+    <div id="scannerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px"></div>
+  </div>
+
+  <!-- 分析結果パネル -->
+  <div class="tab-panel" id="panel-result">
+    <div class="pair-tabs-bar" id="pairTabsBar" style="display:none"></div>
+    <div id="mainContent">
+      <div style="text-align:center;padding:60px 20px;color:var(--sub)">
+        <div style="font-size:56px;margin-bottom:16px">💱</div>
+        <div style="font-size:16px;margin-bottom:8px">通貨ペアを入力するか、スキャンから選ぼう</div>
+        <div style="font-size:13px">例: USDJPY / EURJPY / EURUSD / GBPUSD</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 売買シミュレーションパネル -->
+  <div class="tab-panel" id="panel-backtest">
+    <div style="font-size:20px;font-weight:700;margin-bottom:6px">🧪 売買シミュレーション（為替バックテスト）</div>
+    <div style="font-size:13px;color:var(--sub);margin-bottom:18px">過去の為替レートに対して、選んだ戦略でロボット売買した場合の成績を計算します。</div>
+    <div class="card" style="padding:18px;margin-bottom:20px">
+      <div class="bt-form-grid">
+        <div class="bt-field">
+          <label>通貨ペア</label>
+          <input type="text" id="btSymbol" placeholder="USDJPY / EURJPY" class="bt-select">
+        </div>
+        <div class="bt-field">
+          <label>戦略</label>
+          <select id="btStrategy" class="bt-select">
+            <option value="combined">🎯 総合（RSI+MACD+MA）</option>
+            <option value="rsi">⚡ RSI逆張り（30/70）</option>
+            <option value="macd">📉 MACDクロス（GC/DC）</option>
+            <option value="ma_cross">📐 移動平均クロス（MA5×MA25）</option>
+            <option value="bollinger">🎯 ボリンジャー逆張り</option>
+          </select>
+        </div>
+        <div class="bt-field">
+          <label>期間</label>
+          <select id="btPeriod" class="bt-select">
+            <option value="1y">過去1年</option>
+            <option value="2y" selected>過去2年</option>
+            <option value="3y">過去3年</option>
+            <option value="5y">過去5年</option>
+          </select>
+        </div>
+        <div class="bt-field">
+          <label>初期資金 (¥)</label>
+          <input type="number" id="btCapital" value="1000000" min="10000" step="100000" class="bt-select">
+        </div>
+        <div class="bt-field" style="display:flex;align-items:flex-end">
+          <button class="btn btn-primary" id="btRunBtn" onclick="runBacktest()" style="width:100%;padding:9px 16px">▶ シミュレーション実行</button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--sub);margin-top:10px">💡 FXは現物のみシミュレーション。レバレッジ・スワップポイント・手数料は考慮しません。</div>
+    </div>
+    <div id="btResult"></div>
+  </div>
+
+</div>
+
+<script>
+const VERDICT_LABELS = {STRONG_BUY:'強い買い 🚀',BUY:'買い 📈',WEAK_BUY:'やや買い 📈',NEUTRAL:'中立 ➡️',WEAK_SELL:'やや売り 📉',SELL:'売り 📉',STRONG_SELL:'強い売り ⚠️'};
+const SIGNAL_LABELS = {buy:'買い',weak_buy:'やや買い',neutral:'中立',weak_sell:'やや売り',sell:'売り'};
+const API = 'http://localhost:5050/api/forex';
+const TABS_STORAGE_KEY = 'forexAnalyzer.openTabs.v1';
+const ACTIVE_TAB_KEY   = 'forexAnalyzer.activeTab.v1';
+const SCAN_STORAGE_KEY = 'forexAnalyzer.scanData.v1';
+
+let priceChart=null, rsiChart=null, macdChart=null, backtestEquityChart=null;
+let allScanResults = [];
+let activeFilter = 'all';
+let activeSort = 'score';
+
+// ペアキャッシュ（複数タブ対応）
+const pairCache = {};
+let activePair = null;
+
+function scoreColor(s){return s>=70?'var(--buy)':s>=55?'var(--weak-buy)':s>=45?'var(--sub)':s>=30?'var(--weak-sell)':'var(--sell)';}
+function fmtPrice(v, digits){return v==null?'—':v.toLocaleString(undefined,{minimumFractionDigits:digits,maximumFractionDigits:digits});}
+
+function switchTab(name){
+  ['scan','result','backtest'].forEach(t=>{
+    const p=document.getElementById('panel-'+t); const b=document.getElementById('tab-'+t+'-btn');
+    if(p)p.classList.toggle('active', t===name);
+    if(b)b.classList.toggle('active', t===name);
+  });
+}
+
+function quickSearch(s){document.getElementById('symbolInput').value=s; analyze();}
+document.getElementById('symbolInput').addEventListener('keydown', e=>{if(e.key==='Enter')analyze();});
+
+// ─── タブ管理 ───
+function savePairs(){
+  try{
+    localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(Object.keys(pairCache)));
+    if(activePair) localStorage.setItem(ACTIVE_TAB_KEY, activePair);
+    else localStorage.removeItem(ACTIVE_TAB_KEY);
+  }catch(e){}
+}
+
+async function restorePairs(){
+  let symbols=[]; let active=null;
+  try{
+    symbols = JSON.parse(localStorage.getItem(TABS_STORAGE_KEY)||'[]');
+    active = localStorage.getItem(ACTIVE_TAB_KEY);
+  }catch(e){}
+  if(!symbols.length) return;
+  const bar = document.getElementById('pairTabsBar');
+  bar.style.display='flex';
+  bar.innerHTML = `<div style="color:var(--sub);font-size:12px;padding:6px 10px">📂 前回のタブを復元中...</div>`;
+  for(const sym of symbols){
+    try{
+      const r = await fetch(API+'/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol:sym.replace('=X','')})});
+      if(!r.ok) continue;
+      const d = await r.json();
+      pairCache[d.symbol] = d;
+    }catch(e){}
+  }
+  const cached = Object.keys(pairCache);
+  if(cached.length){
+    activePair = (active && pairCache[active]) ? active : cached[cached.length-1];
+    renderPairTabs();
+    renderResult(pairCache[activePair], false);
+    switchTab('result');
+  }else{ bar.style.display='none'; bar.innerHTML=''; }
+}
+
+function renderPairTabs(){
+  const bar = document.getElementById('pairTabsBar');
+  const syms = Object.keys(pairCache);
+  if(!syms.length){bar.style.display='none'; return;}
+  bar.style.display='flex';
+  bar.innerHTML = syms.map(sym=>{
+    const d = pairCache[sym];
+    const chg = d.price_change ?? 0;
+    const sign = chg>=0?'+':'';
+    const cls = chg>=0?'pos':'neg';
+    const isAct = sym === activePair;
+    const display = sym.replace('=X','');
+    return `<div class="pair-tab ${isAct?'active':''}" onclick="switchPairTab('${sym}')">
+      <span>${display}</span>
+      <span class="chg ${cls}">${sign}${chg}%</span>
+      <button class="close-btn" onclick="event.stopPropagation();closePairTab('${sym}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function switchPairTab(sym){
+  activePair = sym; renderPairTabs(); renderResult(pairCache[sym], false); savePairs();
+}
+
+function closePairTab(sym){
+  delete pairCache[sym];
+  if(priceChart){priceChart.destroy(); priceChart=null;}
+  if(rsiChart){rsiChart.destroy(); rsiChart=null;}
+  if(macdChart){macdChart.destroy(); macdChart=null;}
+  const remaining = Object.keys(pairCache);
+  if(!remaining.length){
+    activePair = null; renderPairTabs();
+    document.getElementById('mainContent').innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--sub)"><div style="font-size:56px;margin-bottom:16px">💱</div>通貨ペアを入力して分析を開始</div>`;
+    savePairs();
+  }else{ switchPairTab(remaining[remaining.length-1]); }
+}
+
+// ─── 分析 ───
+async function analyze(){
+  const symbol = document.getElementById('symbolInput').value.trim();
+  if(!symbol){alert('通貨ペアを入力してください'); return;}
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled=true; btn.textContent='取得中...';
+  if(priceChart){priceChart.destroy();priceChart=null;}
+  if(rsiChart){rsiChart.destroy();rsiChart=null;}
+  if(macdChart){macdChart.destroy();macdChart=null;}
+  document.getElementById('mainContent').innerHTML = `<div class="loading"><div class="loading-spinner"></div><div>${symbol} のFXデータを分析中...</div></div>`;
+  try{
+    const r = await fetch(API+'/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol})});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error||'エラー');
+    pairCache[d.symbol] = d;
+    activePair = d.symbol;
+    renderPairTabs();
+    renderResult(d, false);
+    savePairs();
+    switchTab('result');
+  }catch(e){
+    document.getElementById('mainContent').innerHTML = `<div class="error-box">⚠️ ${e.message}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent='🔍 分析する';
+  }
+}
+
+function renderResult(d, updateTabs=true){
+  if(updateTabs){pairCache[d.symbol]=d; activePair=d.symbol; renderPairTabs(); savePairs();}
+  const {symbol, pair_name, pair_desc, price, price_change, verdict, score, indicators:ind, chart, rsi_chart, macd_chart, updated_at, digits, week52_high, week52_low, pivot_points:pp, support_resistance:sr, volatility:vol} = d;
+  const sc = scoreColor(score);
+  const vLabel = VERDICT_LABELS[verdict]||verdict;
+  const chgCls = price_change>=0?'pos':'neg';
+  const chgSign = price_change>=0?'+':'';
+
+  // 52週レンジ
+  let rangeHTML = '';
+  if(week52_high && week52_low && week52_high > week52_low){
+    const pos = ((price - week52_low)/(week52_high-week52_low))*100;
+    const cl = Math.max(2, Math.min(98, pos));
+    rangeHTML = `<div class="range-bar-card">
+      <div class="range-title">📊 52週レンジ内の現在位置</div>
+      <div class="range-bar-bg"><div class="range-marker" style="left:${cl}%"></div></div>
+      <div class="range-labels"><span>安値 ${fmtPrice(week52_low,digits)}</span><span style="color:var(--gold);font-weight:700">現在 ${pos.toFixed(0)}%</span><span>高値 ${fmtPrice(week52_high,digits)}</span></div>
+    </div>`;
+  }
+
+  const indCard = (label, icon, k) => {
+    const x = ind[k];
+    if(!x) return '';
+    const desc = x.desc || '';
+    let valTxt = '';
+    if (x.value != null) valTxt = ` 値: ${x.value}`;
+    return `<div class="ind-card ${x.signal}">
+      <div class="ind-row">
+        <span class="ind-badge ${x.signal}">${SIGNAL_LABELS[x.signal]||x.signal}</span>
+        <span class="ind-name">${icon} ${label}</span>
+      </div>
+      <div class="ind-value">${desc}${valTxt}</div>
+    </div>`;
+  };
+
+  // ピボット & サポレジHTML
+  let pivotHTML = '';
+  if (pp) {
+    pivotHTML = `
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-big-title">🎯 ピボット & 主要サポレジ</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:13px">
+          <div>
+            <div style="color:var(--sub);font-size:11px;margin-bottom:6px">📊 ピボットポイント（デイトレ用）</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="color:var(--sell)"><b>R3</b> 抵抗 <span style="float:right">${fmtPrice(pp.r3, digits)}</span></div>
+              <div style="color:var(--sell)"><b>R2</b> 抵抗 <span style="float:right">${fmtPrice(pp.r2, digits)}</span></div>
+              <div style="color:var(--weak-sell)"><b>R1</b> 抵抗 <span style="float:right">${fmtPrice(pp.r1, digits)}</span></div>
+              <div style="color:var(--gold);font-weight:700;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px 0"><b>P</b> ピボット <span style="float:right">${fmtPrice(pp.pivot, digits)}</span></div>
+              <div style="color:var(--weak-buy)"><b>S1</b> 支持 <span style="float:right">${fmtPrice(pp.s1, digits)}</span></div>
+              <div style="color:var(--buy)"><b>S2</b> 支持 <span style="float:right">${fmtPrice(pp.s2, digits)}</span></div>
+              <div style="color:var(--buy)"><b>S3</b> 支持 <span style="float:right">${fmtPrice(pp.s3, digits)}</span></div>
+            </div>
+          </div>
+          <div>
+            <div style="color:var(--sub);font-size:11px;margin-bottom:6px">📍 30日間スイング高安・ボラ</div>
+            ${sr ? `
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="background:var(--card2);padding:10px 12px;border-radius:6px;border-left:3px solid var(--sell)">
+                  <div style="font-size:11px;color:var(--sub)">30日高値</div>
+                  <div style="font-size:16px;font-weight:700">${fmtPrice(sr.recent_high_30d, digits)}</div>
+                  <div style="font-size:11px;color:var(--sub)">現在から +${sr.distance_to_high_pips} pips</div>
+                </div>
+                <div style="background:var(--card2);padding:10px 12px;border-radius:6px;border-left:3px solid var(--buy)">
+                  <div style="font-size:11px;color:var(--sub)">30日安値</div>
+                  <div style="font-size:16px;font-weight:700">${fmtPrice(sr.recent_low_30d, digits)}</div>
+                  <div style="font-size:11px;color:var(--sub)">現在から -${sr.distance_to_low_pips} pips</div>
+                </div>
+              </div>
+            ` : ''}
+            ${vol ? `
+              <div style="margin-top:10px;background:var(--card2);padding:10px 12px;border-radius:6px">
+                <div style="font-size:11px;color:var(--sub);margin-bottom:3px">📐 ボラティリティ</div>
+                <div style="font-size:13px">ATR(14): <b>${vol.atr_pips} pips</b></div>
+                <div style="font-size:13px">平均日次レンジ: <b>${vol.avg_daily_range_pips} pips</b></div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="verdict-card ${verdict}">
+      <div class="verdict-emoji">💱</div>
+      <div class="verdict-info">
+        <div class="pair-name">${symbol.replace('=X','')}</div>
+        <h2>${pair_name||symbol}</h2>
+        <p>${pair_desc||''}</p>
+      </div>
+      <div class="price-box">
+        <div class="price">${fmtPrice(price, digits)}</div>
+        <div class="price-change ${chgCls}">${chgSign}${price_change}% ${vLabel}</div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px">スコア: <b style="color:${sc}">${score}pt</b></div>
+      </div>
+    </div>
+
+    ${rangeHTML}
+
+    <div class="section-title">⚡ 売買アクションプラン</div>
+    <div id="actionPlanArea">
+      <div style="text-align:center;padding:32px;color:var(--sub)">
+        <div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;border-width:2px"></div>
+        具体的な売買戦略を計算中...
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div class="section-title" style="margin-bottom:0">📊 チャート</div>
+      <div class="period-bar">
+        ${[['1mo','1ヶ月'],['3mo','3ヶ月'],['6mo','6ヶ月'],['1y','1年'],['2y','2年'],['5y','5年']].map(([p,l])=>
+          `<button class="period-btn${p==='6mo'?' active':''}" onclick="changePeriod('${p}')">${l}</button>`
+        ).join('')}
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-big-title">🕯️ 価格 + ボリンジャーバンド + 移動平均</div>
+      <div class="chart-container"><canvas id="priceChart"></canvas></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-big-title">⚡ RSI (14)</div>
+        <div class="chart-sm"><canvas id="rsiChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-big-title">📉 MACD</div>
+        <div class="chart-sm"><canvas id="macdChart"></canvas></div>
+      </div>
+    </div>
+
+    ${pivotHTML}
+
+    <div class="section-title">🔬 テクニカル指標</div>
+    <div class="grid-2">
+      <div>
+        ${indCard('RSI（14）', '⚡', 'rsi')}
+        ${indCard('MACD', '📉', 'macd')}
+        ${indCard('Stochastic（短期過熱感）', '🌡️', 'stoch')}
+      </div>
+      <div>
+        ${indCard('ボリンジャーバンド', '🎯', 'bollinger')}
+        ${indCard('移動平均線（MA5/25/75）', '📐', 'ma')}
+        ${indCard('ATR（ボラティリティ）', '📊', 'atr')}
+        ${indCard('ADX（トレンド強度）', '💪', 'adx')}
+      </div>
+    </div>
+
+    <div class="section-title">🧠 詳細為替考察</div>
+    <div id="deepAnalysisArea">
+      <div style="text-align:center;padding:32px;color:var(--sub)">
+        <div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;border-width:2px"></div>
+        金利差・ボラティリティ・取引シナリオを生成中...
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:var(--sub);margin-top:14px">最終更新: ${updated_at}</div>
+  `;
+
+  drawPriceChart(chart, digits);
+  drawRsiChart(rsi_chart);
+  drawMacdChart(macd_chart);
+  fetchForexActionPlan(d);
+  fetchForexDeepAnalysis(d);
+}
+
+async function fetchForexActionPlan(d){
+  const area = document.getElementById('actionPlanArea');
+  if(!area) return;
+  try{
+    const r = await fetch(API+'/action_plan',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        symbol: d.symbol, indicators: d.indicators, verdict: d.verdict, score: d.score,
+        price: d.price, week52_high: d.week52_high, week52_low: d.week52_low,
+        pivot_points: d.pivot_points, digits: d.digits
+      })
+    });
+    if(!r.ok) throw new Error('取得失敗');
+    const plan = await r.json();
+    renderForexActionPlan(plan, area, d.digits);
+  }catch(e){
+    area.innerHTML = `<div style="color:var(--sub);padding:12px;font-size:13px">アクションプラン取得失敗: ${e.message}</div>`;
+  }
+}
+
+function renderForexActionPlan(p, area, digits){
+  const cBg = {buy:'#0a2713', weak_buy:'#0d1b2e', neutral:'#21262d', weak_sell:'#1f1a0d', sell:'#2a0d09'}[p.action_color] || '#21262d';
+  const cBd = {buy:'#3fb950', weak_buy:'#58a6ff', neutral:'#8b949e', weak_sell:'#ffa657', sell:'#f85149'}[p.action_color] || '#8b949e';
+  const cTx = {buy:'var(--buy)', weak_buy:'var(--weak-buy)', neutral:'var(--sub)', weak_sell:'var(--weak-sell)', sell:'var(--sell)'}[p.action_color] || 'var(--text)';
+  const confBg = {A:'#0a2713', B:'#0d1b2e', C:'#21262d'}[p.confidence];
+  const confColor = {A:'var(--buy)', B:'var(--weak-buy)', C:'var(--sub)'}[p.confidence];
+
+  const fmt = v => v==null?'—':v.toLocaleString(undefined,{minimumFractionDigits:digits,maximumFractionDigits:digits});
+
+  const tpHTML = p.take_profits.map((tp,i) => `
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:${i<p.take_profits.length-1?'1px dashed var(--border)':'none'}">
+      <div>
+        <div style="font-weight:700;color:var(--buy)">${tp.label}</div>
+        <div style="font-size:11px;color:var(--sub)">リスクリワード ${tp.rr}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-weight:800;font-size:16px;color:var(--buy)">${fmt(tp.price)}</div>
+        <div style="font-size:11px;color:var(--buy)">${tp.pct>=0?'+':''}${tp.pct}%</div>
+      </div>
+    </div>
+  `).join('');
+
+  const posHTML = p.position_sizing.map(ps => `
+    <div style="background:var(--card2);border-radius:8px;padding:10px 14px;margin-bottom:6px">
+      <div style="font-size:11px;color:var(--sub);margin-bottom:3px">口座 ¥${ps.account.toLocaleString()} の場合</div>
+      <div style="font-size:13px;line-height:1.6">
+        🟡 リスク1%: <b>${ps.risk_1pct_label}</b><br>
+        🔴 リスク2%: <b>${ps.risk_2pct_label}</b><br>
+        <span style="font-size:11px;color:var(--sub)">損切り幅: ${ps.sl_distance}</span>
+      </div>
+    </div>
+  `).join('');
+
+  area.innerHTML = `
+    <div style="background:${cBg};border:2px solid ${cBd};border-radius:14px;padding:24px;margin-bottom:18px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:12px">
+        <div>
+          <div style="font-size:11px;color:var(--sub);margin-bottom:6px">推奨アクション</div>
+          <div style="font-size:30px;font-weight:800;color:${cTx};line-height:1.2">${p.action_label}</div>
+          <div style="font-size:13px;color:var(--sub);margin-top:6px">
+            戦略: <b>${p.strategy_type}</b> / 想定保有: <b>${p.holding_period}</b>
+          </div>
+        </div>
+        <div style="text-align:center;background:${confBg};border:1px solid ${confColor};border-radius:50%;width:64px;height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <div style="font-size:22px;font-weight:800;color:${confColor}">${p.confidence}</div>
+          <div style="font-size:9px;color:var(--sub)">信頼度</div>
+        </div>
+      </div>
+      <div style="font-size:14px;line-height:1.7;background:rgba(0,0,0,0.2);border-radius:8px;padding:12px 14px;margin-top:8px">
+        💬 ${p.summary}
+      </div>
+      <div style="font-size:11px;color:var(--sub);margin-top:8px">📌 ${p.confidence_reason}</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:18px">
+      <div class="card" style="border-left:4px solid var(--weak-buy)">
+        <div style="font-size:12px;color:var(--sub);margin-bottom:8px">📥 エントリー条件</div>
+        <div style="font-size:24px;font-weight:800;margin-bottom:6px">${fmt(p.entry_price)}</div>
+        <div style="font-size:12px;color:var(--sub);margin-bottom:10px;line-height:1.5">${p.entry_condition}</div>
+        <div style="font-size:12px;line-height:1.7">${p.entry_checklist.map(c=>`<div>${c}</div>`).join('')}</div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--sell)">
+        <div style="font-size:12px;color:var(--sub);margin-bottom:8px">❌ 損切りライン</div>
+        <div style="font-size:24px;font-weight:800;color:var(--sell);margin-bottom:6px">${fmt(p.stop_loss)}</div>
+        ${p.stop_loss_reason?`<div style="font-size:12px;color:var(--sub);margin-bottom:10px">根拠: ${p.stop_loss_reason}</div>`:''}
+        <div style="font-size:12px;color:var(--sub);line-height:1.5">
+          ${p.entry_price && p.stop_loss ? `この価格を超えたら<b>即時撤退</b>。損失幅: <b>${(Math.abs((p.stop_loss-p.entry_price)/p.entry_price*100)).toFixed(2)}%</b>` : '損切りラインを必ず守る'}
+        </div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--buy)">
+        <div style="font-size:12px;color:var(--sub);margin-bottom:8px">🎯 利確ライン（3段階）</div>
+        ${p.take_profits.length?tpHTML:'<div style="color:var(--sub);font-size:13px">エントリー成立後に計算</div>'}
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-big-title">💼 ポジションサイズ目安（リスク管理）</div>
+      <div style="font-size:11px;color:var(--sub);margin-bottom:10px">資金管理の鉄則: 1取引の損失リスクを口座資金の 1〜2% に抑える。</div>
+      ${posHTML}
+    </div>
+
+    <div class="card" style="margin-bottom:20px;border-left:4px solid var(--weak-sell)">
+      <div class="card-big-title">🚪 撤退・利確のシグナル</div>
+      <div style="font-size:13px;line-height:1.9">${p.exit_conditions.map(c=>`<div style="margin-bottom:4px">${c}</div>`).join('')}</div>
+    </div>
+  `;
+}
+
+async function fetchForexDeepAnalysis(d){
+  const area = document.getElementById('deepAnalysisArea');
+  if(!area) return;
+  try{
+    const r = await fetch(API+'/deep_analysis',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        symbol: d.symbol, indicators: d.indicators,
+        pivot_points: d.pivot_points, support_resistance: d.support_resistance,
+        volatility: d.volatility, verdict: d.verdict, score: d.score,
+        week52_high: d.week52_high, week52_low: d.week52_low,
+        price: d.price, digits: d.digits
+      })
+    });
+    if(!r.ok) throw new Error('取得失敗');
+    const data = await r.json();
+    renderForexDeepAnalysis(data.sections, area);
+  }catch(e){
+    area.innerHTML = `<div style="color:var(--sub);font-size:13px;padding:12px">詳細考察の取得に失敗: ${e.message}</div>`;
+  }
+}
+
+function renderForexDeepAnalysis(sections, area){
+  if(!sections || !sections.length){
+    area.innerHTML = `<div style="color:var(--sub);padding:12px">考察データなし</div>`;
+    return;
+  }
+  area.innerHTML = sections.map(s=>`
+    <div style="margin-bottom:20px">
+      <div style="font-size:15px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:8px">${s.title}</div>
+      <div style="background:var(--card2);border-radius:10px;padding:16px 18px;font-size:14px;line-height:1.9;white-space:pre-wrap">${s.content}</div>
+    </div>
+  `).join('');
+}
+
+function drawPriceChart(data, digits=4){
+  const ctx = document.getElementById('priceChart').getContext('2d');
+  const labels = data.map(d=>d.date);
+  if(priceChart) priceChart.destroy();
+  priceChart = new Chart(ctx, {
+    type:'line',
+    data:{labels, datasets:[
+      {label:'終値', data:data.map(d=>d.close), borderColor:'#58a6ff', backgroundColor:'rgba(88,166,255,.1)', borderWidth:2, fill:false, tension:.2, pointRadius:0},
+      {label:'BB上限', data:data.map(d=>d.bb_upper), borderColor:'#f85149', borderDash:[4,4], borderWidth:1, fill:false, pointRadius:0},
+      {label:'BB下限', data:data.map(d=>d.bb_lower), borderColor:'#3fb950', borderDash:[4,4], borderWidth:1, fill:false, pointRadius:0},
+      {label:'MA25', data:data.map(d=>d.ma25), borderColor:'#ffa657', borderWidth:1.5, fill:false, pointRadius:0},
+      {label:'MA75', data:data.map(d=>d.ma75), borderColor:'#d2a8ff', borderWidth:1.5, fill:false, pointRadius:0},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#e6edf3'}}},scales:{x:{ticks:{color:'#8b949e',maxTicksLimit:10},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e',callback:v=>v.toFixed(digits)},grid:{color:'#21262d'}}}}
+  });
+}
+
+function drawRsiChart(data){
+  const ctx = document.getElementById('rsiChart').getContext('2d');
+  if(rsiChart) rsiChart.destroy();
+  rsiChart = new Chart(ctx, {
+    type:'line',
+    data:{labels:data.map(d=>d.date), datasets:[{label:'RSI', data:data.map(d=>d.value), borderColor:'#58a6ff', borderWidth:2, fill:false, tension:.2, pointRadius:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e',maxTicksLimit:6},grid:{color:'#21262d'}},y:{min:0,max:100,ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}
+  });
+}
+
+function drawMacdChart(data){
+  const ctx = document.getElementById('macdChart').getContext('2d');
+  if(macdChart) macdChart.destroy();
+  macdChart = new Chart(ctx, {
+    type:'line',
+    data:{labels:data.map(d=>d.date), datasets:[
+      {label:'MACD', data:data.map(d=>d.macd), borderColor:'#58a6ff', borderWidth:2, fill:false, tension:.2, pointRadius:0},
+      {label:'シグナル', data:data.map(d=>d.signal), borderColor:'#ffa657', borderWidth:2, fill:false, tension:.2, pointRadius:0},
+      {type:'bar', label:'ヒストグラム', data:data.map(d=>d.hist), backgroundColor:data.map(d=>d.hist>=0?'rgba(63,185,80,.4)':'rgba(248,81,73,.4)')}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#e6edf3'}}},scales:{x:{ticks:{color:'#8b949e',maxTicksLimit:6},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}
+  });
+}
+
+// 期間切替
+let currentChartPeriod = '6mo';
+async function changePeriod(period){
+  currentChartPeriod = period;
+  const LBL = {'1mo':'1ヶ月','3mo':'3ヶ月','6mo':'6ヶ月','1y':'1年','2y':'2年','5y':'5年'};
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.toggle('active', b.textContent===LBL[period]));
+  if(!activePair) return;
+  if(priceChart){priceChart.destroy();priceChart=null;}
+  if(rsiChart){rsiChart.destroy();rsiChart=null;}
+  if(macdChart){macdChart.destroy();macdChart=null;}
+  try{
+    const r = await fetch(API+'/chart',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol:activePair.replace('=X',''),period})});
+    if(!r.ok) throw new Error('取得失敗');
+    const d = await r.json();
+    const digits = pairCache[activePair]?.digits || 4;
+    drawPriceChart(d.chart, digits);
+    drawRsiChart(d.rsi_chart);
+    drawMacdChart(d.macd_chart);
+  }catch(e){console.error(e);}
+}
+
+// ─── スキャン ───
+async function runScan(){
+  const btn = document.getElementById('scanBtn');
+  const grid = document.getElementById('scannerGrid');
+  btn.disabled=true; btn.textContent='⏳ スキャン中...';
+  grid.innerHTML = `<div class="scan-loading" style="grid-column:1/-1"><div class="loading-spinner" style="margin:0 auto 12px"></div>主要通貨ペアを分析中...</div>`;
+  try{
+    const r = await fetch(API+'/scan');
+    const d = await r.json();
+    allScanResults = d.pairs;
+    document.getElementById('scanUpdated').textContent = '更新: '+d.updated_at;
+    renderScanFilter();
+    renderScanGrid(allScanResults);
+    try{ localStorage.setItem(SCAN_STORAGE_KEY, JSON.stringify(d)); }catch(e){}
+  }catch(e){
+    grid.innerHTML = `<div style="color:var(--sell);padding:20px;grid-column:1/-1">スキャン失敗: ${e.message}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent='🔄 再スキャン';
+  }
+}
+
+function restoreScan(){
+  try{
+    const raw = localStorage.getItem(SCAN_STORAGE_KEY);
+    if(!raw) return;
+    const d = JSON.parse(raw);
+    if(!d.pairs || !d.pairs.length) return;
+    allScanResults = d.pairs;
+    document.getElementById('scanUpdated').textContent = '前回スキャン: '+d.updated_at;
+    renderScanFilter();
+    applyFilter();
+    document.getElementById('scanBtn').textContent = '🔄 再スキャン';
+  }catch(e){}
+}
+
+function renderScanFilter(){
+  const exist = document.getElementById('scanFilterBar');
+  if(exist) exist.remove();
+  const wrap = document.createElement('div');
+  wrap.id = 'scanFilterBar';
+  wrap.style.cssText='margin-bottom:14px';
+  const filterRow = document.createElement('div');
+  filterRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px';
+  const fl = document.createElement('span');
+  fl.style.cssText='font-size:12px;color:var(--sub);font-weight:600;margin-right:4px';
+  fl.textContent='🔍 絞り込み:';
+  filterRow.appendChild(fl);
+  [{k:'all',l:'全て'},{k:'jpy',l:'🇯🇵 円ペア'},{k:'usd',l:'🇺🇸 ドルストレート'},{k:'cross',l:'🌐 クロス'},{k:'buy',l:'🟢 買い系'},{k:'sell',l:'🔴 売り系'}].forEach(f=>{
+    const b = document.createElement('button');
+    b.className = 'filter-btn'+(activeFilter===f.k?' active':'');
+    b.textContent = f.l;
+    b.onclick = ()=>{activeFilter=f.k; renderScanFilter(); applyFilter();};
+    filterRow.appendChild(b);
+  });
+  const sortRow = document.createElement('div');
+  sortRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:center';
+  const sl = document.createElement('span');
+  sl.style.cssText='font-size:12px;color:var(--sub);font-weight:600;margin-right:4px';
+  sl.textContent='📊 並び順:';
+  sortRow.appendChild(sl);
+  [{k:'score',l:'⭐ 買いスコア順'},{k:'change_high',l:'🔥 値上がり順'},{k:'change_low',l:'❄️ 値下がり順'},{k:'w52_low',l:'🛒 52週安値近い順'},{k:'w52_high',l:'🚀 52週高値近い順'}].forEach(s=>{
+    const b = document.createElement('button');
+    b.className = 'filter-btn'+(activeSort===s.k?' active':'');
+    b.textContent = s.l;
+    b.onclick = ()=>{activeSort=s.k; renderScanFilter(); applyFilter();};
+    sortRow.appendChild(b);
+  });
+  wrap.appendChild(filterRow); wrap.appendChild(sortRow);
+  document.getElementById('panel-scan').insertBefore(wrap, document.getElementById('scannerGrid'));
+}
+
+function applyFilter(){
+  let f = allScanResults.slice();
+  // 絞り込み
+  if(activeFilter==='jpy') f = f.filter(p=>p.symbol.includes('JPY'));
+  else if(activeFilter==='usd') f = f.filter(p=>p.symbol.includes('USD') && !p.symbol.includes('JPY'));
+  else if(activeFilter==='cross') f = f.filter(p=>!p.symbol.includes('USD') && !p.symbol.includes('JPY'));
+  else if(activeFilter==='buy') f = f.filter(p=>p.verdict.includes('BUY'));
+  else if(activeFilter==='sell') f = f.filter(p=>p.verdict.includes('SELL'));
+  // ソート
+  switch(activeSort){
+    case 'change_high': f.sort((a,b)=>(b.change??0)-(a.change??0)); break;
+    case 'change_low':  f.sort((a,b)=>(a.change??0)-(b.change??0)); break;
+    case 'w52_low':     f = f.filter(p=>p.w52_pos!=null).sort((a,b)=>a.w52_pos-b.w52_pos); break;
+    case 'w52_high':    f = f.filter(p=>p.w52_pos!=null).sort((a,b)=>b.w52_pos-a.w52_pos); break;
+    default:            f.sort((a,b)=>b.score-a.score);
+  }
+  renderScanGrid(f);
+}
+
+function renderScanGrid(pairs){
+  const grid = document.getElementById('scannerGrid');
+  const SIG_ICONS = {buy:'買',weak_buy:'↑',neutral:'→',weak_sell:'↓',sell:'売'};
+  const SIG_FULL = {rsi:'RSI', macd:'MACD', bb:'ボリンジャー', ma:'移動平均'};
+  grid.innerHTML = pairs.map(p=>{
+    const chgCls = p.change>=0?'pos':'neg';
+    const chgSign = p.change>=0?'+':'';
+    const vLabel = VERDICT_LABELS[p.verdict]||p.verdict;
+    const sc = scoreColor(p.score);
+    const sigHTML = Object.entries(p.signals).map(([k,v])=>
+      `<div class="scan-sig ${v}" title="${SIG_FULL[k]||k}: ${SIGNAL_LABELS[v]||v}">${SIG_ICONS[v]||'?'}</div>`
+    ).join('');
+    let rangeHTML = '';
+    if(p.w52_pos!=null){
+      const pos = Math.max(2, Math.min(98, p.w52_pos));
+      rangeHTML = `<div class="sc-range-wrap">
+        <div class="sc-range-label"><span>52週安値</span><span style="font-weight:700;color:${sc}">${p.w52_pos}%</span><span>52週高値</span></div>
+        <div class="sc-range-bar"><div class="sc-range-fill" style="width:100%"></div><div class="sc-range-dot" style="left:${pos}%"></div></div>
+      </div>`;
+    }
+    const display = p.symbol.replace('=X','');
+    return `<div class="scan-card ${p.verdict}" onclick="quickSearch('${display}')">
+      <div class="sc-header">
+        <div><div class="sc-name">${p.name}</div><div class="sc-symbol">${display}</div></div>
+        <div><div class="sc-price">${fmtPrice(p.price, p.digits||4)}</div><div class="sc-change ${chgCls}">${chgSign}${p.change}%</div></div>
+      </div>
+      <div class="sc-verdict-row">
+        <span class="sc-verdict v${p.verdict}">${vLabel}</span>
+        <span class="sc-score" style="color:${sc}">${p.score}pt</span>
+      </div>
+      <div class="sc-score-bar"><div class="sc-score-fill" style="width:${p.score}%;background:${sc}"></div></div>
+      ${p.comment?`<div class="sc-comment">${p.comment}</div>`:''}
+      ${p.desc?`<div class="sc-desc">💡 ${p.desc}</div>`:''}
+      ${rangeHTML}
+      <div class="sc-signals">${sigHTML}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── バックテスト ───
+async function runBacktest(){
+  const symbol = document.getElementById('btSymbol').value.trim();
+  const strategy = document.getElementById('btStrategy').value;
+  const period = document.getElementById('btPeriod').value;
+  const capital = parseInt(document.getElementById('btCapital').value)||1000000;
+  const btn = document.getElementById('btRunBtn');
+  const out = document.getElementById('btResult');
+  if(!symbol){alert('通貨ペアを入力してください');return;}
+  btn.disabled=true; btn.textContent='⏳ 計算中...';
+  out.innerHTML = `<div style="text-align:center;padding:40px;color:var(--sub)"><div class="loading-spinner" style="margin:0 auto 12px"></div>過去のレートで売買をシミュレーション中...</div>`;
+  if(backtestEquityChart){backtestEquityChart.destroy(); backtestEquityChart=null;}
+  try{
+    const r = await fetch(API+'/backtest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol,strategy,period,capital})});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error||'エラー');
+    renderBacktest(d);
+  }catch(e){
+    out.innerHTML = `<div class="error-box">⚠️ ${e.message}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent='▶ シミュレーション実行';
+  }
+}
+
+function renderBacktest(d){
+  const out = document.getElementById('btResult');
+  const yen = n=>'¥'+Math.round(n).toLocaleString();
+  const pct = (n,plus=true)=>(plus&&n>=0?'+':'')+n.toFixed(2)+'%';
+  const md = s=>s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  const tCls = d.total_return_pct>=0?'good':'bad';
+  const aCls = d.annual_return_pct>=0?'good':'bad';
+  const vCls = d.vs_bh_pct>=0?'good':'bad';
+  const wCls = d.win_rate>=50?'good':(d.win_rate<30 && d.trade_count>0?'bad':'');
+  let verdict = '';
+  if(d.vs_bh_pct>5) verdict='🏆 戦略がBuy&Holdを大きく上回りました！';
+  else if(d.vs_bh_pct>0) verdict='✅ 戦略がBuy&Holdをわずかに上回りました。';
+  else if(d.vs_bh_pct>-5) verdict='⚖️ 戦略はBuy&Holdとほぼ同等。';
+  else verdict='❌ 戦略はBuy&Holdに劣りました。この通貨ペアではBuy&Holdが有効。';
+
+  const tradesHTML = d.trades.length?`
+    <table class="bt-trade-table"><thead><tr>
+      <th>#</th><th>買日</th><th>買値</th><th>売日</th><th>売値</th><th>口数</th><th>保有日数</th><th>損益</th><th>%</th><th style="text-align:left">買/売 理由</th>
+    </tr></thead><tbody>
+      ${d.trades.slice().reverse().slice(0,20).map((t,i)=>{
+        const idx = d.trades.length-i;
+        return `<tr class="${t.win?'win':'lose'}">
+          <td>${idx}</td><td>${t.buy_date}</td><td>${t.buy_price}</td>
+          <td>${t.sell_date}</td><td>${t.sell_price}</td>
+          <td>${t.shares.toLocaleString()}</td><td>${t.holding_days||0}日</td>
+          <td>${t.profit>=0?'+':''}${yen(t.profit)}</td><td>${pct(t.profit_pct)}</td>
+          <td style="text-align:left"><div style="font-size:11px;color:var(--sub);max-width:280px;line-height:1.4">
+            <div>📥 ${t.buy_reason||'—'}</div><div>📤 ${t.sell_reason||'—'}</div>
+          </div></td>
+        </tr>`;
+      }).join('')}
+    </tbody></table>
+    ${d.trades.length>20?`<div style="font-size:11px;color:var(--sub);text-align:right;margin-top:6px">最新20件のみ表示（全${d.trades.length}件）</div>`:''}
+  `:`<div style="color:var(--sub);padding:20px;text-align:center">この期間中、シグナルが発生せず取引がありませんでした</div>`;
+
+  const display = d.symbol.replace('=X','');
+  out.innerHTML = `
+    <div class="card" style="padding:18px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:13px;color:var(--sub)">${display}<span class="badge-fx">為替</span></div>
+          <div style="font-size:22px;font-weight:800;margin:2px 0 6px">${d.company_name}</div>
+          <div style="font-size:13px;color:var(--sub)">${d.industry_desc||''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--sub)">期間レート</div>
+          <div style="font-size:13px">${d.start_date} ~ ${d.end_date}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:18px;margin-bottom:16px;border-left:4px solid var(--weak-buy)">
+      <div style="font-size:11px;color:var(--sub);margin-bottom:4px">適用した戦略</div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:10px">🎯 ${d.strategy_name}</div>
+      <div style="font-size:14px;line-height:1.7;margin-bottom:14px">${d.strategy_description}</div>
+      <div style="background:var(--card2);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.8">
+        <div><b style="color:var(--buy)">📥 買いルール:</b> ${d.strategy_rule_buy}</div>
+        <div><b style="color:var(--sell)">📤 売りルール:</b> ${d.strategy_rule_sell}</div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:18px;margin-bottom:16px;background:linear-gradient(135deg,#0d1b2e,#161b22)">
+      <div style="font-size:12px;color:var(--sub);margin-bottom:6px">${display} | ${d.strategy_name} | ${d.years}年間 | 初期資金 ${yen(d.initial_capital)}</div>
+      <div style="font-size:17px;font-weight:700;margin-top:6px">${verdict}</div>
+    </div>
+
+    <div class="bt-metric-grid">
+      <div class="bt-metric"><div class="lbl">初期 → 最終</div><div class="val" style="font-size:17px">${yen(d.initial_capital)} → ${yen(d.final_value)}</div></div>
+      <div class="bt-metric ${tCls}"><div class="lbl">トータルリターン</div><div class="val">${pct(d.total_return_pct)}</div><div class="sub">${d.total_return>=0?'+':''}${yen(d.total_return)}</div></div>
+      <div class="bt-metric ${aCls}"><div class="lbl">年率リターン</div><div class="val">${pct(d.annual_return_pct)}</div><div class="sub">複利換算</div></div>
+      <div class="bt-metric ${vCls}"><div class="lbl">vs Buy&Hold</div><div class="val">${pct(d.vs_bh_pct)}</div><div class="sub">B&H: ${pct(d.bh_return_pct)}</div></div>
+      <div class="bt-metric ${wCls}"><div class="lbl">勝率</div><div class="val">${d.win_rate}%</div><div class="sub">${d.trade_count}回中 勝${Math.round(d.trade_count*d.win_rate/100)}/負${d.trade_count-Math.round(d.trade_count*d.win_rate/100)}</div></div>
+      <div class="bt-metric bad"><div class="lbl">最大ドローダウン</div><div class="val">-${d.max_drawdown_pct}%</div><div class="sub">過去最大の含み損</div></div>
+      <div class="bt-metric"><div class="lbl">平均保有期間</div><div class="val" style="font-size:22px">${d.avg_holding_days}日</div></div>
+      <div class="bt-metric ${d.avg_profit_pct>=0?'good':'bad'}"><div class="lbl">平均損益率/取引</div><div class="val">${pct(d.avg_profit_pct)}</div></div>
+    </div>
+
+    <div class="card" style="padding:18px;margin-bottom:18px">
+      <div class="card-big-title">📝 シミュレーション結果の解説</div>
+      <ul style="font-size:14px;line-height:1.9;padding-left:20px">
+        ${d.summary_lines.map(l=>`<li style="margin-bottom:6px">${md(l)}</li>`).join('')}
+      </ul>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-big-title">📈 資産推移カーブ — 戦略 vs Buy&amp;Hold</div>
+      <div class="chart-container"><canvas id="btEquityChart"></canvas></div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-big-title">📋 取引履歴（${d.trade_count}回）</div>
+      <div style="overflow-x:auto">${tradesHTML}</div>
+    </div>
+  `;
+  setTimeout(()=>drawEquityChart(d), 50);
+}
+
+function drawEquityChart(d){
+  const canvas = document.getElementById('btEquityChart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const labels = d.equity_curve.map(p=>p.date);
+  const eq = d.equity_curve.map(p=>p.equity);
+  const startCap = d.initial_capital;
+  const bhFinal = startCap * (1 + d.bh_return_pct/100);
+  const bh = labels.map((_,i)=>{
+    const r = i/(labels.length-1||1);
+    return startCap + (bhFinal-startCap)*r;
+  });
+  if(backtestEquityChart) backtestEquityChart.destroy();
+  backtestEquityChart = new Chart(ctx, {
+    type:'line',
+    data:{labels, datasets:[
+      {label:'戦略の資産推移', data:eq, borderColor:'#58a6ff', backgroundColor:'rgba(88,166,255,.1)', borderWidth:2.5, fill:true, tension:.2, pointRadius:0},
+      {label:'Buy&Hold（参考）', data:bh, borderColor:'#8b949e', borderDash:[6,4], borderWidth:1.5, fill:false, pointRadius:0}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#e6edf3'}}},scales:{x:{ticks:{color:'#8b949e',maxTicksLimit:10},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e',callback:v=>'¥'+(v/1000).toFixed(0)+'k'},grid:{color:'#21262d'}}}}
+  });
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  restoreScan();
+  restorePairs();
+});
+</script>
+</body>
+</html>

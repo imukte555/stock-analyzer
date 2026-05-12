@@ -1,0 +1,2465 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>株式分析ダッシュボード</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.1.1/dist/chartjs-chart-financial.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --card2: #1c2128;
+    --border: #30363d;
+    --text: #e6edf3;
+    --sub: #8b949e;
+    --buy: #3fb950;
+    --buy-bg: #0a2713;
+    --sell: #f85149;
+    --sell-bg: #2a0d09;
+    --weak-buy: #58a6ff;
+    --weak-sell: #ffa657;
+    --neutral: #8b949e;
+    --gold: #ffd700;
+    --accent: #238636;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', 'Hiragino Sans', sans-serif; min-height: 100vh; }
+
+  .header {
+    background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .header-icon { font-size: 32px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: var(--text); }
+  .header p { font-size: 13px; color: var(--sub); }
+
+  .search-bar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+  .search-bar input {
+    flex: 1; max-width: 260px;
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 16px; border-radius: 8px;
+    font-size: 16px; letter-spacing: 1px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-bar input:focus { border-color: var(--weak-buy); }
+  .search-bar input::placeholder { color: var(--sub); }
+  .btn {
+    padding: 10px 24px; border-radius: 8px; border: none;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: #238636; color: #fff; }
+  .btn-primary:hover { background: #2ea043; }
+  .btn-primary:disabled { background: #333; color: #555; cursor: not-allowed; }
+  .quick-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .quick-btn {
+    padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
+    background: var(--card2); color: var(--sub); font-size: 13px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .quick-btn:hover { border-color: var(--weak-buy); color: var(--weak-buy); }
+
+  .main { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+
+  .loading { text-align: center; padding: 80px 20px; color: var(--sub); }
+  .loading-spinner {
+    width: 48px; height: 48px; border: 3px solid var(--border);
+    border-top-color: var(--weak-buy); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-box {
+    background: var(--sell-bg); border: 1px solid var(--sell);
+    border-radius: 12px; padding: 20px 24px; color: var(--sell);
+    display: flex; gap: 12px; align-items: center;
+  }
+
+  /* Verdict Card */
+  .verdict-card {
+    border-radius: 16px; padding: 28px 32px; margin-bottom: 24px;
+    border: 2px solid; display: flex; align-items: center; gap: 24px;
+    flex-wrap: wrap;
+  }
+  .verdict-card.STRONG_BUY { background: #0a2713; border-color: #3fb950; }
+  .verdict-card.BUY { background: #0c2416; border-color: #2ea043; }
+  .verdict-card.WEAK_BUY { background: #0d1b2e; border-color: #58a6ff; }
+  .verdict-card.NEUTRAL { background: var(--card); border-color: var(--border); }
+  .verdict-card.WEAK_SELL { background: #1f1a0d; border-color: #ffa657; }
+  .verdict-card.SELL { background: #1e0d09; border-color: #da3633; }
+  .verdict-card.STRONG_SELL { background: #2a0d09; border-color: #f85149; }
+
+  .verdict-badge {
+    font-size: 28px; font-weight: 900; letter-spacing: 1px;
+    padding: 12px 24px; border-radius: 12px; white-space: nowrap;
+  }
+  .STRONG_BUY .verdict-badge { color: #fff; background: #238636; }
+  .BUY .verdict-badge { color: #fff; background: #2ea043; }
+  .WEAK_BUY .verdict-badge { color: #fff; background: #1f6feb; }
+  .NEUTRAL .verdict-badge { color: var(--sub); background: #21262d; }
+  .WEAK_SELL .verdict-badge { color: #000; background: #ffa657; }
+  .SELL .verdict-badge { color: #fff; background: #da3633; }
+  .STRONG_SELL .verdict-badge { color: #fff; background: #b91c1c; }
+
+  .verdict-label-map {
+    STRONG_BUY: '強い買い';
+    BUY: '買い';
+    WEAK_BUY: 'やや買い';
+    NEUTRAL: '中立';
+    WEAK_SELL: 'やや売り';
+    SELL: '売り';
+    STRONG_SELL: '強い売り';
+  }
+
+  .big-logo {
+    width:72px; height:72px; border-radius:14px; background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden; flex-shrink:0; box-shadow:0 4px 12px rgba(0,0,0,0.3);
+  }
+  .big-logo img { width:100%; height:100%; object-fit:contain; padding:6px; }
+  .big-logo-fallback {
+    width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg, #58a6ff, #3fb950);
+    color:#fff; font-size:32px; font-weight:800;
+  }
+  .verdict-info { flex: 1; }
+  .verdict-info .company { font-size: 22px; font-weight: 700; }
+  .verdict-info .symbol-price { display: flex; align-items: baseline; gap: 12px; margin-top: 6px; }
+  .verdict-info .price { font-size: 36px; font-weight: 800; }
+  .verdict-info .change { font-size: 18px; font-weight: 600; }
+  .change.pos { color: var(--buy); }
+  .change.neg { color: var(--sell); }
+
+  .score-circle {
+    width: 90px; height: 90px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-weight: 800; border: 3px solid;
+    flex-shrink: 0;
+  }
+  .score-circle .score-num { font-size: 26px; line-height: 1; }
+  .score-circle .score-label { font-size: 11px; color: var(--sub); margin-top: 2px; }
+
+  .updated { font-size: 12px; color: var(--sub); margin-top: 4px; }
+
+  /* Grid layout */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 900px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .main { padding: 16px; }
+    .search-bar { padding: 16px; }
+    .header { padding: 16px; }
+  }
+
+  /* Indicator Cards */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .card-title { font-size: 13px; color: var(--sub); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .card-big-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  .indicator-row {
+    background: var(--card2); border-radius: 10px; padding: 14px 16px;
+    display: flex; gap: 12px; align-items: flex-start;
+    border-left: 3px solid;
+  }
+  .indicator-row.buy { border-color: var(--buy); }
+  .indicator-row.weak_buy { border-color: var(--weak-buy); }
+  .indicator-row.neutral { border-color: var(--neutral); }
+  .indicator-row.weak_sell { border-color: var(--weak-sell); }
+  .indicator-row.sell { border-color: var(--sell); }
+
+  .ind-signal {
+    font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .ind-signal.buy { background: var(--buy-bg); color: var(--buy); }
+  .ind-signal.weak_buy { background: #0d1b2e; color: var(--weak-buy); }
+  .ind-signal.neutral { background: #1c2128; color: var(--neutral); }
+  .ind-signal.weak_sell { background: #1f1a0d; color: var(--weak-sell); }
+  .ind-signal.sell { background: var(--sell-bg); color: var(--sell); }
+
+  .ind-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .ind-desc { font-size: 12px; color: var(--sub); line-height: 1.5; }
+  .ind-value { font-size: 20px; font-weight: 800; margin-left: auto; flex-shrink: 0; }
+
+  /* Gauge */
+  .gauge-wrap { position: relative; width: 100%; height: 12px; background: var(--card2); border-radius: 6px; overflow: hidden; margin: 8px 0; }
+  .gauge-fill { height: 100%; border-radius: 6px; transition: width 0.6s ease; }
+  .gauge-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--sub); }
+
+  /* Fundamentals */
+  .fund-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .fund-item { background: var(--card2); border-radius: 8px; padding: 12px 14px; }
+  .fund-label { font-size: 11px; color: var(--sub); margin-bottom: 4px; }
+  .fund-value { font-size: 18px; font-weight: 700; }
+  .fund-comment { font-size: 11px; margin-top: 3px; }
+  .good { color: var(--buy); }
+  .bad { color: var(--sell); }
+  .ok { color: var(--weak-buy); }
+
+  /* Chart */
+  .chart-container { position: relative; height: 320px; }
+  .chart-sm { position: relative; height: 120px; }
+
+  /* Section separator */
+  .section-title {
+    font-size: 18px; font-weight: 700; margin: 28px 0 16px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  /* 52-week range bar */
+  .range-bar-wrap { background: var(--card2); border-radius: 8px; padding: 14px; }
+  .range-bar { position: relative; height: 8px; background: var(--border); border-radius: 4px; margin: 10px 0 6px; }
+  .range-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--sell), var(--weak-sell), var(--buy)); }
+  .range-dot { position: absolute; top: -4px; width: 16px; height: 16px; background: var(--gold); border-radius: 50%; transform: translateX(-50%); border: 2px solid var(--bg); }
+  .range-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--sub); }
+
+  .placeholder { color: var(--sub); font-size: 13px; }
+
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin: 2px; }
+  .tag-green { background: var(--buy-bg); color: var(--buy); }
+  .tag-red { background: var(--sell-bg); color: var(--sell); }
+  .tag-blue { background: #0d1b2e; color: var(--weak-buy); }
+
+  /* 楽天注文モーダル */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+    z-index: 1000; display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; width: 100%; max-width: 480px;
+    padding: 28px; position: relative;
+  }
+  .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: none; border: none; color: var(--sub);
+    font-size: 22px; cursor: pointer; line-height: 1;
+  }
+  .modal-close:hover { color: var(--text); }
+  .order-type-btns { display: flex; gap: 10px; margin-bottom: 20px; }
+  .order-type-btn {
+    flex: 1; padding: 12px; border-radius: 10px; border: 2px solid;
+    font-size: 16px; font-weight: 800; cursor: pointer; transition: all 0.15s;
+  }
+  .order-type-btn.buy-btn  { border-color: var(--buy);  color: var(--buy);  background: var(--buy-bg); }
+  .order-type-btn.sell-btn { border-color: var(--sell); color: var(--sell); background: var(--sell-bg); }
+  .order-type-btn.active.buy-btn  { background: var(--buy);  color: #000; }
+  .order-type-btn.active.sell-btn { background: var(--sell); color: #fff; }
+  .modal-label { font-size: 12px; color: var(--sub); margin-bottom: 6px; }
+  .modal-input {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 14px; border-radius: 8px;
+    font-size: 16px; outline: none; margin-bottom: 16px;
+  }
+  .modal-input:focus { border-color: var(--weak-buy); }
+  .modal-info-row {
+    background: var(--card2); border-radius: 8px; padding: 12px 14px;
+    margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .rakuten-btn {
+    width: 100%; padding: 14px; border-radius: 10px; border: none;
+    background: #bf0000; color: #fff; font-size: 16px; font-weight: 800;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center;
+    justify-content: center; gap: 8px;
+  }
+  .rakuten-btn:hover { background: #e00000; transform: translateY(-1px); }
+  .modal-note { font-size: 11px; color: var(--sub); margin-top: 10px; text-align: center; line-height: 1.6; }
+
+  /* Scanner cards */
+  .scan-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px 18px; cursor: pointer;
+    transition: all 0.2s; border-left: 4px solid;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; gap: 0;
+  }
+  .scan-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.5); background: var(--card2); }
+  .scan-card.STRONG_BUY { border-left-color: #3fb950; }
+  .scan-card.BUY        { border-left-color: #2ea043; }
+  .scan-card.WEAK_BUY   { border-left-color: #58a6ff; }
+  .scan-card.NEUTRAL    { border-left-color: var(--neutral); }
+  .scan-card.WEAK_SELL  { border-left-color: #ffa657; }
+  .scan-card.SELL       { border-left-color: #da3633; }
+  .scan-card.STRONG_SELL{ border-left-color: #f85149; }
+
+  /* Card header row */
+  .sc-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; gap:10px; }
+  .sc-logo {
+    width:40px; height:40px; border-radius:8px; background:var(--card2);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    overflow:hidden; border:1px solid var(--border);
+    font-weight:800; font-size:16px; color:var(--text);
+  }
+  .sc-logo img { width:100%; height:100%; object-fit:contain; background:#fff; padding:2px; }
+  .sc-left { display:flex; gap:10px; align-items:center; flex:1; min-width:0; }
+  .sc-left-text { flex:1; min-width:0; }
+  .sc-left-text .sc-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sc-left-text .sc-symbol { white-space:nowrap; }
+  .sc-left {}
+  .sc-name { font-size:11px; color:var(--sub); line-height:1.3; }
+  .sc-symbol { font-size:17px; font-weight:800; line-height:1.2; }
+  .sc-right { text-align:right; }
+  .sc-price { font-size:18px; font-weight:700; }
+  .sc-change { font-size:12px; font-weight:600; }
+
+  /* Verdict badge */
+  .sc-verdict-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .sc-verdict { font-size:11px; font-weight:800; padding:2px 8px; border-radius:20px; }
+  .sc-verdict.vSTRONG_BUY,.sc-verdict.vBUY { background:var(--buy-bg); color:var(--buy); }
+  .sc-verdict.vWEAK_BUY  { background:#0d1b2e; color:var(--weak-buy); }
+  .sc-verdict.vNEUTRAL   { background:#21262d; color:var(--sub); }
+  .sc-verdict.vWEAK_SELL { background:#1f1a0d; color:var(--weak-sell); }
+  .sc-verdict.vSELL,.sc-verdict.vSTRONG_SELL { background:var(--sell-bg); color:var(--sell); }
+  .sc-score { font-size:12px; font-weight:800; }
+
+  /* Score bar */
+  .sc-score-bar { height:3px; border-radius:2px; background:var(--border); overflow:hidden; margin-bottom:10px; }
+  .sc-score-fill { height:100%; border-radius:2px; transition:width 0.6s; }
+
+  /* Comment line */
+  .sc-comment { font-size:11px; color:var(--sub); line-height:1.5; margin-bottom:10px;
+    border-left:2px solid var(--border); padding-left:8px; }
+
+  /* Fundamentals row */
+  .sc-funds { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .sc-fund-chip { font-size:10px; padding:2px 7px; border-radius:10px;
+    background:var(--card2); color:var(--sub); border:1px solid var(--border); }
+  .sc-fund-chip.good { color:var(--buy); border-color:#1a3a22; background:#0a2713; }
+  .sc-fund-chip.warn { color:var(--weak-sell); border-color:#3a2a0d; background:#1f1a0d; }
+
+  /* 52w range bar */
+  .sc-range-wrap { margin-bottom:10px; }
+  .sc-range-label { display:flex; justify-content:space-between; font-size:10px; color:var(--sub); margin-bottom:3px; }
+  .sc-range-bar { height:6px; border-radius:3px; background:var(--border); position:relative; overflow:visible; }
+  .sc-range-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,#da3633,#ffa657,#3fb950); }
+  .sc-range-dot { position:absolute; top:-3px; width:12px; height:12px; border-radius:50%;
+    background:#fff; border:2px solid var(--weak-buy); transform:translateX(-50%); }
+
+  /* Signal dots */
+  .sc-signals { display:flex; gap:3px; }
+  .scan-sig { width:26px; height:22px; border-radius:4px; font-size:9px;
+    display:flex; align-items:center; justify-content:center; font-weight:700; }
+  .scan-sig.buy       { background:var(--buy-bg); color:var(--buy); }
+  .scan-sig.weak_buy  { background:#0d1b2e; color:var(--weak-buy); }
+  .scan-sig.neutral   { background:#21262d; color:var(--sub); }
+  .scan-sig.weak_sell { background:#1f1a0d; color:var(--weak-sell); }
+  .scan-sig.sell      { background:var(--sell-bg); color:var(--sell); }
+
+  /* Sector tag */
+  .sc-sector { font-size:10px; color:var(--sub); }
+
+  .scan-loading { text-align:center; padding:32px; color:var(--sub); }
+  .scan-filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .filter-btn { padding:5px 14px; border-radius:20px; border:1px solid var(--border);
+    background:var(--card2); color:var(--sub); font-size:12px; cursor:pointer; transition:all 0.2s; }
+  .filter-btn.active, .filter-btn:hover { border-color:var(--weak-buy); color:var(--weak-buy); background:#0d1b2e; }
+
+  /* メインタブ */
+  .tab-bar { display:flex; gap:0; border-bottom:1px solid var(--border); margin-bottom:24px; flex-wrap:wrap; }
+  .tab-btn { padding:12px 24px; background:none; border:none; color:var(--sub);
+    font-size:14px; font-weight:600; cursor:pointer; border-bottom:2px solid transparent;
+    transition:all 0.2s; }
+  .tab-btn:hover { color:var(--text); }
+  .tab-btn.active { color:var(--weak-buy); border-bottom-color:var(--weak-buy); }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+
+  /* 銘柄タブバー（複数分析） */
+  .stock-tabs-bar {
+    display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px;
+    padding-bottom:12px; border-bottom:1px solid var(--border);
+    align-items:center;
+  }
+  .stock-tab {
+    display:flex; align-items:center; gap:6px;
+    padding:6px 14px; border-radius:8px; border:1px solid var(--border);
+    background:var(--card2); color:var(--sub); font-size:13px; font-weight:600;
+    cursor:pointer; transition:all 0.15s;
+  }
+  .stock-tab:hover { border-color:var(--weak-buy); }
+  .stock-tab.active { background:#0d1b2e; border-color:var(--weak-buy); color:var(--weak-buy); }
+  .stock-tab .close-btn {
+    font-size:14px; opacity:0.5; line-height:1;
+    background:none; border:none; color:inherit; cursor:pointer; padding:0 2px;
+  }
+  .stock-tab .close-btn:hover { opacity:1; color:var(--sell); }
+  .stock-tab .chg { font-size:11px; font-weight:700; }
+  .stock-tab .chg.pos { color:var(--buy); }
+  .stock-tab .chg.neg { color:var(--sell); }
+
+  /* 詳細考察セクション */
+  .deep-section { margin-bottom:16px; }
+  /* バックテスト */
+  .bt-form-grid {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px;
+  }
+  .bt-field label { display:block; font-size:12px; color:var(--sub); font-weight:600; margin-bottom:5px; }
+  .bt-select {
+    background:var(--bg); border:1px solid var(--border); color:var(--text);
+    padding:9px 12px; border-radius:6px; font-size:14px; width:100%;
+  }
+  .bt-select:focus { outline:none; border-color:var(--weak-buy); }
+  .bt-metric-grid {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:20px;
+  }
+  .bt-metric {
+    background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px;
+  }
+  .bt-metric .lbl { font-size:11px; color:var(--sub); margin-bottom:6px; }
+  .bt-metric .val { font-size:22px; font-weight:800; }
+  .bt-metric .sub { font-size:11px; color:var(--sub); margin-top:3px; }
+  .bt-metric.good .val { color: var(--buy); }
+  .bt-metric.bad  .val { color: var(--sell); }
+  .bt-trade-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .bt-trade-table th, .bt-trade-table td { padding:8px 10px; border-bottom:1px solid var(--border); text-align:right; }
+  .bt-trade-table th { background:var(--card2); color:var(--sub); font-size:11px; text-align:right; font-weight:600; }
+  .bt-trade-table th:first-child, .bt-trade-table td:first-child { text-align:left; }
+  .bt-trade-table tr.win  td { color:var(--buy); }
+  .bt-trade-table tr.lose td { color:var(--sell); }
+
+  /* 期間セレクター */
+  .period-bar { display:flex; gap:5px; flex-wrap:wrap; }
+  .period-btn {
+    padding:5px 13px; border-radius:20px; border:1px solid var(--border);
+    background:var(--card2); color:var(--sub); font-size:12px; font-weight:600;
+    cursor:pointer; transition:all 0.2s;
+  }
+  .period-btn:hover { border-color:var(--weak-buy); color:var(--weak-buy); }
+  .period-btn.active { background:#0d1b2e; border-color:var(--weak-buy); color:var(--weak-buy); }
+
+  .deep-section-title {
+    font-size:15px; font-weight:800; margin-bottom:10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .deep-section-body {
+    background:var(--card2); border-radius:10px; padding:16px 18px;
+    font-size:14px; line-height:1.9; color:var(--text);
+    white-space:pre-wrap;
+  }
+  .deep-section-body strong, .deep-section-body b { color:#fff; font-weight:700; }
+  .deep-loading { text-align:center; padding:32px; color:var(--sub); font-size:14px; }
+
+  /* SNSトレンドカード */
+  .trend-card {
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:18px 20px; margin-bottom:14px; cursor:pointer;
+    transition:all 0.2s; border-left:4px solid;
+  }
+  .trend-card:hover { transform:translateX(3px); box-shadow:0 4px 20px rgba(0,0,0,0.3); }
+  .trend-card.bull { border-left-color:var(--buy); }
+  .trend-card.bear { border-left-color:var(--sell); }
+  .trend-card.neutral-c { border-left-color:var(--sub); }
+
+  .trend-top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+  .trend-symbol { font-size:20px; font-weight:800; }
+  .trend-name { font-size:12px; color:var(--sub); margin-top:2px; }
+  .trend-price { text-align:right; }
+  .trend-price .p { font-size:18px; font-weight:700; }
+  .trend-price .c { font-size:13px; font-weight:600; }
+
+  .mood-bar-wrap { margin:12px 0 8px; }
+  .mood-bar-labels { display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px; }
+  .mood-bar { height:8px; border-radius:4px; background:var(--sell-bg); overflow:hidden; position:relative; }
+  .mood-bar-fill { height:100%; border-radius:4px; background:var(--buy); transition:width 0.6s; }
+
+  .trend-reasons { display:flex; gap:6px; flex-wrap:wrap; margin:10px 0; }
+  .reason-tag { padding:4px 10px; border-radius:20px; font-size:12px; font-weight:600;
+    background:var(--card2); color:var(--text); border:1px solid var(--border); }
+
+  .trend-messages { margin-top:10px; border-top:1px solid var(--border); padding-top:10px; }
+  .trend-msg { font-size:12px; color:var(--sub); padding:4px 0; line-height:1.5;
+    display:flex; gap:6px; align-items:flex-start; }
+  .trend-msg::before { content:'💬'; flex-shrink:0; }
+
+  .trend-footer { display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; gap:8px; }
+  .watchlist-count { font-size:12px; color:var(--sub); }
+  .trend-btns { display:flex; gap:8px; }
+  .trend-analyze-btn {
+    padding:6px 14px; border-radius:6px; border:1px solid var(--weak-buy);
+    background:none; color:var(--weak-buy); font-size:12px; font-weight:700; cursor:pointer;
+    transition:all 0.2s;
+  }
+  .trend-analyze-btn:hover { background:var(--weak-buy); color:#000; }
+  .trend-order-btn {
+    padding:6px 14px; border-radius:6px; border:none;
+    background:#bf0000; color:#fff; font-size:12px; font-weight:700; cursor:pointer;
+    transition:all 0.2s;
+  }
+  .trend-order-btn:hover { background:#e00000; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">📈</div>
+  <div>
+    <h1>株式トレード分析ダッシュボード</h1>
+    <p>テクニカル + ファンダメンタルズ分析で根拠のある売買判断を</p>
+  </div>
+  <a href="/forex" style="margin-left:auto;color:var(--weak-buy);text-decoration:none;font-size:13px;padding:6px 14px;border:1px solid var(--border);border-radius:20px;transition:all .2s">💱 為替（FX）版へ</a>
+</div>
+
+<div class="search-bar">
+  <input type="text" id="symbolInput" placeholder="ティッカー例: AAPL / 7203.T" maxlength="12" />
+  <button class="btn btn-primary" id="analyzeBtn" onclick="analyze()">🔍 分析する</button>
+  <div class="quick-btns">
+    <span style="font-size:12px;color:var(--sub);align-self:center;">人気:</span>
+    <button class="quick-btn" onclick="quickSearch('AAPL')">AAPL</button>
+    <button class="quick-btn" onclick="quickSearch('TSLA')">TSLA</button>
+    <button class="quick-btn" onclick="quickSearch('NVDA')">NVDA</button>
+    <button class="quick-btn" onclick="quickSearch('7203.T')">トヨタ</button>
+    <button class="quick-btn" onclick="quickSearch('9984.T')">SBG</button>
+    <button class="quick-btn" onclick="quickSearch('6758.T')">ソニー</button>
+    <button class="quick-btn" onclick="quickSearch('MSFT')">MSFT</button>
+    <button class="quick-btn" onclick="quickSearch('SPY')">SPY</button>
+  </div>
+</div>
+
+<!-- メインコンテンツエリア -->
+<div style="max-width:1400px;margin:0 auto;padding:24px 32px 0;">
+
+  <!-- タブ -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-trend-btn" onclick="switchTab('trend')">🔥 SNSトレンド</button>
+    <button class="tab-btn" id="tab-scan-btn"  onclick="switchTab('scan')">🔭 銘柄スキャン（30銘柄）</button>
+    <button class="tab-btn" id="tab-result-btn" onclick="switchTab('result')">📊 分析結果</button>
+    <button class="tab-btn" id="tab-backtest-btn" onclick="switchTab('backtest')">🧪 売買シミュレーション</button>
+  </div>
+
+  <!-- SNSトレンドパネル -->
+  <div class="tab-panel active" id="panel-trend">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div style="font-size:22px;font-weight:800;">🔥 今トレーダーが話題にしている銘柄</div>
+        <div style="font-size:13px;color:var(--sub);margin-top:4px;">StockTwits（株専用SNS）のリアルタイムトレンドを分析</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:12px;color:var(--sub);" id="trendUpdated"></span>
+        <button class="btn btn-primary" id="trendBtn" onclick="runTrend()" style="padding:8px 20px;font-size:14px;">▶ トレンド取得</button>
+      </div>
+    </div>
+    <div id="trendList">
+      <div style="text-align:center;padding:60px 20px;color:var(--sub);">
+        <div style="font-size:48px;margin-bottom:16px;">🐦</div>
+        <div style="font-size:16px;margin-bottom:8px;">「トレンド取得」を押すと今話題の銘柄が表示されます</div>
+        <div style="font-size:13px;">StockTwitsの最新データをリアルタイムで取得します</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 銘柄スキャンパネル -->
+  <div class="tab-panel" id="panel-scan">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;font-weight:700;">🔭 注目銘柄スキャン</span>
+        <span style="font-size:12px;color:var(--sub);" id="scanUpdated"></span>
+      </div>
+      <button class="btn btn-primary" id="scanBtn" onclick="runScan()" style="padding:8px 20px;font-size:14px;">▶ スキャン開始</button>
+    </div>
+
+    <!-- モード選択 -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;color:var(--sub);margin-bottom:6px;font-weight:600">🎯 スキャン対象:</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px" id="scanModeBar">
+        <button class="filter-btn active" data-mode="mixed"     onclick="setScanMode('mixed')">🌟 おすすめミックス</button>
+        <button class="filter-btn"        data-mode="gainers"   onclick="setScanMode('gainers')">🔥 値上がりTOP</button>
+        <button class="filter-btn"        data-mode="losers"    onclick="setScanMode('losers')">❄️ 値下がりTOP</button>
+        <button class="filter-btn"        data-mode="actives"   onclick="setScanMode('actives')">📊 出来高ランキング</button>
+        <button class="filter-btn"        data-mode="breakout"  onclick="setScanMode('breakout')">🚀 52週高値ブレイク</button>
+        <button class="filter-btn"        data-mode="watchlist" onclick="setScanMode('watchlist')">⭐ 固定ウォッチリスト</button>
+      </div>
+      <div id="scanModeDesc" style="font-size:11px;color:var(--sub);background:var(--card2);padding:8px 12px;border-radius:6px;border-left:3px solid var(--weak-buy)">
+        値上がり・値下がり・出来高・トレンドから動的にピックアップ（毎回違う銘柄）+ 日本株コア
+      </div>
+    </div>
+
+    <div id="scannerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;"></div>
+  </div>
+
+  <!-- 分析結果パネル -->
+  <div class="tab-panel" id="panel-result">
+    <!-- 銘柄タブバー -->
+    <div class="stock-tabs-bar" id="stockTabsBar" style="display:none"></div>
+    <div id="mainContent">
+      <div style="text-align:center;padding:60px 20px;color:var(--sub);">
+        <div style="font-size:56px;margin-bottom:16px;">📊</div>
+        <div style="font-size:16px;margin-bottom:8px;">銘柄を入力するか、トレンド・スキャンから選ぼう</div>
+        <div style="font-size:13px;">米国株はティッカー(AAPL)、日本株は証券コードだけでOK (7203)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 売買シミュレーションパネル -->
+  <div class="tab-panel" id="panel-backtest">
+    <div style="font-size:20px;font-weight:700;margin-bottom:6px;">🧪 売買シミュレーション（バックテスト）</div>
+    <div style="font-size:13px;color:var(--sub);margin-bottom:18px;">
+      過去の株価データに対して、選んだ戦略でロボット売買した場合の成績を計算します。Buy &amp; Hold（買って放置）と比較してどちらが優れていたか一目で分かります。
+    </div>
+
+    <!-- フォーム -->
+    <div class="card" style="padding:18px;margin-bottom:20px">
+      <div class="bt-form-grid">
+        <div class="bt-field">
+          <label>銘柄</label>
+          <input type="text" id="btSymbol" placeholder="AAPL / 7203" style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:6px;font-size:14px;width:100%">
+        </div>
+        <div class="bt-field">
+          <label>戦略</label>
+          <select id="btStrategy" class="bt-select">
+            <option value="combined">🎯 総合（RSI+MACD+MA）</option>
+            <option value="rsi">⚡ RSI逆張り（30以下買/70以上売）</option>
+            <option value="macd">📉 MACDクロス（GC買/DC売）</option>
+            <option value="ma_cross">📐 移動平均クロス（MA5×MA25）</option>
+            <option value="bollinger">🎯 ボリンジャー逆張り</option>
+          </select>
+        </div>
+        <div class="bt-field">
+          <label>期間</label>
+          <select id="btPeriod" class="bt-select">
+            <option value="1y">過去1年</option>
+            <option value="2y" selected>過去2年</option>
+            <option value="3y">過去3年</option>
+            <option value="5y">過去5年</option>
+          </select>
+        </div>
+        <div class="bt-field">
+          <label>初期資金 (¥)</label>
+          <input type="number" id="btCapital" value="1000000" min="10000" step="100000" class="bt-select">
+        </div>
+        <div class="bt-field" style="display:flex;align-items:flex-end">
+          <button class="btn btn-primary" id="btRunBtn" onclick="runBacktest()" style="width:100%;padding:9px 16px">▶ シミュレーション実行</button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--sub);margin-top:10px">💡 ヒント: 各戦略は買いシグナル発生時にフルベットで購入、売りシグナル発生時に全株売却します。手数料・税金は考慮しません。</div>
+    </div>
+
+    <div id="btResult"></div>
+  </div>
+
+</div>
+
+<!-- 楽天証券 注文モーダル -->
+<div class="modal-overlay" id="orderModal" style="display:none" onclick="closeModal(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeOrderModal()">✕</button>
+    <div class="modal-title">🏦 楽天証券で注文する</div>
+
+    <div class="modal-info-row">
+      <div>
+        <div style="font-size:12px;color:var(--sub)">銘柄</div>
+        <div style="font-size:18px;font-weight:800" id="modal-symbol">—</div>
+        <div style="font-size:12px;color:var(--sub)" id="modal-name">—</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;color:var(--sub)">現在値</div>
+        <div style="font-size:22px;font-weight:800" id="modal-price">—</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div class="modal-label">売買の種類</div>
+      <div class="order-type-btns">
+        <button class="order-type-btn buy-btn active" id="btn-buy" onclick="setOrderType('buy')">📈 買い注文</button>
+        <button class="order-type-btn sell-btn" id="btn-sell" onclick="setOrderType('sell')">📉 売り注文</button>
+      </div>
+    </div>
+
+    <div class="modal-label">株数</div>
+    <input type="number" class="modal-input" id="modal-qty" value="100" min="1" step="1" placeholder="例: 100">
+
+    <div class="modal-info-row" id="modal-estimate-row">
+      <div style="font-size:13px;color:var(--sub)">概算金額（参考）</div>
+      <div style="font-size:16px;font-weight:700" id="modal-estimate">—</div>
+    </div>
+
+    <div style="background:var(--card2);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.7">
+      <div style="font-weight:700;margin-bottom:4px">📋 この分析のまとめ</div>
+      <div id="modal-verdict-text" style="color:var(--sub)">—</div>
+    </div>
+
+    <button class="rakuten-btn" id="rakuten-go-btn" onclick="openRakuten()">
+      <span>🔗 楽天証券の注文画面を開く</span>
+    </button>
+    <div class="modal-note">
+      ※ ボタンを押すと楽天証券のサイトが別タブで開きます<br>
+      ※ 最終的な注文は楽天証券のサイト上で自分で確認・発注してください<br>
+      ※ この画面は自動発注を行いません
+    </div>
+  </div>
+</div>
+
+<div class="main" id="mainContent">
+  <div style="text-align:center;padding:60px 20px;color:var(--sub);">
+    <div style="font-size:56px;margin-bottom:16px;">📊</div>
+    <div style="font-size:16px;margin-bottom:8px;">銘柄を入力するか、スキャンで注目銘柄を探そう</div>
+    <div style="font-size:13px;">米国株はティッカー(AAPL)、日本株は証券コードだけでOK (7203)</div>
+  </div>
+</div>
+
+<script>
+const VERDICT_LABELS = {
+  STRONG_BUY: '強い買い 🚀',
+  BUY: '買い ✅',
+  WEAK_BUY: 'やや買い 📈',
+  NEUTRAL: '中立 ➡️',
+  WEAK_SELL: 'やや売り 📉',
+  SELL: '売り ❌',
+  STRONG_SELL: '強い売り 🔴'
+};
+const SIGNAL_LABELS = {
+  buy: '買い', weak_buy: 'やや買い',
+  neutral: '中立', weak_sell: 'やや売り', sell: '売り'
+};
+
+let priceChart = null, rsiChart = null, macdChart = null;
+let allScanResults = [];
+let activeFilter = 'all';
+let activeSort = 'score';   // score / div_yield / pe_low / roe_high / change_high / change_low / market_cap / w52_low / rev_growth
+let activeScanMode = 'mixed';  // mixed / gainers / losers / actives / breakout / watchlist
+
+const SCAN_MODE_DESC = {
+  mixed:     '値上がり・値下がり・出来高・トレンドから動的にピックアップ（毎回違う銘柄）+ 日本株コア',
+  gainers:   '今日大きく上昇している銘柄（モメンタム順張り候補）— 毎回最新のランキングを取得',
+  losers:    '今日大きく下落している銘柄（押し目買い・逆張り候補）— 毎回最新のランキングを取得',
+  actives:   '今日の取引が活発な銘柄（流動性高・市場注目度高）— 毎回最新のランキングを取得',
+  breakout:  '52週高値を更新中の銘柄（強い上昇トレンド継続候補）— 毎回最新のランキングを取得',
+  watchlist: 'メガテック + 主要日本株の固定リスト（毎回同じ30銘柄）',
+};
+
+function setScanMode(mode){
+  activeScanMode = mode;
+  document.querySelectorAll('#scanModeBar .filter-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+  const desc = document.getElementById('scanModeDesc');
+  if (desc) desc.textContent = SCAN_MODE_DESC[mode] || '';
+  // モード変更時に自動スキャン
+  runScan();
+}
+let currentStock = null;
+let currentOrderType = 'buy';
+
+// ===== 複数銘柄タブ管理 =====
+const stockCache = {};      // symbol → data
+let activeStockTab = null;
+
+// localStorage永続化
+const TABS_STORAGE_KEY = 'stockAnalyzer.openTabs.v1';
+const ACTIVE_TAB_KEY   = 'stockAnalyzer.activeTab.v1';
+
+function saveTabsState() {
+  try {
+    localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(Object.keys(stockCache)));
+    if (activeStockTab) localStorage.setItem(ACTIVE_TAB_KEY, activeStockTab);
+    else localStorage.removeItem(ACTIVE_TAB_KEY);
+  } catch(e) { console.warn('save tabs failed', e); }
+}
+
+async function restoreTabs() {
+  let symbols = [];
+  let activeSym = null;
+  try {
+    symbols = JSON.parse(localStorage.getItem(TABS_STORAGE_KEY) || '[]');
+    activeSym = localStorage.getItem(ACTIVE_TAB_KEY);
+  } catch(e) {}
+  if (!symbols.length) return;
+
+  // 復元中インジケーター
+  const stockTabsBar = document.getElementById('stockTabsBar');
+  stockTabsBar.style.display = 'flex';
+  stockTabsBar.innerHTML = `<div style="color:var(--sub);font-size:12px;padding:6px 10px">📂 前回のタブを復元中...</div>`;
+
+  // 各銘柄を順次再分析
+  for (const sym of symbols) {
+    try {
+      const res = await fetch('http://localhost:5050/api/analyze', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({symbol: sym})
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      stockCache[data.symbol] = data;
+    } catch(e) { console.warn('restore failed for', sym, e); }
+  }
+
+  // アクティブタブ復元
+  const cached = Object.keys(stockCache);
+  if (cached.length) {
+    activeStockTab = (activeSym && stockCache[activeSym]) ? activeSym : cached[cached.length - 1];
+    renderStockTabs();
+    renderResult(stockCache[activeStockTab], false);
+    // 結果タブに切り替える
+    switchTab('result');
+  } else {
+    stockTabsBar.style.display = 'none';
+    stockTabsBar.innerHTML = '';
+  }
+}
+
+function renderStockTabs() {
+  const bar = document.getElementById('stockTabsBar');
+  const symbols = Object.keys(stockCache);
+  if (!symbols.length) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  bar.innerHTML = symbols.map(sym => {
+    const d = stockCache[sym];
+    const chg = d.price_change ?? 0;
+    const chgSign = chg >= 0 ? '+' : '';
+    const chgCls = chg >= 0 ? 'pos' : 'neg';
+    const isActive = sym === activeStockTab;
+    const logoHtml = d.logo_url
+      ? `<img src="${d.logo_url}" alt="${sym}" style="width:18px;height:18px;border-radius:4px;background:#fff;object-fit:contain;padding:1px" onerror="this.style.display='none'">`
+      : '';
+    return `
+      <div class="stock-tab ${isActive ? 'active' : ''}" onclick="switchStockTab('${sym}')">
+        ${logoHtml}
+        <span>${sym}</span>
+        <span class="chg ${chgCls}">${chgSign}${chg}%</span>
+        <button class="close-btn" onclick="event.stopPropagation();closeStockTab('${sym}')">✕</button>
+      </div>`;
+  }).join('');
+}
+
+function switchStockTab(sym) {
+  activeStockTab = sym;
+  renderStockTabs();
+  renderResult(stockCache[sym], false);   // false = タブバーを再描画しない
+  saveTabsState();
+}
+
+function closeStockTab(sym) {
+  delete stockCache[sym];
+  if (priceChart) { priceChart.destroy(); priceChart = null; }
+  if (rsiChart)   { rsiChart.destroy();   rsiChart   = null; }
+  if (macdChart)  { macdChart.destroy();  macdChart  = null; }
+  const remaining = Object.keys(stockCache);
+  if (!remaining.length) {
+    activeStockTab = null;
+    renderStockTabs();
+    document.getElementById('mainContent').innerHTML = `
+      <div style="text-align:center;padding:60px 20px;color:var(--sub);">
+        <div style="font-size:56px;margin-bottom:16px;">📊</div>
+        <div style="font-size:16px;">銘柄を入力して分析を開始しよう</div>
+      </div>`;
+    saveTabsState();
+  } else {
+    switchStockTab(remaining[remaining.length - 1]);
+  }
+}
+
+// ===== タブ切り替え =====
+function switchTab(name) {
+  ['trend','scan','result','backtest'].forEach(t => {
+    const panel = document.getElementById('panel-' + t);
+    const btn   = document.getElementById('tab-' + t + '-btn');
+    if (panel) panel.classList.toggle('active', t === name);
+    if (btn)   btn.classList.toggle('active', t === name);
+  });
+}
+
+// ===== SNSトレンド =====
+const TREND_STORAGE_KEY = 'stockAnalyzer.trendData.v1';
+const SCAN_STORAGE_KEY  = 'stockAnalyzer.scanData.v1';
+
+async function runTrend() {
+  const btn = document.getElementById('trendBtn');
+  const list = document.getElementById('trendList');
+  btn.disabled = true; btn.textContent = '⏳ 取得中...';
+  list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--sub);">
+    <div class="loading-spinner" style="margin:0 auto 16px"></div>
+    <div>StockTwitsからトレンドデータを取得中...</div>
+    <div style="font-size:12px;margin-top:8px">株価データも同時に取得しています（30秒ほどかかります）</div>
+  </div>`;
+  try {
+    const res = await fetch('http://localhost:5050/api/trending');
+    const data = await res.json();
+    document.getElementById('trendUpdated').textContent = '更新: ' + data.updated_at;
+    renderTrendList(data.stocks);
+    // 保存
+    try { localStorage.setItem(TREND_STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+  } catch(e) {
+    list.innerHTML = `<div style="color:var(--sell);padding:20px;">取得失敗: ${e.message}</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = '🔄 再取得';
+  }
+}
+
+function restoreTrendData() {
+  try {
+    const raw = localStorage.getItem(TREND_STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (!data.stocks || !data.stocks.length) return;
+    document.getElementById('trendUpdated').textContent = '前回取得: ' + data.updated_at;
+    renderTrendList(data.stocks);
+    const btn = document.getElementById('trendBtn');
+    if (btn) btn.textContent = '🔄 再取得';
+  } catch(e) { console.warn('trend restore failed', e); }
+}
+
+function restoreScanData() {
+  try {
+    // モード別キャッシュから現在のモードを探す
+    const raw = localStorage.getItem(SCAN_STORAGE_KEY+'.'+activeScanMode);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (!data.stocks || !data.stocks.length) return;
+    if (data.stocks[0] && !('div_yield' in data.stocks[0])) {
+      localStorage.removeItem(SCAN_STORAGE_KEY+'.'+activeScanMode);
+      return;
+    }
+    allScanResults = data.stocks;
+    document.getElementById('scanUpdated').textContent = `${data.mode_label||''} | 前回スキャン: ${data.updated_at} | ${data.total_count||data.stocks.length}銘柄`;
+    renderScanFilter();
+    applyFilter();
+    const btn = document.getElementById('scanBtn');
+    if (btn) btn.textContent = '🔄 再スキャン';
+  } catch(e) { console.warn('scan restore failed', e); }
+}
+
+function renderTrendList(stocks) {
+  const list = document.getElementById('trendList');
+  if (!stocks.length) { list.innerHTML = '<div style="color:var(--sub);padding:20px;">データなし</div>'; return; }
+
+  list.innerHTML = stocks.map((s, i) => {
+    const sent    = s.sentiment;
+    const bullPct = sent.mood_pct;
+    const moodColor = bullPct >= 55 ? 'var(--buy)' : bullPct <= 45 ? 'var(--sell)' : 'var(--sub)';
+    const moodBg    = bullPct >= 55 ? 'var(--buy-bg)' : bullPct <= 45 ? 'var(--sell-bg)' : '#1c2128';
+    const chg   = s.change ?? 0;
+    const chgCls  = chg >= 0 ? 'pos' : 'neg';
+    const chgSign = chg >= 0 ? '+' : '';
+    const sc      = s.score ? scoreColor(s.score) : 'var(--sub)';
+    const vLabel  = VERDICT_LABELS[s.verdict] || s.verdict;
+    const sum     = s.summary || {};
+    const catch_  = sum.catch || '';
+    const points  = sum.points || [];
+
+    // ── ニュース（日本語のみ、英語はサブテキスト） ──
+    const jaNews = s.news_titles_ja || [];
+    const enNews = s.news_titles    || [];
+    const newsHTML = jaNews.slice(0, 3).map((ja, idx) => `
+      <div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;
+        border-bottom:1px solid rgba(255,255,255,0.05)">
+        <span style="color:var(--sub);flex-shrink:0;font-size:13px">📄</span>
+        <div>
+          <div style="font-size:13px;line-height:1.5;color:var(--text)">${ja}</div>
+          <div style="font-size:11px;color:var(--sub);margin-top:2px">
+            ${(enNews[idx]||'').substring(0,65)}${(enNews[idx]||'').length>65?'…':''}
+          </div>
+        </div>
+      </div>`).join('');
+
+    // ── 箇条書きポイント ──
+    const pointsHTML = points.map(p => `
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px">
+        <span style="color:${moodColor};flex-shrink:0">▶</span>
+        <span style="font-size:13px;line-height:1.5;color:var(--text)">${p}</span>
+      </div>`).join('');
+
+    return `
+      <div class="trend-card ${bullPct>=55?'bull':bullPct<=45?'bear':'neutral-c'}"
+        onclick="analyzeTrend('${s.symbol}')">
+
+        <!-- ヘッダー: 順位・銘柄名・株価 -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="font-size:20px;font-weight:900;color:var(--sub);min-width:24px;margin-top:2px">${i+1}</div>
+            <div>
+              <div style="font-size:20px;font-weight:800;line-height:1">${s.symbol}</div>
+              <div style="font-size:12px;color:var(--sub);margin-top:3px">${s.name}</div>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            ${s.price != null ? `<div style="font-size:20px;font-weight:700">${s.price.toLocaleString()}</div>` : ''}
+            ${chg != null ? `<div style="font-size:14px;font-weight:700" class="${chgCls}">${chgSign}${chg}%</div>` : ''}
+            ${s.score != null ? `<div style="font-size:11px;color:${sc};font-weight:700;margin-top:2px">${vLabel}</div>` : ''}
+          </div>
+        </div>
+
+        <!-- キャッチライン -->
+        ${catch_ ? `
+        <div style="background:${moodBg};border:1px solid ${moodColor};border-radius:8px;
+          padding:10px 14px;margin-bottom:12px;font-size:14px;font-weight:700;
+          color:${moodColor};line-height:1.4">
+          ${catch_}
+        </div>` : ''}
+
+        <!-- ムードバー -->
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="color:var(--buy);font-weight:700">🟢 強気 ${bullPct}%</span>
+            <span style="color:var(--sell);font-weight:700">弱気 ${100-bullPct}% 🔴</span>
+          </div>
+          <div class="mood-bar">
+            <div class="mood-bar-fill" style="width:${bullPct}%"></div>
+          </div>
+        </div>
+
+        <!-- なぜトレンド? 箇条書き -->
+        ${pointsHTML ? `
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px">
+            💡 なぜ今トレンドなの？
+          </div>
+          ${pointsHTML}
+        </div>` : ''}
+
+        <!-- 最新ニュース（折りたたみ） -->
+        ${newsHTML ? `
+        <details style="margin-top:4px" onclick="event.stopPropagation()">
+          <summary style="font-size:12px;color:var(--sub);cursor:pointer;font-weight:700;
+            list-style:none;display:flex;align-items:center;gap:6px;padding:6px 0">
+            <span>📰</span>
+            <span>最新ニュース（${s.news_count}件）を見る</span>
+            <span style="margin-left:auto">▼</span>
+          </summary>
+          <div style="padding-top:6px">${newsHTML}</div>
+        </details>` : ''}
+
+        <!-- フッター: ボタン -->
+        <div style="display:flex;gap:8px;margin-top:14px;padding-top:12px;
+          border-top:1px solid var(--border)" onclick="event.stopPropagation()">
+          <button class="trend-analyze-btn" style="flex:1"
+            onclick="analyzeTrend('${s.symbol}')">📊 詳細を分析する</button>
+          <button class="trend-order-btn"
+            onclick="openTrendOrder('${s.symbol}', '${s.name.replace(/'/g,"\\'")}', ${s.price||0}, '${s.verdict}')">
+            🏦 楽天で注文
+          </button>
+        </div>
+
+      </div>`;
+  }).join('');
+}
+
+function analyzeTrend(symbol) {
+  document.getElementById('symbolInput').value = symbol;
+  switchTab('result');
+  analyze();
+}
+
+function openTrendOrder(symbol, name, price, verdict) {
+  openOrderModal({ symbol, company_name: name, price, verdict });
+}
+
+// ===== 楽天証券 注文モーダル =====
+function openOrderModal(data) {
+  currentStock = data;
+  currentOrderType = data.verdict.includes('SELL') ? 'sell' : 'buy';
+
+  document.getElementById('modal-symbol').textContent = data.symbol;
+  document.getElementById('modal-name').textContent = data.company_name;
+  document.getElementById('modal-price').textContent = data.price ? data.price.toLocaleString() : '—';
+
+  const vtext = {
+    STRONG_BUY:  '複数の指標が強い買いを示しています。仕込みのチャンスの可能性あり。',
+    BUY:         '買いサインが優勢です。エントリーを検討できるタイミングです。',
+    WEAK_BUY:    'やや買い寄りですが、確信は持てない状態。少額から検討。',
+    NEUTRAL:     '方向感なし。様子見が無難です。',
+    WEAK_SELL:   'やや売り寄り。保有中なら利確を検討。',
+    SELL:        '売りサインが優勢。保有中なら売却を検討するタイミング。',
+    STRONG_SELL: '複数の指標が強い売りを示しています。要注意。',
+  };
+  document.getElementById('modal-verdict-text').textContent = vtext[data.verdict] || '';
+
+  setOrderType(currentOrderType);
+  updateEstimate();
+  document.getElementById('orderModal').style.display = 'flex';
+}
+
+function closeOrderModal() {
+  document.getElementById('orderModal').style.display = 'none';
+}
+function closeModal(e) {
+  if (e.target.id === 'orderModal') closeOrderModal();
+}
+
+function setOrderType(type) {
+  currentOrderType = type;
+  document.getElementById('btn-buy').classList.toggle('active', type === 'buy');
+  document.getElementById('btn-sell').classList.toggle('active', type === 'sell');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const qtyInput = document.getElementById('modal-qty');
+  if (qtyInput) qtyInput.addEventListener('input', updateEstimate);
+  // 前回の状態を復元
+  restoreTrendData();
+  restoreScanData();
+  restoreTabs();
+});
+
+function updateEstimate() {
+  if (!currentStock || !currentStock.price) return;
+  const qty = parseInt(document.getElementById('modal-qty').value) || 0;
+  const total = currentStock.price * qty;
+  document.getElementById('modal-estimate').textContent =
+    '約 ¥' + Math.round(total).toLocaleString();
+}
+
+function openRakuten() {
+  if (!currentStock) return;
+  const sym = currentStock.symbol;
+  const isJP = sym.endsWith('.T');
+  const code = isJP ? sym.replace('.T', '') : sym;
+  const orderSide = currentOrderType === 'buy' ? '1' : '3'; // 楽天証券: 1=現物買, 3=現物売
+
+  let url;
+  if (isJP) {
+    // 日本株: 楽天証券 現物注文ページ
+    url = `https://member.rakuten-sec.co.jp/app/ss_direct_stock_order.do?eventType=init&IssueCode=${code}&OrderSide=${orderSide}`;
+  } else {
+    // 米国株: 楽天証券 米国株注文ページ
+    url = `https://member.rakuten-sec.co.jp/app/us_stock_order.do?eventType=init&Ticker=${code}&OrderSide=${orderSide}`;
+  }
+
+  window.open(url, '_blank');
+  closeOrderModal();
+}
+
+async function runScan() {
+  const btn = document.getElementById('scanBtn');
+  const grid = document.getElementById('scannerGrid');
+  btn.disabled = true; btn.textContent = '⏳ スキャン中...';
+  grid.innerHTML = `<div class="scan-loading" style="grid-column:1/-1">
+    <div class="loading-spinner" style="margin:0 auto 12px"></div>
+    銘柄リストを取得 → 分析中... しばらくお待ちください
+  </div>`;
+  try {
+    const res = await fetch('http://localhost:5050/api/scan?mode=' + encodeURIComponent(activeScanMode));
+    const data = await res.json();
+    allScanResults = data.stocks;
+    document.getElementById('scanUpdated').textContent = `${data.mode_label||''} | 更新: ${data.updated_at} | ${data.total_count||data.stocks.length}銘柄`;
+    renderScanFilter();
+    renderScanGrid(allScanResults);
+    // 保存（モード別）
+    try { localStorage.setItem(SCAN_STORAGE_KEY+'.'+activeScanMode, JSON.stringify(data)); } catch(e) {}
+  } catch(e) {
+    grid.innerHTML = `<div style="color:var(--sell);padding:20px;grid-column:1/-1">スキャン失敗: ${e.message}</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = '🔄 再スキャン';
+  }
+}
+
+function renderScanFilter() {
+  const existing = document.getElementById('scanFilterBar');
+  if (existing) existing.remove();
+  const wrap = document.createElement('div');
+  wrap.id = 'scanFilterBar';
+  wrap.style.cssText = 'margin-bottom:14px;';
+
+  // フィルター
+  const filters = [
+    {key:'all', label:'全て'},
+    {key:'buy', label:'🟢 買い系'},
+    {key:'sell', label:'🔴 売り系'},
+    {key:'neutral', label:'⬜ 中立'},
+    {key:'us', label:'🇺🇸 米国株'},
+    {key:'jp', label:'🇯🇵 日本株'},
+  ];
+  const filterRow = document.createElement('div');
+  filterRow.className = 'scan-filter-bar';
+  filterRow.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;';
+  const flabel = document.createElement('span');
+  flabel.style.cssText = 'font-size:12px;color:var(--sub);font-weight:600;margin-right:4px;';
+  flabel.textContent = '🔍 絞り込み:';
+  filterRow.appendChild(flabel);
+  filters.forEach(f => {
+    const b = document.createElement('button');
+    b.className = 'filter-btn' + (activeFilter === f.key ? ' active' : '');
+    b.textContent = f.label;
+    b.onclick = () => { activeFilter = f.key; renderScanFilter(); applyFilter(); };
+    filterRow.appendChild(b);
+  });
+
+  // ソート
+  const sorts = [
+    {key:'score',        label:'⭐ 買いスコア順'},
+    {key:'div_yield',    label:'💰 配当利回り高い順'},
+    {key:'pe_low',       label:'🏷️ PER割安順'},
+    {key:'roe_high',     label:'📈 ROE高い順'},
+    {key:'rev_growth',   label:'🚀 売上成長率順'},
+    {key:'change_high',  label:'🔥 値上がり率順'},
+    {key:'change_low',   label:'❄️ 値下がり率順'},
+    {key:'market_cap',   label:'🏢 時価総額大きい順'},
+    {key:'w52_low',      label:'🛒 52週安値近い順（割安狙い）'},
+  ];
+  const sortRow = document.createElement('div');
+  sortRow.className = 'scan-filter-bar';
+  sortRow.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;align-items:center;';
+  const slabel = document.createElement('span');
+  slabel.style.cssText = 'font-size:12px;color:var(--sub);font-weight:600;margin-right:4px;';
+  slabel.textContent = '📊 並び順:';
+  sortRow.appendChild(slabel);
+  sorts.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'filter-btn' + (activeSort === s.key ? ' active' : '');
+    b.textContent = s.label;
+    b.onclick = () => { activeSort = s.key; renderScanFilter(); applyFilter(); };
+    sortRow.appendChild(b);
+  });
+
+  wrap.appendChild(filterRow);
+  wrap.appendChild(sortRow);
+  document.getElementById('panel-scan').insertBefore(wrap, document.getElementById('scannerGrid'));
+}
+
+function applyFilter() {
+  let filtered = allScanResults.slice();
+  // フィルター
+  if (activeFilter === 'buy') filtered = filtered.filter(s => s.verdict.includes('BUY'));
+  else if (activeFilter === 'sell') filtered = filtered.filter(s => s.verdict.includes('SELL'));
+  else if (activeFilter === 'neutral') filtered = filtered.filter(s => s.verdict === 'NEUTRAL');
+  else if (activeFilter === 'us') filtered = filtered.filter(s => !s.symbol.endsWith('.T'));
+  else if (activeFilter === 'jp') filtered = filtered.filter(s => s.symbol.endsWith('.T'));
+
+  // ソート（null/undefinedは末尾に押しやる）
+  const nullLast = (v, asc) => v == null ? (asc ? Infinity : -Infinity) : v;
+  switch (activeSort) {
+    case 'div_yield':
+      filtered = filtered.filter(s => s.div_yield != null && s.div_yield > 0)
+                         .sort((a,b) => b.div_yield - a.div_yield);
+      break;
+    case 'pe_low':
+      filtered = filtered.filter(s => s.pe != null && s.pe > 0)
+                         .sort((a,b) => a.pe - b.pe);
+      break;
+    case 'roe_high':
+      filtered = filtered.filter(s => s.roe != null)
+                         .sort((a,b) => b.roe - a.roe);
+      break;
+    case 'rev_growth':
+      filtered = filtered.filter(s => s.rev_growth != null)
+                         .sort((a,b) => b.rev_growth - a.rev_growth);
+      break;
+    case 'change_high':
+      filtered.sort((a,b) => (b.change ?? -Infinity) - (a.change ?? -Infinity));
+      break;
+    case 'change_low':
+      filtered.sort((a,b) => (a.change ?? Infinity) - (b.change ?? Infinity));
+      break;
+    case 'market_cap':
+      filtered.sort((a,b) => (b.market_cap_raw ?? 0) - (a.market_cap_raw ?? 0));
+      break;
+    case 'w52_low':
+      filtered = filtered.filter(s => s.w52_pos != null)
+                         .sort((a,b) => a.w52_pos - b.w52_pos);
+      break;
+    case 'score':
+    default:
+      filtered.sort((a,b) => b.score - a.score);
+  }
+  renderScanGrid(filtered);
+}
+
+function renderScanGrid(stocks) {
+  const grid = document.getElementById('scannerGrid');
+  const SIG_ICONS = {buy:'買', weak_buy:'↑', neutral:'→', weak_sell:'↓', sell:'売'};
+  const SIG_NAMES = {rsi:'RSI', macd:'MAC', bb:'BB', ma:'MA', vol:'出来高'};
+  const SIG_FULL  = {rsi:'RSI（過熱感）', macd:'MACD（勢い）', bb:'ボリンジャー', ma:'移動平均', vol:'出来高'};
+  grid.innerHTML = stocks.map(s => {
+    const chgCls  = s.change >= 0 ? 'pos' : 'neg';
+    const chgSign = s.change >= 0 ? '+' : '';
+    const vLabel  = VERDICT_LABELS[s.verdict] || s.verdict;
+    const sc      = scoreColor(s.score);
+
+    const sigHTML = Object.entries(s.signals).map(([k, v]) =>
+      `<div class="scan-sig ${v}" title="${SIG_FULL[k]||k}: ${SIGNAL_LABELS[v]||v}">${SIG_ICONS[v]||'?'}</div>`
+    ).join('');
+
+    // Fundamentals chips - 選択中のソートキーに対応するチップを先頭でハイライト
+    let fundChips = '';
+    const hl = activeSort;  // ハイライト対象
+    if (s.pe != null) {
+      const cls = s.pe < 15 ? 'good' : s.pe > 40 ? 'warn' : '';
+      const high = (hl==='pe_low') ? ' style="outline:2px solid var(--weak-buy)"' : '';
+      fundChips += `<span class="sc-fund-chip ${cls}"${high} title="株価収益率(PER)">PER ${s.pe}倍</span>`;
+    }
+    if (s.roe != null) {
+      const cls = s.roe > 15 ? 'good' : s.roe < 5 ? 'warn' : '';
+      const high = (hl==='roe_high') ? ' style="outline:2px solid var(--weak-buy)"' : '';
+      fundChips += `<span class="sc-fund-chip ${cls}"${high} title="自己資本利益率(ROE)">ROE ${s.roe}%</span>`;
+    }
+    if (s.div_yield != null && s.div_yield > 0) {
+      const cls = s.div_yield > 3 ? 'good' : '';
+      const high = (hl==='div_yield') ? ' style="outline:2px solid var(--weak-buy)"' : '';
+      fundChips += `<span class="sc-fund-chip ${cls}"${high} title="配当利回り">💰 配当 ${s.div_yield}%</span>`;
+    }
+    if (s.rev_growth != null) {
+      const cls = s.rev_growth > 10 ? 'good' : s.rev_growth < 0 ? 'warn' : '';
+      const high = (hl==='rev_growth') ? ' style="outline:2px solid var(--weak-buy)"' : '';
+      fundChips += `<span class="sc-fund-chip ${cls}"${high} title="売上成長率(前年比)">📈 成長 ${s.rev_growth>=0?'+':''}${s.rev_growth}%</span>`;
+    }
+    if (s.market_cap) {
+      const high = (hl==='market_cap') ? ' style="outline:2px solid var(--weak-buy)"' : '';
+      fundChips += `<span class="sc-fund-chip"${high} title="時価総額">時価総額 ${s.market_cap}</span>`;
+    }
+
+    // 52w range bar
+    let rangeHTML = '';
+    if (s.w52_pos != null) {
+      const pos = Math.max(2, Math.min(98, s.w52_pos));
+      rangeHTML = `
+        <div class="sc-range-wrap">
+          <div class="sc-range-label">
+            <span>52週安値</span>
+            <span style="font-weight:700;color:${sc}">${s.w52_pos}%地点</span>
+            <span>52週高値</span>
+          </div>
+          <div class="sc-range-bar">
+            <div class="sc-range-fill" style="width:100%"></div>
+            <div class="sc-range-dot" style="left:${pos}%"></div>
+          </div>
+        </div>`;
+    }
+
+    return `
+      <div class="scan-card ${s.verdict}" onclick="quickSearch('${s.symbol}')">
+        <!-- ヘッダー: ロゴ + 銘柄名 + 株価 -->
+        <div class="sc-header">
+          <div class="sc-left">
+            <div class="sc-logo">
+              ${s.logo_url
+                ? `<img src="${s.logo_url}" alt="${s.symbol}" onerror="this.parentNode.innerHTML='${s.symbol[0]||'?'}'">`
+                : `${s.symbol[0]||'?'}`}
+            </div>
+            <div class="sc-left-text">
+              <div class="sc-name">${s.name}</div>
+              <div class="sc-symbol">${s.symbol}</div>
+            </div>
+          </div>
+          <div class="sc-right">
+            <div class="sc-price">${s.price != null ? s.price.toLocaleString() : '—'}</div>
+            <div class="sc-change ${chgCls}">${chgSign}${s.change}%</div>
+          </div>
+        </div>
+
+        <!-- 判定バッジ + スコア -->
+        <div class="sc-verdict-row">
+          <span class="sc-verdict v${s.verdict}">${vLabel}</span>
+          <span class="sc-score" style="color:${sc}">${s.score}pt</span>
+        </div>
+        <div class="sc-score-bar">
+          <div class="sc-score-fill" style="width:${s.score}%;background:${sc}"></div>
+        </div>
+
+        <!-- ワンライナーコメント -->
+        ${s.comment ? `<div class="sc-comment">${s.comment}</div>` : ''}
+
+        <!-- ファンダメンタルズチップ -->
+        ${fundChips ? `<div class="sc-funds">${fundChips}</div>` : ''}
+
+        <!-- 52週レンジバー -->
+        ${rangeHTML}
+
+        <!-- 業種説明 -->
+        ${s.industry_desc ? `<div style="font-size:11px;color:var(--sub);margin-bottom:8px;padding:5px 8px;background:var(--bg);border-radius:6px;">🏢 ${s.industry_desc}</div>` : ''}
+
+        <!-- シグナルドット + セクター -->
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="sc-signals">${sigHTML}</div>
+          ${s.sector ? `<span class="sc-sector">${s.sector}</span>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleExp(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function quickSearch(sym) {
+  document.getElementById('symbolInput').value = sym;
+  analyze();
+}
+
+document.getElementById('symbolInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') analyze();
+});
+
+function fmt(n, digits=2) {
+  if (n == null) return '—';
+  return Number(n).toLocaleString('ja-JP', {minimumFractionDigits: digits, maximumFractionDigits: digits});
+}
+function fmtCap(n) {
+  if (!n) return '—';
+  if (n >= 1e12) return (n/1e12).toFixed(2) + '兆';
+  if (n >= 1e8) return (n/1e8).toFixed(0) + '億';
+  if (n >= 1e6) return (n/1e6).toFixed(0) + 'M';
+  return n.toLocaleString();
+}
+
+function scoreColor(score) {
+  if (score >= 75) return '#3fb950';
+  if (score >= 60) return '#58a6ff';
+  if (score <= 25) return '#f85149';
+  if (score <= 40) return '#ffa657';
+  return '#8b949e';
+}
+
+function fundComment(key, val) {
+  if (val == null) return {cls:'', text:''};
+  if (key === 'roe') return val > 15 ? {cls:'good', text:'優良（15%超）'} : val > 8 ? {cls:'ok', text:'標準的'} : {cls:'bad', text:'低め'};
+  if (key === 'roa') return val > 5 ? {cls:'good', text:'優良'} : val > 2 ? {cls:'ok', text:'標準的'} : {cls:'bad', text:'低め'};
+  if (key === 'pe') return val < 15 ? {cls:'good', text:'割安の可能性'} : val < 30 ? {cls:'ok', text:'標準的'} : {cls:'bad', text:'割高の可能性'};
+  if (key === 'pb') return val < 1 ? {cls:'good', text:'純資産以下（割安）'} : val < 3 ? {cls:'ok', text:'標準的'} : {cls:'bad', text:'割高の可能性'};
+  if (key === 'div_yield') return val > 3 ? {cls:'good', text:'高配当'} : val > 1 ? {cls:'ok', text:'配当あり'} : {cls:'', text:''};
+  if (key === 'revenue_growth') return val > 10 ? {cls:'good', text:'高成長'} : val > 0 ? {cls:'ok', text:'成長中'} : {cls:'bad', text:'売上減少'};
+  if (key === 'profit_margin') return val > 20 ? {cls:'good', text:'高収益率'} : val > 5 ? {cls:'ok', text:'標準的'} : {cls:'bad', text:'低収益率'};
+  if (key === 'debt_ratio') return val < 50 ? {cls:'good', text:'低負債'} : val < 150 ? {cls:'ok', text:'標準的'} : {cls:'bad', text:'負債重め'};
+  return {cls:'', text:''};
+}
+
+async function analyze() {
+  const symbol = document.getElementById('symbolInput').value.trim().toUpperCase();
+  if (!symbol) return;
+  switchTab('result');
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.textContent = '取得中...';
+
+  if (priceChart) { priceChart.destroy(); priceChart = null; }
+  if (rsiChart)   { rsiChart.destroy();   rsiChart   = null; }
+  if (macdChart)  { macdChart.destroy();  macdChart  = null; }
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="loading">
+      <div class="loading-spinner"></div>
+      <div style="font-size:16px">${symbol} のデータを取得・分析中...</div>
+      <div style="font-size:13px;color:var(--sub);margin-top:8px">テクニカル + ファンダメンタルズを計算しています</div>
+    </div>`;
+
+  try {
+    const res = await fetch('http://localhost:5050/api/analyze', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({symbol})
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'エラーが発生しました');
+    // キャッシュに保存してタブ追加
+    stockCache[data.symbol] = data;
+    activeStockTab = data.symbol;
+    renderStockTabs();
+    renderResult(data, false);
+    saveTabsState();
+  } catch(e) {
+    document.getElementById('mainContent').innerHTML = `
+      <div class="error-box">⚠️ ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔍 分析する';
+  }
+}
+
+function renderResult(d, updateTabs = true) {
+  if (updateTabs) {
+    stockCache[d.symbol] = d;
+    activeStockTab = d.symbol;
+    renderStockTabs();
+  }
+  const {symbol, company_name, price, price_change, verdict, score,
+         indicators: ind, fundamentals: f, chart, rsi_chart, macd_chart, updated_at} = d;
+
+  const sc = scoreColor(score);
+  const verdictLabel = VERDICT_LABELS[verdict] || verdict;
+  const changeClass = price_change >= 0 ? 'pos' : 'neg';
+  const changeSign = price_change >= 0 ? '+' : '';
+
+  // 52week range
+  let rangeHTML = '';
+  if (f.week52_low && f.week52_high && price) {
+    const pct = ((price - f.week52_low) / (f.week52_high - f.week52_low) * 100).toFixed(0);
+    rangeHTML = `
+      <div class="range-bar-wrap">
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px;">52週レンジ内の現在位置</div>
+        <div class="range-bar">
+          <div class="range-fill" style="width:100%"></div>
+          <div class="range-dot" style="left:${pct}%"></div>
+        </div>
+        <div class="range-labels">
+          <span>安値 ${fmt(f.week52_low)}</span>
+          <span style="color:var(--gold)">現在 ${pct}%</span>
+          <span>高値 ${fmt(f.week52_high)}</span>
+        </div>
+      </div>`;
+  }
+
+  const IND_EXPLAIN = {
+    rsi: {
+      what: '「買われすぎ・売られすぎ」を0〜100の数値で示す指標',
+      howto: '30以下 → 売られすぎ = 反発して上がりやすい【買いチャンス】\n70以上 → 買われすぎ = 下がりやすい【売り・様子見】\n30〜70 → 普通の状態',
+      tip: '30を下回った直後が特に狙い目とされています'
+    },
+    macd: {
+      what: '株価の「勢い（モメンタム）」と「方向性」を測る指標',
+      howto: 'MACDがシグナル線を下から上に抜けた → 上昇サイン【買い】\nMACDがシグナル線を上から下に抜けた → 下降サイン【売り】\nヒストグラム（棒グラフ）が大きいほど勢いが強い',
+      tip: '単独より他の指標と組み合わせると精度が上がります'
+    },
+    bollinger: {
+      what: '過去20日間の「価格の普通の範囲」を3本の線で示す指標',
+      howto: '下のバンドに触れた → 統計的に安すぎる状態【買い候補】\n上のバンドに触れた → 統計的に高すぎる状態【売り候補】\n中央線付近 → 普通の価格帯',
+      tip: '約95%の価格がバンドの中に収まると言われています'
+    },
+    ma: {
+      what: '一定期間の平均株価を線にしたもの（MA5=5日平均など）',
+      howto: '短期線が長期線を下から上に抜ける → ゴールデンクロス【買いサイン】\n短期線が長期線を上から下に抜ける → デッドクロス【売りサイン】\n現在値が全ての移動平均線の上 → 強い上昇トレンド',
+      tip: 'トレンドの方向を確認する最も基本的な指標です'
+    },
+    volume: {
+      what: 'その日に売買された株の数（取引量）',
+      howto: '平均より多い出来高 + 価格上昇 → 強い買いシグナル\n平均より多い出来高 + 価格下落 → 強い売りシグナル\n出来高が少ない → 信頼性が低い動き',
+      tip: '出来高が伴わない価格変動は「だまし」の可能性があります'
+    }
+  };
+
+  function indCard(title, icon, key) {
+    const i = ind[key];
+    const sl = SIGNAL_LABELS[i.signal] || i.signal;
+    const ex = IND_EXPLAIN[key];
+    const uid = 'exp_' + key;
+
+    let valueHTML = '';
+    if (key === 'rsi' && i.value != null) {
+      const pct = Math.min(Math.max(i.value, 0), 100);
+      const barColor = i.value < 30 ? '#3fb950' : i.value > 70 ? '#f85149' : '#58a6ff';
+      valueHTML = `
+        <div style="margin-top:10px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-bottom:4px">
+            <span>🟢 買いゾーン(〜30)</span><span>⬜ 中立(30〜70)</span><span>🔴 売りゾーン(70〜)</span>
+          </div>
+          <div class="gauge-wrap" style="height:16px;border-radius:8px">
+            <div style="position:absolute;left:30%;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.2)"></div>
+            <div style="position:absolute;left:70%;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.2)"></div>
+            <div class="gauge-fill" style="width:${pct}%;background:${barColor}"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-top:3px">
+            <span>0</span><span style="font-weight:700;color:${barColor}">現在: ${i.value}</span><span>100</span>
+          </div>
+        </div>`;
+    }
+    if (key === 'ma') {
+      const vals = [
+        i.ma5 != null ? `<span style="color:#58a6ff">MA5: ${fmt(i.ma5)}</span>` : null,
+        i.ma25 != null ? `<span style="color:#ffa657">MA25: ${fmt(i.ma25)}</span>` : null,
+        i.ma75 != null ? `<span style="color:#d2a8ff">MA75: ${fmt(i.ma75)}</span>` : null,
+      ].filter(Boolean);
+      valueHTML = `<div style="font-size:12px;margin-top:8px;display:flex;gap:10px;flex-wrap:wrap">${vals.join('')}</div>`;
+    }
+    if (key === 'bollinger') {
+      const vals = [
+        i.upper != null ? `<span style="color:#f85149">上限(売り): ${fmt(i.upper)}</span>` : null,
+        i.lower != null ? `<span style="color:#3fb950">下限(買い): ${fmt(i.lower)}</span>` : null,
+      ].filter(Boolean);
+      valueHTML = `<div style="font-size:12px;margin-top:8px;display:flex;gap:10px;flex-wrap:wrap">${vals.join('')}</div>`;
+    }
+    if (key === 'volume' && i.value != null) {
+      const ratio = i.avg ? (i.value / i.avg) : 0;
+      const barW = Math.min(ratio * 50, 100);
+      const barColor = ratio > 1.5 ? '#3fb950' : '#58a6ff';
+      valueHTML = `
+        <div style="margin-top:10px">
+          <div style="font-size:11px;color:var(--sub);margin-bottom:4px">平均出来高との比較</div>
+          <div class="gauge-wrap" style="height:12px"><div class="gauge-fill" style="width:${barW}%;background:${barColor}"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-top:3px">
+            <span style="color:var(--sub)">${i.value ? (i.value/1e4).toFixed(0)+'万株' : ''}</span>
+            <span style="color:${barColor};font-weight:700">平均の ${ratio.toFixed(1)} 倍</span>
+          </div>
+        </div>`;
+    }
+
+    return `
+      <div class="card" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:15px;font-weight:700">${icon} ${title}</div>
+          <button onclick="toggleExp('${uid}')"
+            style="background:#21262d;border:1px solid var(--border);color:var(--sub);
+            padding:3px 10px;border-radius:20px;font-size:12px;cursor:pointer">
+            ❓ この指標とは
+          </button>
+        </div>
+        <div id="${uid}" style="display:none;background:#0d1117;border:1px solid var(--border);
+          border-radius:8px;padding:14px;margin-bottom:10px;font-size:13px;line-height:1.8">
+          <div style="font-weight:700;color:var(--text);margin-bottom:6px">📌 ${ex.what}</div>
+          <div style="color:var(--sub);white-space:pre-line;margin-bottom:8px">${ex.howto}</div>
+          <div style="color:#ffa657;font-size:12px">💡 ${ex.tip}</div>
+        </div>
+        <div class="indicator-row ${i.signal}">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span class="ind-signal ${i.signal}">${sl}</span>
+              ${i.value != null && key === 'rsi' ? `<span style="font-size:22px;font-weight:800">${i.value}</span>` : ''}
+              ${key === 'macd' && i.value != null ? `<span style="font-size:13px;color:var(--sub)">MACD値: ${i.value}</span>` : ''}
+            </div>
+            <div style="font-size:13px;color:var(--text);line-height:1.6">${i.desc}</div>
+            ${valueHTML}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  const FUND_EXPLAIN = {
+    roe:  '会社が株主のお金をどれだけ上手く使って利益を出しているか。15%超なら優良企業の目安。',
+    roa:  '会社が持っている全資産をどれだけ効率よく使って稼いでいるか。5%超が優良の目安。',
+    pe:   '株価が利益の何倍かを示す。15倍以下なら割安、30倍超は割高の可能性。成長企業は高めになりやすい。',
+    pb:   '株価が会社の純資産の何倍かを示す。1倍以下は理論上割安。ただし業種によって差がある。',
+    eps:  '1株あたり会社がいくら稼いだか。数値が大きく増加傾向にあると良い。',
+    div_yield: '株価に対して年間配当金の割合。3%超なら高配当。長期保有で配当収入を狙う人向け。',
+    revenue_growth: '前年比で売上がどれだけ伸びたか。10%超なら高成長企業の目安。',
+    profit_margin: '売上のうち最終的に利益として残る割合。高いほど稼ぐ力が強い会社。',
+    debt_ratio: '会社の借金の多さを示す。小さいほど財務的に安全。150%超は注意が必要。',
+  };
+
+  function fundItem(label, key, val, unit='', digits=1) {
+    const c = fundComment(key, val);
+    const ex = FUND_EXPLAIN[key] || '';
+    return `
+      <div class="fund-item" style="position:relative" title="${ex}">
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+          <div class="fund-label" style="margin-bottom:0">${label}</div>
+          ${ex ? `<span style="font-size:10px;color:var(--sub);cursor:help" title="${ex}">ℹ️</span>` : ''}
+        </div>
+        <div class="fund-value ${c.cls}">${val != null ? fmt(val, digits) + unit : '—'}</div>
+        ${c.text ? `<div class="fund-comment ${c.cls}">${c.text}</div>` : ''}
+        ${ex ? `<div style="font-size:11px;color:var(--sub);margin-top:4px;line-height:1.4">${ex}</div>` : ''}
+      </div>`;
+  }
+
+  // モーダル用にデータを保存
+  currentStock = d;
+
+  document.getElementById('mainContent').innerHTML = `
+    <!-- Verdict -->
+    <div class="verdict-card ${verdict}">
+      <div class="verdict-badge">${verdictLabel}</div>
+      <div class="big-logo">
+        ${d.logo_url
+          ? `<img src="${d.logo_url}" alt="${symbol}" onerror="this.parentNode.innerHTML='<div class=\\'big-logo-fallback\\'>${symbol[0]||'?'}</div>'">`
+          : `<div class="big-logo-fallback">${symbol[0]||'?'}</div>`}
+      </div>
+      <div class="verdict-info">
+        <div class="company">${company_name} <span style="font-size:14px;color:var(--sub)">(${symbol})</span></div>
+        <div class="symbol-price">
+          <span class="price">${price ? price.toLocaleString() : '—'}</span>
+          <span class="change ${changeClass}">${changeSign}${price_change}%</span>
+        </div>
+        <div class="updated">最終更新: ${updated_at}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;flex-shrink:0">
+        <div class="score-circle" style="border-color:${sc};color:${sc}">
+          <div class="score-num">${score}</div>
+          <div class="score-label">買いスコア</div>
+        </div>
+        <button onclick="openOrderModal(currentStock)"
+          style="background:#bf0000;color:#fff;border:none;border-radius:8px;
+          padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;
+          white-space:nowrap;transition:all 0.2s"
+          onmouseover="this.style.background='#e00000'"
+          onmouseout="this.style.background='#bf0000'">
+          🏦 楽天証券で注文
+        </button>
+      </div>
+    </div>
+
+    <!-- 52 week range -->
+    ${rangeHTML}
+
+    <!-- 売買アクションプラン -->
+    <div class="section-title">⚡ 売買アクションプラン</div>
+    <div id="actionPlanArea">
+      <div style="text-align:center;padding:32px;color:var(--sub)">
+        <div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;border-width:2px"></div>
+        具体的な売買戦略を計算中...
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div class="section-title" style="margin-bottom:0">📊 チャート</div>
+      <div class="period-bar" id="periodBar">
+        ${[['1mo','1ヶ月'],['3mo','3ヶ月'],['6mo','6ヶ月'],['1y','1年'],['2y','2年'],['5y','5年']].map(([p,label]) =>
+          `<button class="period-btn${p==='6mo'?' active':''}" onclick="changePeriod('${p}')">${label}</button>`
+        ).join('')}
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-big-title">🕯️ ローソク足 + ボリンジャーバンド + 移動平均</div>
+      <div class="chart-container"><canvas id="priceChart"></canvas></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-big-title">⚡ RSI (14)</div>
+        <div class="chart-sm"><canvas id="rsiChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-big-title">📉 MACD</div>
+        <div class="chart-sm"><canvas id="macdChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="section-title">🔬 テクニカル指標</div>
+    <div class="grid-2">
+      <div>
+        ${indCard('RSI（14）', '⚡', 'rsi')}
+        ${indCard('MACD', '📉', 'macd')}
+        ${indCard('ボリンジャーバンド', '🎯', 'bollinger')}
+      </div>
+      <div>
+        ${indCard('移動平均線（MA5/25/75）', '📐', 'ma')}
+        ${indCard('出来高分析', '📊', 'volume')}
+      </div>
+    </div>
+
+    <div class="section-title">💼 ファンダメンタルズ</div>
+    <div class="card" style="margin-bottom:24px">
+      <div class="fund-grid">
+        ${fundItem('ROE（自己資本利益率）', 'roe', f.roe, '%')}
+        ${fundItem('ROA（総資産利益率）', 'roa', f.roa, '%')}
+        ${fundItem('PER（株価収益率）', 'pe', f.pe, '倍')}
+        ${fundItem('PBR（株価純資産倍率）', 'pb', f.pb, '倍', 2)}
+        ${fundItem('EPS（1株当たり利益）', 'eps', f.eps, '', 2)}
+        ${fundItem('配当利回り', 'div_yield', f.div_yield, '%', 2)}
+        ${fundItem('売上高成長率', 'revenue_growth', f.revenue_growth, '%')}
+        ${fundItem('純利益率', 'profit_margin', f.profit_margin, '%')}
+        ${fundItem('D/Eレシオ（負債/資本）', 'debt_ratio', f.debt_ratio, '%', 1)}
+        <div class="fund-item">
+          <div class="fund-label">時価総額</div>
+          <div class="fund-value">${fmtCap(f.market_cap)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">📖 判断の根拠まとめ</div>
+    <div class="card" style="margin-bottom:24px">
+      ${renderReasonSummary(ind, f, verdict, price, f.week52_high, f.week52_low)}
+    </div>
+
+    <div class="section-title">🧠 詳細投資考察</div>
+    <div id="deepAnalysisArea">
+      <div class="deep-loading">
+        <div class="loading-spinner" style="margin:0 auto 12px;width:32px;height:32px;border-width:2px"></div>
+        経済環境・リスク・投資シナリオを分析中...
+      </div>
+    </div>
+  `;
+
+  // Draw charts
+  drawPriceChart(chart);
+  drawRsiChart(rsi_chart);
+  drawMacdChart(macd_chart);
+
+  // Fetch action plan and deep analysis asynchronously
+  fetchActionPlan(d);
+  fetchDeepAnalysis(d);
+}
+
+async function fetchActionPlan(d) {
+  const area = document.getElementById('actionPlanArea');
+  if (!area) return;
+  try {
+    const res = await fetch('http://localhost:5050/api/action_plan', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        symbol: d.symbol, indicators: d.indicators, fundamentals: d.fundamentals,
+        verdict: d.verdict, score: d.score, price: d.price,
+        week52_high: d.fundamentals?.week52_high, week52_low: d.fundamentals?.week52_low,
+      })
+    });
+    if (!res.ok) throw new Error('取得失敗');
+    const plan = await res.json();
+    renderActionPlan(plan, area);
+  } catch(e) {
+    area.innerHTML = `<div style="color:var(--sub);padding:12px;font-size:13px">アクションプラン取得失敗: ${e.message}</div>`;
+  }
+}
+
+function renderActionPlan(p, area) {
+  const cBg = {buy:'#0a2713', weak_buy:'#0d1b2e', neutral:'#21262d', weak_sell:'#1f1a0d', sell:'#2a0d09'}[p.action_color] || '#21262d';
+  const cBd = {buy:'#3fb950', weak_buy:'#58a6ff', neutral:'#8b949e', weak_sell:'#ffa657', sell:'#f85149'}[p.action_color] || '#8b949e';
+  const cTx = {buy:'var(--buy)', weak_buy:'var(--weak-buy)', neutral:'var(--sub)', weak_sell:'var(--weak-sell)', sell:'var(--sell)'}[p.action_color] || 'var(--text)';
+
+  const confBg = {A:'#0a2713', B:'#0d1b2e', C:'#21262d'}[p.confidence];
+  const confColor = {A:'var(--buy)', B:'var(--weak-buy)', C:'var(--sub)'}[p.confidence];
+
+  const tpHTML = p.take_profits.map((tp,i) => `
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:${i<p.take_profits.length-1?'1px dashed var(--border)':'none'}">
+      <div>
+        <div style="font-weight:700;color:var(--buy)">${tp.label}</div>
+        <div style="font-size:11px;color:var(--sub)">リスクリワード ${tp.rr}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-weight:800;font-size:16px;color:var(--buy)">${tp.price.toLocaleString()}</div>
+        <div style="font-size:11px;color:var(--buy)">${tp.pct>=0?'+':''}${tp.pct}%</div>
+      </div>
+    </div>
+  `).join('');
+
+  const posHTML = p.position_sizing.map(ps => `
+    <div style="background:var(--card2);border-radius:8px;padding:10px 14px;margin-bottom:6px">
+      <div style="font-size:11px;color:var(--sub);margin-bottom:3px">口座 ¥${ps.account.toLocaleString()} の場合</div>
+      <div style="font-size:13px;line-height:1.6">
+        🟡 リスク1%: <b>${ps.risk_1pct_label}</b><br>
+        🔴 リスク2%: <b>${ps.risk_2pct_label}</b>
+      </div>
+    </div>
+  `).join('');
+
+  area.innerHTML = `
+    <!-- メインアクションカード -->
+    <div style="background:${cBg};border:2px solid ${cBd};border-radius:14px;padding:24px;margin-bottom:18px;position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:12px">
+        <div>
+          <div style="font-size:11px;color:var(--sub);margin-bottom:6px">推奨アクション</div>
+          <div style="font-size:30px;font-weight:800;color:${cTx};line-height:1.2">${p.action_label}</div>
+          <div style="font-size:13px;color:var(--sub);margin-top:6px">
+            戦略: <b>${p.strategy_type}</b> / 想定保有: <b>${p.holding_period}</b>
+          </div>
+        </div>
+        <div style="text-align:center;background:${confBg};border:1px solid ${confColor};border-radius:50%;width:64px;height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <div style="font-size:22px;font-weight:800;color:${confColor};line-height:1">${p.confidence}</div>
+          <div style="font-size:9px;color:var(--sub);margin-top:2px">信頼度</div>
+        </div>
+      </div>
+      <div style="font-size:14px;line-height:1.7;background:rgba(0,0,0,0.2);border-radius:8px;padding:12px 14px;margin-top:8px">
+        💬 ${p.summary}
+      </div>
+      <div style="font-size:11px;color:var(--sub);margin-top:8px">📌 ${p.confidence_reason}</div>
+    </div>
+
+    <!-- エントリー・損切り・利確 グリッド -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:18px">
+      <!-- エントリー -->
+      <div class="card" style="border-left:4px solid var(--weak-buy)">
+        <div style="font-size:12px;color:var(--sub);margin-bottom:8px">📥 エントリー条件</div>
+        <div style="font-size:24px;font-weight:800;margin-bottom:6px">${p.entry_price !== null ? p.entry_price.toLocaleString() : '待機'}</div>
+        <div style="font-size:12px;color:var(--sub);margin-bottom:10px;line-height:1.5">${p.entry_condition}</div>
+        <div style="font-size:12px;line-height:1.7">
+          ${p.entry_checklist.map(c => `<div>${c}</div>`).join('')}
+        </div>
+      </div>
+
+      <!-- 損切り -->
+      <div class="card" style="border-left:4px solid var(--sell)">
+        <div style="font-size:12px;color:var(--sub);margin-bottom:8px">❌ 損切りライン (Stop Loss)</div>
+        <div style="font-size:24px;font-weight:800;color:var(--sell);margin-bottom:6px">${p.stop_loss !== null ? p.stop_loss.toLocaleString() : '—'}</div>
+        ${p.stop_loss_reason ? `<div style="font-size:12px;color:var(--sub);margin-bottom:10px">根拠: ${p.stop_loss_reason}</div>` : ''}
+        <div style="font-size:12px;color:var(--sub);line-height:1.5">
+          ${p.entry_price && p.stop_loss ? `この価格を割ったら<b>即時撤退</b>。損失幅: <b>${(Math.abs((p.stop_loss-p.entry_price)/p.entry_price*100)).toFixed(2)}%</b>` : '損切りラインを必ず守る'}
+        </div>
+      </div>
+
+      <!-- 利確（3段階） -->
+      <div class="card" style="border-left:4px solid var(--buy)">
+        <div style="font-size:12px;color:var(--sub);margin-bottom:8px">🎯 利確ライン（3段階）</div>
+        ${p.take_profits.length ? tpHTML : '<div style="color:var(--sub);font-size:13px;padding:12px 0">エントリー条件が整い次第計算</div>'}
+      </div>
+    </div>
+
+    <!-- ポジションサイズ -->
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-big-title">💼 ポジションサイズ目安（リスク管理）</div>
+      <div style="font-size:11px;color:var(--sub);margin-bottom:10px">資金管理の鉄則: 1取引あたりの損失リスクを口座資金の 1〜2% に抑える。下表は各口座サイズでの推奨ロット数。</div>
+      ${posHTML}
+    </div>
+
+    <!-- 撤退条件 -->
+    <div class="card" style="margin-bottom:20px;border-left:4px solid var(--weak-sell)">
+      <div class="card-big-title">🚪 撤退・利確のシグナル</div>
+      <div style="font-size:13px;line-height:1.9">
+        ${p.exit_conditions.map(c => `<div style="margin-bottom:4px">${c}</div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+async function fetchDeepAnalysis(d) {
+  const area = document.getElementById('deepAnalysisArea');
+  if (!area) return;
+  try {
+    const res = await fetch('http://localhost:5050/api/deep_analysis', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        symbol: d.symbol,
+        indicators: d.indicators,
+        fundamentals: d.fundamentals,
+        verdict: d.verdict,
+        score: d.score
+      })
+    });
+    if (!res.ok) throw new Error('分析取得エラー');
+    const data = await res.json();
+    renderDeepAnalysis(data.sections, area);
+  } catch(e) {
+    area.innerHTML = `<div style="color:var(--sub);font-size:13px;padding:12px">詳細考察の取得に失敗しました: ${e.message}</div>`;
+  }
+}
+
+function renderDeepAnalysis(sections, area) {
+  if (!sections || !sections.length) {
+    area.innerHTML = `<div style="color:var(--sub);font-size:13px;padding:12px">詳細考察データがありません</div>`;
+    return;
+  }
+  const html = sections.map(sec => `
+    <div style="margin-bottom:20px">
+      <div class="deep-section-title">${sec.title}</div>
+      <div class="deep-section-body">${sec.content}</div>
+    </div>
+  `).join('');
+  area.innerHTML = `<div style="display:flex;flex-direction:column;gap:4px">${html}</div>`;
+}
+
+// ===== バックテスト =====
+let backtestEquityChart = null;
+
+async function runBacktest() {
+  const symbol   = document.getElementById('btSymbol').value.trim();
+  const strategy = document.getElementById('btStrategy').value;
+  const period   = document.getElementById('btPeriod').value;
+  const capital  = parseInt(document.getElementById('btCapital').value) || 1000000;
+  const btn      = document.getElementById('btRunBtn');
+  const out      = document.getElementById('btResult');
+
+  if (!symbol) { alert('銘柄を入力してください'); return; }
+
+  btn.disabled = true; btn.textContent = '⏳ 計算中...';
+  out.innerHTML = `<div style="text-align:center;padding:40px;color:var(--sub)">
+    <div class="loading-spinner" style="margin:0 auto 12px"></div>
+    過去の株価データで取引をシミュレーション中...
+  </div>`;
+  if (backtestEquityChart) { backtestEquityChart.destroy(); backtestEquityChart = null; }
+
+  try {
+    const res = await fetch('http://localhost:5050/api/backtest', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({symbol, strategy, period, capital})
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'エラー');
+    renderBacktest(data);
+  } catch(e) {
+    out.innerHTML = `<div class="error-box">⚠️ ${e.message}</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = '▶ シミュレーション実行';
+  }
+}
+
+function renderBacktest(d) {
+  const out = document.getElementById('btResult');
+  const yen = n => '¥' + Math.round(n).toLocaleString();
+  const pct = (n, plus=true) => (plus && n>=0?'+':'') + n.toFixed(2) + '%';
+  const md  = s => s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  const totalCls   = d.total_return_pct >= 0 ? 'good' : 'bad';
+  const annualCls  = d.annual_return_pct >= 0 ? 'good' : 'bad';
+  const vsBhCls    = d.vs_bh_pct >= 0 ? 'good' : 'bad';
+  const winCls     = d.win_rate >= 50 ? 'good' : (d.win_rate < 30 && d.trade_count > 0 ? 'bad' : '');
+
+  // 評価コメント
+  let verdict = '';
+  if (d.vs_bh_pct > 5)       verdict = '🏆 戦略がBuy&Holdを大きく上回りました！この戦略は有効です。';
+  else if (d.vs_bh_pct > 0)  verdict = '✅ 戦略がBuy&Holdをわずかに上回りました。';
+  else if (d.vs_bh_pct > -5) verdict = '⚖️ 戦略はBuy&Holdとほぼ同等。手間を考えるとBuy&Holdで良いかも。';
+  else                       verdict = '❌ 戦略はBuy&Holdに大きく劣りました。この銘柄ではBuy&Holdの方が有効です。';
+
+  // 取引履歴HTML
+  const tradesHTML = d.trades.length ? `
+    <table class="bt-trade-table">
+      <thead><tr>
+        <th>#</th><th>買日</th><th>買値</th><th>売日</th><th>売値</th>
+        <th>株数</th><th>保有日数</th><th>損益</th><th>%</th><th style="text-align:left">買い理由 / 売り理由</th>
+      </tr></thead>
+      <tbody>
+        ${d.trades.slice().reverse().slice(0, 20).map((t,i) => {
+          const idx = d.trades.length - i;
+          const reasonCell = `<div style="font-size:11px;color:var(--sub);max-width:280px;line-height:1.4">
+            <div>📥 ${t.buy_reason || '—'}</div>
+            <div>📤 ${t.sell_reason || '—'}</div>
+          </div>`;
+          return `<tr class="${t.win?'win':'lose'}">
+            <td>${idx}</td><td>${t.buy_date}</td><td>${t.buy_price.toLocaleString()}</td>
+            <td>${t.sell_date}</td><td>${t.sell_price.toLocaleString()}</td>
+            <td>${t.shares.toLocaleString()}</td>
+            <td>${t.holding_days||0}日</td>
+            <td>${t.profit>=0?'+':''}${yen(t.profit)}</td>
+            <td>${pct(t.profit_pct)}</td>
+            <td style="text-align:left">${reasonCell}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    ${d.trades.length > 20 ? `<div style="font-size:11px;color:var(--sub);text-align:right;margin-top:6px;">最新20件のみ表示（全${d.trades.length}件）</div>` : ''}
+  ` : `<div style="color:var(--sub);padding:20px;text-align:center">この期間中、シグナルが発生せず取引がありませんでした</div>`;
+
+  out.innerHTML = `
+    <!-- 1. 銘柄サマリー（会社情報） -->
+    <div class="card" style="padding:18px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:13px;color:var(--sub)">${d.symbol}</div>
+          <div style="font-size:22px;font-weight:800;margin:2px 0 6px">${d.company_name}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${d.industry_desc ? `<span class="sc-fund-chip">🏢 ${d.industry_desc}</span>` : ''}
+            ${d.sector ? `<span class="sc-fund-chip">${d.sector}</span>` : ''}
+            ${d.market_cap ? `<span class="sc-fund-chip">時価総額 ${d.market_cap}</span>` : ''}
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--sub)">最新株価</div>
+          <div style="font-size:24px;font-weight:800">${d.current_price.toLocaleString()}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 戦略の解説 -->
+    <div class="card" style="padding:18px;margin-bottom:16px;border-left:4px solid var(--weak-buy)">
+      <div style="font-size:11px;color:var(--sub);margin-bottom:4px">適用した戦略</div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:10px">🎯 ${d.strategy_name}</div>
+      <div style="font-size:14px;line-height:1.7;color:var(--text);margin-bottom:14px">${d.strategy_description}</div>
+      <div style="background:var(--card2);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.8">
+        <div><b style="color:var(--buy)">📥 買いルール:</b> ${d.strategy_rule_buy}</div>
+        <div><b style="color:var(--sell)">📤 売りルール:</b> ${d.strategy_rule_sell}</div>
+      </div>
+    </div>
+
+    <!-- 3. 総評バナー -->
+    <div class="card" style="padding:18px;margin-bottom:16px;background:linear-gradient(135deg,#0d1b2e,#161b22)">
+      <div style="font-size:12px;color:var(--sub);margin-bottom:6px">
+        ${d.symbol} | ${d.strategy_name} | ${d.start_date} ~ ${d.end_date}（${d.years}年間）| 初期資金 ${yen(d.initial_capital)}
+      </div>
+      <div style="font-size:17px;font-weight:700;margin-top:6px">${verdict}</div>
+    </div>
+
+    <!-- 4. 主要指標 -->
+    <div class="bt-metric-grid">
+      <div class="bt-metric">
+        <div class="lbl">初期資金 → 最終評価額</div>
+        <div class="val" style="font-size:17px">${yen(d.initial_capital)} → ${yen(d.final_value)}</div>
+      </div>
+      <div class="bt-metric ${totalCls}">
+        <div class="lbl">トータルリターン</div>
+        <div class="val">${pct(d.total_return_pct)}</div>
+        <div class="sub">${d.total_return >= 0 ? '+' : ''}${yen(d.total_return)}</div>
+      </div>
+      <div class="bt-metric ${annualCls}">
+        <div class="lbl">年率リターン</div>
+        <div class="val">${pct(d.annual_return_pct)}</div>
+        <div class="sub">複利換算</div>
+      </div>
+      <div class="bt-metric ${vsBhCls}">
+        <div class="lbl">vs Buy&amp;Hold</div>
+        <div class="val">${pct(d.vs_bh_pct)}</div>
+        <div class="sub">B&amp;H: ${pct(d.bh_return_pct)}</div>
+      </div>
+      <div class="bt-metric ${winCls}">
+        <div class="lbl">勝率</div>
+        <div class="val">${d.win_rate}%</div>
+        <div class="sub">${d.trade_count}回中 勝${Math.round(d.trade_count*d.win_rate/100)}/負${d.trade_count - Math.round(d.trade_count*d.win_rate/100)}</div>
+      </div>
+      <div class="bt-metric bad">
+        <div class="lbl">最大ドローダウン</div>
+        <div class="val">-${d.max_drawdown_pct}%</div>
+        <div class="sub">過去最大の含み損</div>
+      </div>
+      <div class="bt-metric">
+        <div class="lbl">平均保有期間</div>
+        <div class="val" style="font-size:22px">${d.avg_holding_days}日</div>
+        <div class="sub">1取引あたり</div>
+      </div>
+      <div class="bt-metric ${d.avg_profit_pct>=0?'good':'bad'}">
+        <div class="lbl">平均損益率/取引</div>
+        <div class="val">${pct(d.avg_profit_pct)}</div>
+        <div class="sub">1取引あたり平均</div>
+      </div>
+    </div>
+
+    <!-- 5. 詳細解説 -->
+    <div class="card" style="padding:18px;margin-bottom:18px">
+      <div class="card-big-title">📝 シミュレーション結果の解説</div>
+      <ul style="font-size:14px;line-height:1.9;padding-left:20px;color:var(--text)">
+        ${d.summary_lines.map(line => `<li style="margin-bottom:6px">${md(line)}</li>`).join('')}
+      </ul>
+    </div>
+
+    <!-- 6. 資産推移グラフ -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-big-title">📈 資産推移カーブ — 戦略 vs Buy&amp;Hold</div>
+      <div style="font-size:12px;color:var(--sub);margin-bottom:12px">青い線が戦略の資産推移、グレーの点線が「最初に全額買って何もせず保持」した場合の推移です。</div>
+      <div class="chart-container"><canvas id="btEquityChart"></canvas></div>
+    </div>
+
+    <!-- 7. 取引履歴 -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-big-title">📋 取引履歴（${d.trade_count}回）</div>
+      <div style="font-size:12px;color:var(--sub);margin-bottom:12px">各取引で「なぜ買ったか」「なぜ売ったか」のシグナル理由も表示しています。</div>
+      <div style="overflow-x:auto">${tradesHTML}</div>
+    </div>
+  `;
+
+  // 資産推移グラフ描画
+  setTimeout(() => drawEquityChart(d), 50);
+}
+
+function drawEquityChart(d) {
+  const canvas = document.getElementById('btEquityChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const labels = d.equity_curve.map(p => p.date);
+  const equityData = d.equity_curve.map(p => p.equity);
+
+  // Buy&Holdの推移を線形補間で計算
+  const startCap = d.initial_capital;
+  const bhFinal = startCap * (1 + d.bh_return_pct / 100);
+  const bhData  = labels.map((_, i) => {
+    const ratio = i / (labels.length - 1 || 1);
+    return startCap + (bhFinal - startCap) * ratio;
+  });
+
+  if (backtestEquityChart) backtestEquityChart.destroy();
+  backtestEquityChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: '戦略の資産推移',
+          data: equityData,
+          borderColor: '#58a6ff', backgroundColor: 'rgba(88,166,255,0.1)',
+          borderWidth: 2.5, fill: true, tension: 0.2, pointRadius: 0,
+        },
+        {
+          label: 'Buy&Hold（参考）',
+          data: bhData,
+          borderColor: '#8b949e', borderDash: [6,4],
+          borderWidth: 1.5, fill: false, tension: 0, pointRadius: 0,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#e6edf3' } } },
+      scales: {
+        x: { ticks: { color: '#8b949e', maxTicksLimit: 10 }, grid: { color: '#21262d' } },
+        y: {
+          ticks: {
+            color: '#8b949e',
+            callback: v => '¥' + (v/1000).toFixed(0) + 'k'
+          },
+          grid: { color: '#21262d' }
+        }
+      }
+    }
+  });
+}
+
+let currentChartPeriod = '6mo';
+
+async function changePeriod(period) {
+  currentChartPeriod = period;
+
+  // ボタンのactiveを切り替え
+  const PERIOD_LABELS = {'1mo':'1ヶ月','3mo':'3ヶ月','6mo':'6ヶ月','1y':'1年','2y':'2年','5y':'5年'};
+  document.querySelectorAll('.period-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === PERIOD_LABELS[period]);
+  });
+
+  const sym = activeStockTab;
+  if (!sym) return;
+
+  // チャートをローディング表示
+  const canvases = ['priceChart','rsiChart','macdChart'];
+  if (priceChart) { priceChart.destroy(); priceChart = null; }
+  if (rsiChart)   { rsiChart.destroy();   rsiChart   = null; }
+  if (macdChart)  { macdChart.destroy();  macdChart  = null; }
+
+  try {
+    const res = await fetch('http://localhost:5050/api/chart', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({symbol: sym, period})
+    });
+    if (!res.ok) throw new Error('取得失敗');
+    const data = await res.json();
+    drawPriceChart(data.chart);
+    drawRsiChart(data.rsi_chart);
+    drawMacdChart(data.macd_chart);
+  } catch(e) {
+    console.error('chart fetch error:', e);
+  }
+}
+
+function plainReason(signal, label, desc) {
+  const map = {
+    buy:       `✅ <b>${label}</b>が「買い」サインを出しています。`,
+    weak_buy:  `📈 <b>${label}</b>はやや買い寄りです。`,
+    neutral:   `➡️ <b>${label}</b>は特に強いサインなし（様子見）。`,
+    weak_sell: `📉 <b>${label}</b>はやや売り寄りです。`,
+    sell:      `❌ <b>${label}</b>が「売り」サインを出しています。`,
+  };
+  return (map[signal] || '') + ` <span style="color:var(--sub);font-size:12px">（${desc}）</span>`;
+}
+
+function renderReasonSummary(ind, f, verdict, price, h52, l52) {
+  const verdictColor = verdict.includes('BUY') ? 'var(--buy)' : verdict.includes('SELL') ? 'var(--sell)' : 'var(--sub)';
+  const verdictLabel = VERDICT_LABELS[verdict] || verdict;
+
+  // 総合コメント文
+  const commentMap = {
+    STRONG_BUY:  '複数の指標が強く買いを示しています。今が仕込みのチャンスである可能性が高いです。ただし相場全体の動向も確認しましょう。',
+    BUY:         '買いサインが優勢です。エントリーを検討できるタイミングです。損切りラインを決めてから入るのがおすすめです。',
+    WEAK_BUY:    '買い寄りですが、まだ確信が持てない状態です。もう少し様子を見て、他のサインが揃ってから判断するのも手です。',
+    NEUTRAL:     '買い・売りのサインが拮抗しており、方向感がない状態です。無理にポジションを取らず、次の動きを待ちましょう。',
+    WEAK_SELL:   'やや売り寄りです。保有中なら利益確定や損切りを検討しましょう。新規買いは様子見が無難です。',
+    SELL:        '売りサインが優勢です。保有中なら売却を検討するタイミングです。新規買いは避けた方が無難です。',
+    STRONG_SELL: '複数の指標が強い売りを示しています。保有中の場合は損切りを検討してください。',
+  };
+  const comment = commentMap[verdict] || '';
+
+  const rows = [
+    { icon:'⚡', label:'RSI（売られすぎ・買われすぎ）', signal: ind.rsi.signal,      desc: ind.rsi.desc },
+    { icon:'📉', label:'MACD（トレンドの勢い）',        signal: ind.macd.signal,     desc: ind.macd.desc },
+    { icon:'🎯', label:'ボリンジャーバンド（価格の位置）', signal: ind.bollinger.signal, desc: ind.bollinger.desc },
+    { icon:'📐', label:'移動平均線（トレンド方向）',     signal: ind.ma.signal,       desc: ind.ma.desc },
+    { icon:'📊', label:'出来高（市場の注目度）',        signal: ind.volume.signal,   desc: ind.volume.desc },
+  ];
+  if (f.roe != null) rows.push({
+    icon:'💹', label:'ROE（会社の稼ぐ力）',
+    signal: f.roe > 15 ? 'buy' : f.roe > 8 ? 'weak_buy' : 'sell',
+    desc: `ROE ${f.roe}% — ${f.roe > 15 ? '15%超の高収益企業。投資家に人気が出やすい' : f.roe > 8 ? '標準的な水準' : '収益性が低め。改善が必要な状態'}`
+  });
+  if (f.pe != null) rows.push({
+    icon:'💰', label:'PER（株価の割安・割高）',
+    signal: f.pe < 15 ? 'buy' : f.pe < 30 ? 'neutral' : 'sell',
+    desc: `PER ${f.pe}倍 — ${f.pe < 15 ? '15倍以下は割安ゾーン。お買い得の可能性あり' : f.pe < 30 ? '標準的な株価水準' : '30倍超は割高気味。将来の成長が織り込まれている状態'}`
+  });
+  if (f.revenue_growth != null) rows.push({
+    icon:'📈', label:'売上成長率（会社の勢い）',
+    signal: f.revenue_growth > 10 ? 'buy' : f.revenue_growth > 0 ? 'weak_buy' : 'sell',
+    desc: `売上成長率 ${f.revenue_growth}% — ${f.revenue_growth > 10 ? '10%超の高成長。ビジネスが拡大中' : f.revenue_growth > 0 ? '成長中だが伸びは穏やか' : '売上が減少しています。要注意'}`
+  });
+
+  const sigColors = { buy:'var(--buy)', weak_buy:'var(--weak-buy)', neutral:'var(--sub)', weak_sell:'var(--weak-sell)', sell:'var(--sell)' };
+
+  const rowsHTML = rows.map(r => `
+    <div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:20px;flex-shrink:0">${r.icon}</span>
+      <div style="flex:1;line-height:1.7">
+        <div style="font-size:14px">${plainReason(r.signal, r.label, r.desc)}</div>
+      </div>
+      <div style="flex-shrink:0;width:60px;text-align:right;font-size:12px;font-weight:700;color:${sigColors[r.signal]||'var(--sub)'}">${SIGNAL_LABELS[r.signal]||r.signal}</div>
+    </div>`).join('');
+
+  return `
+    <div style="font-size:13px;color:var(--sub);margin-bottom:12px">各指標が今この株についてどう言っているかをまとめています</div>
+    ${rowsHTML}
+    <div style="margin-top:20px;padding:20px;background:var(--card2);border-radius:12px;border-left:4px solid ${verdictColor}">
+      <div style="font-size:12px;color:var(--sub);margin-bottom:6px">🤖 AIの総合判断</div>
+      <div style="font-size:22px;font-weight:800;color:${verdictColor};margin-bottom:10px">${verdictLabel}</div>
+      <div style="font-size:14px;line-height:1.8;color:var(--text)">${comment}</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        ⚠️ この分析はテクニカル・ファンダメンタルズ指標をもとにした参考情報です。投資の最終判断はご自身でお願いします。
+      </div>
+    </div>`;
+}
+
+function drawPriceChart(data) {
+  const ctx = document.getElementById('priceChart');
+  if (!ctx) return;
+
+  const labels = data.map(d => d.date);
+  const closes = data.map(d => d.close);
+  const bb_upper = data.map(d => d.bb_upper);
+  const bb_lower = data.map(d => d.bb_lower);
+  const bb_mid = data.map(d => d.bb_mid);
+  const ma25 = data.map(d => d.ma25);
+  const ma75 = data.map(d => d.ma75);
+
+  priceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: '終値',
+          data: closes,
+          borderColor: '#58a6ff',
+          backgroundColor: 'rgba(88,166,255,0.08)',
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: true,
+          tension: 0.1,
+          order: 1,
+        },
+        {
+          label: 'BB上限',
+          data: bb_upper,
+          borderColor: 'rgba(248,81,73,0.5)',
+          borderWidth: 1,
+          borderDash: [3,3],
+          pointRadius: 0,
+          fill: false,
+          order: 2,
+        },
+        {
+          label: 'BB下限',
+          data: bb_lower,
+          borderColor: 'rgba(63,185,80,0.5)',
+          borderWidth: 1,
+          borderDash: [3,3],
+          pointRadius: 0,
+          fill: false,
+          order: 3,
+        },
+        {
+          label: 'BB中心',
+          data: bb_mid,
+          borderColor: 'rgba(255,255,255,0.15)',
+          borderWidth: 1,
+          borderDash: [2,4],
+          pointRadius: 0,
+          fill: false,
+          order: 4,
+        },
+        {
+          label: 'MA25',
+          data: ma25,
+          borderColor: '#ffa657',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false,
+          order: 5,
+        },
+        {
+          label: 'MA75',
+          data: ma75,
+          borderColor: '#d2a8ff',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false,
+          order: 6,
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#8b949e', boxWidth: 12, font: {size: 11} } },
+        tooltip: { backgroundColor: '#161b22', borderColor: '#30363d', borderWidth: 1, titleColor: '#e6edf3', bodyColor: '#8b949e' }
+      },
+      scales: {
+        x: { ticks: { color: '#8b949e', maxTicksLimit: 8 }, grid: { color: '#21262d' } },
+        y: { ticks: { color: '#8b949e' }, grid: { color: '#21262d' } }
+      }
+    }
+  });
+}
+
+function drawRsiChart(data) {
+  const ctx = document.getElementById('rsiChart');
+  if (!ctx) return;
+  const labels = data.map(d => d.date);
+  const values = data.map(d => d.value);
+
+  rsiChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'RSI',
+        data: values,
+        borderColor: '#58a6ff',
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+        tension: 0.1,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#161b22', borderColor: '#30363d', borderWidth:1, titleColor:'#e6edf3', bodyColor:'#8b949e' } },
+      scales: {
+        x: { ticks: { color: '#8b949e', maxTicksLimit: 5 }, grid: { color: '#21262d' } },
+        y: {
+          min: 0, max: 100,
+          ticks: { color: '#8b949e', stepSize: 20 },
+          grid: { color: (ctx) => ctx.tick.value === 30 || ctx.tick.value === 70 ? 'rgba(255,100,100,0.3)' : '#21262d' }
+        }
+      }
+    }
+  });
+}
+
+function drawMacdChart(data) {
+  const ctx = document.getElementById('macdChart');
+  if (!ctx) return;
+  const labels = data.map(d => d.date);
+  const macd = data.map(d => d.macd);
+  const signal = data.map(d => d.signal);
+  const hist = data.map(d => d.hist);
+
+  macdChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'ヒストグラム',
+          data: hist,
+          backgroundColor: hist.map(v => v >= 0 ? 'rgba(63,185,80,0.5)' : 'rgba(248,81,73,0.5)'),
+          order: 3,
+        },
+        {
+          type: 'line',
+          label: 'MACD',
+          data: macd,
+          borderColor: '#58a6ff',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false,
+          order: 1,
+        },
+        {
+          type: 'line',
+          label: 'シグナル',
+          data: signal,
+          borderColor: '#ffa657',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false,
+          order: 2,
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8b949e', boxWidth: 10, font: {size: 10} } }, tooltip: { backgroundColor: '#161b22', borderColor: '#30363d', borderWidth:1, titleColor:'#e6edf3', bodyColor:'#8b949e' } },
+      scales: {
+        x: { ticks: { color: '#8b949e', maxTicksLimit: 5 }, grid: { color: '#21262d' } },
+        y: { ticks: { color: '#8b949e' }, grid: { color: '#21262d' } }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
