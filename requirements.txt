@@ -1,0 +1,10 @@
+Flask==3.0.0
+flask-cors==4.0.0
+yfinance==0.2.40
+pandas==2.2.2
+numpy==1.26.4
+ta==0.11.0
+requests==2.31.0
+gunicorn==21.2.0
+lxml==5.2.2
+beautifulsoup4==4.12.3

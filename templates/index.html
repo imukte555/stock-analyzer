@@ -311,6 +311,8 @@
   .sc-left-text { flex:1; min-width:0; }
   .sc-left-text .sc-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .sc-left-text .sc-symbol { white-space:nowrap; }
+  .sc-symbol-small { font-size:11px; color:var(--sub); line-height:1.3; white-space:nowrap; }
+  .sc-company-name { font-size:15px; font-weight:800; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .sc-left {}
   .sc-name { font-size:11px; color:var(--sub); line-height:1.3; }
   .sc-symbol { font-size:17px; font-weight:800; line-height:1.2; }
@@ -537,9 +539,10 @@
   <!-- タブ -->
   <div class="tab-bar">
     <button class="tab-btn active" id="tab-trend-btn" onclick="switchTab('trend')">🔥 SNSトレンド</button>
-    <button class="tab-btn" id="tab-scan-btn"  onclick="switchTab('scan')">🔭 銘柄スキャン（30銘柄）</button>
+    <button class="tab-btn" id="tab-scan-btn"  onclick="switchTab('scan')">🔭 銘柄スキャン<span id="scanTabCount" style="font-size:12px;opacity:0.8;margin-left:4px"></span></button>
     <button class="tab-btn" id="tab-result-btn" onclick="switchTab('result')">📊 分析結果</button>
     <button class="tab-btn" id="tab-backtest-btn" onclick="switchTab('backtest')">🧪 売買シミュレーション</button>
+    <button class="tab-btn" id="tab-autotrade-btn" onclick="switchTab('autotrade')">🤖 自動トレード</button>
   </div>
 
   <!-- SNSトレンドパネル -->
@@ -669,6 +672,66 @@
     <div id="btResult"></div>
   </div>
 
+  <!-- 🤖 自動トレード パネル -->
+  <div class="tab-panel" id="panel-autotrade">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+      <div>
+        <span style="font-size:22px;font-weight:800">🤖 自動トレード（仮想資金）</span>
+        <div style="font-size:12px;color:var(--sub);margin-top:4px">スコア基準で勝手に売買シミュレーション。実弾は一切使いません。</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" id="atRunBtn" onclick="runAutotrade()" style="padding:8px 16px;font-size:13px">▶ 今すぐ実行</button>
+        <button class="filter-btn" onclick="openAutotradeSettings()" style="padding:6px 14px">⚙️ 設定</button>
+        <button class="filter-btn" onclick="resetAutotrade()" style="padding:6px 14px;color:var(--sell);border-color:var(--sell)">🔄 リセット</button>
+      </div>
+    </div>
+
+    <div id="atSummary"></div>
+    <div id="atActions" style="margin:14px 0"></div>
+    <div id="atPositions" style="margin:14px 0"></div>
+    <div id="atHistory" style="margin:14px 0"></div>
+  </div>
+
+</div>
+
+<!-- ⚙️ 自動トレード 設定モーダル -->
+<div class="modal-overlay" id="atSettingsModal" style="display:none" onclick="closeAtSettings(event)">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:500px">
+    <div style="font-size:18px;font-weight:800;margin-bottom:14px">⚙️ 自動トレード 設定</div>
+    <div style="display:flex;flex-direction:column;gap:12px;font-size:13px">
+      <div>
+        <label style="display:block;color:var(--sub);margin-bottom:4px">スキャン対象</label>
+        <select id="atMode" class="bt-select">
+          <option value="mixed">🌟 おすすめミックス</option>
+          <option value="gainers">🔥 値上がりTOP</option>
+          <option value="losers">❄️ 値下がりTOP</option>
+          <option value="actives">📊 出来高ランキング</option>
+          <option value="breakout">🚀 52週高値ブレイク</option>
+          <option value="watchlist">⭐ 固定ウォッチリスト</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;color:var(--sub);margin-bottom:4px">同時保有最大数</label>
+        <input type="number" id="atMaxPos" min="1" max="20" class="bt-select">
+      </div>
+      <div>
+        <label style="display:block;color:var(--sub);margin-bottom:4px">1銘柄あたり資金（%）</label>
+        <input type="number" id="atPosSize" min="5" max="50" class="bt-select">
+      </div>
+      <div>
+        <label style="display:block;color:var(--sub);margin-bottom:4px">買いシグナル最低スコア（高いほど慎重）</label>
+        <input type="number" id="atMinScore" min="40" max="90" class="bt-select">
+      </div>
+      <div>
+        <label style="display:block;color:var(--sub);margin-bottom:4px">売りシグナル最高スコア（低いほど即売）</label>
+        <input type="number" id="atMaxScore" min="10" max="50" class="bt-select">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:18px">
+      <button class="btn btn-primary" onclick="saveAtSettings()" style="flex:1">保存</button>
+      <button class="filter-btn" onclick="closeAtSettings()" style="flex:1">キャンセル</button>
+    </div>
+  </div>
 </div>
 
 <!-- 楽天証券 注文モーダル -->
@@ -805,7 +868,7 @@ async function restoreTabs() {
   // 各銘柄を順次再分析
   for (const sym of symbols) {
     try {
-      const res = await fetch('http://localhost:5050/api/analyze', {
+      const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({symbol: sym})
@@ -883,12 +946,13 @@ function closeStockTab(sym) {
 
 // ===== タブ切り替え =====
 function switchTab(name) {
-  ['trend','scan','result','backtest'].forEach(t => {
+  ['trend','scan','result','backtest','autotrade'].forEach(t => {
     const panel = document.getElementById('panel-' + t);
     const btn   = document.getElementById('tab-' + t + '-btn');
     if (panel) panel.classList.toggle('active', t === name);
     if (btn)   btn.classList.toggle('active', t === name);
   });
+  if (name === 'autotrade') refreshAutotrade();
 }
 
 // ===== SNSトレンド =====
@@ -905,7 +969,7 @@ async function runTrend() {
     <div style="font-size:12px;margin-top:8px">株価データも同時に取得しています（30秒ほどかかります）</div>
   </div>`;
   try {
-    const res = await fetch('http://localhost:5050/api/trending');
+    const res = await fetch('/api/trending');
     const data = await res.json();
     document.getElementById('trendUpdated').textContent = '更新: ' + data.updated_at;
     renderTrendList(data.stocks);
@@ -944,6 +1008,7 @@ function restoreScanData() {
     }
     allScanResults = data.stocks;
     document.getElementById('scanUpdated').textContent = `${data.mode_label||''} | 前回スキャン: ${data.updated_at} | ${data.total_count||data.stocks.length}銘柄`;
+    const tabCount = document.getElementById('scanTabCount'); if (tabCount) tabCount.textContent = `（${data.total_count||data.stocks.length}銘柄）`;
     renderScanFilter();
     applyFilter();
     const btn = document.getElementById('scanBtn');
@@ -1160,10 +1225,11 @@ async function runScan() {
     銘柄リストを取得 → 分析中... しばらくお待ちください
   </div>`;
   try {
-    const res = await fetch('http://localhost:5050/api/scan?mode=' + encodeURIComponent(activeScanMode));
+    const res = await fetch('/api/scan?mode=' + encodeURIComponent(activeScanMode));
     const data = await res.json();
     allScanResults = data.stocks;
     document.getElementById('scanUpdated').textContent = `${data.mode_label||''} | 更新: ${data.updated_at} | ${data.total_count||data.stocks.length}銘柄`;
+    const tabCount = document.getElementById('scanTabCount'); if (tabCount) tabCount.textContent = `（${data.total_count||data.stocks.length}銘柄）`;
     renderScanFilter();
     renderScanGrid(allScanResults);
     // 保存（モード別）
@@ -1358,8 +1424,8 @@ function renderScanGrid(stocks) {
                 : `${s.symbol[0]||'?'}`}
             </div>
             <div class="sc-left-text">
-              <div class="sc-name">${s.name}</div>
-              <div class="sc-symbol">${s.symbol}</div>
+              <div class="sc-symbol-small">${s.symbol}</div>
+              <div class="sc-company-name">${s.name}</div>
             </div>
           </div>
           <div class="sc-right">
@@ -1466,7 +1532,7 @@ async function analyze() {
     </div>`;
 
   try {
-    const res = await fetch('http://localhost:5050/api/analyze', {
+    const res = await fetch('/api/analyze', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({symbol})
@@ -1792,7 +1858,7 @@ async function fetchActionPlan(d) {
   const area = document.getElementById('actionPlanArea');
   if (!area) return;
   try {
-    const res = await fetch('http://localhost:5050/api/action_plan', {
+    const res = await fetch('/api/action_plan', {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
         symbol: d.symbol, indicators: d.indicators, fundamentals: d.fundamentals,
@@ -1911,7 +1977,7 @@ async function fetchDeepAnalysis(d) {
   const area = document.getElementById('deepAnalysisArea');
   if (!area) return;
   try {
-    const res = await fetch('http://localhost:5050/api/deep_analysis', {
+    const res = await fetch('/api/deep_analysis', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
@@ -1966,7 +2032,7 @@ async function runBacktest() {
   if (backtestEquityChart) { backtestEquityChart.destroy(); backtestEquityChart = null; }
 
   try {
-    const res = await fetch('http://localhost:5050/api/backtest', {
+    const res = await fetch('/api/backtest', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({symbol, strategy, direction, period, capital})
@@ -2188,6 +2254,191 @@ function drawEquityChart(d) {
   });
 }
 
+// ============================================================
+// 🤖 自動トレード（仮想資金）
+// ============================================================
+const AT_API = '/api/autotrade';
+
+async function refreshAutotrade(){
+  try{
+    const r = await fetch(AT_API + '/status');
+    const d = await r.json();
+    renderAutotrade(d);
+  }catch(e){
+    document.getElementById('atSummary').innerHTML = `<div class="error-box">⚠️ ${e.message}</div>`;
+  }
+}
+
+function renderAutotrade(d){
+  const yen = n => '¥' + Math.round(n).toLocaleString();
+  const pct = n => (n>=0?'+':'') + n.toFixed(2) + '%';
+  const pnlCls = d.total_pnl>=0?'good':'bad';
+  const winCls = d.win_rate>=50?'good':(d.win_rate<30 && d.trade_count>0?'bad':'');
+
+  document.getElementById('atSummary').innerHTML = `
+    <div style="background:linear-gradient(135deg,#0d1b2e,#161b22);border:2px solid var(--weak-buy);border-radius:14px;padding:22px;margin-bottom:18px">
+      <div style="font-size:11px;color:var(--sub);margin-bottom:4px">仮想ポートフォリオ評価額</div>
+      <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+        <div style="font-size:32px;font-weight:800">${yen(d.total_equity)}</div>
+        <div style="font-size:18px;font-weight:700;color:${d.total_pnl>=0?'var(--buy)':'var(--sell)'}">
+          ${pct(d.total_pnl_pct)} (${d.total_pnl>=0?'+':''}${yen(d.total_pnl)})
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
+        <div class="bt-metric"><div class="lbl">現金</div><div class="val" style="font-size:18px">${yen(d.cash)}</div></div>
+        <div class="bt-metric"><div class="lbl">保有時価</div><div class="val" style="font-size:18px">${yen(d.total_position_value)}</div></div>
+        <div class="bt-metric"><div class="lbl">初期資金</div><div class="val" style="font-size:18px">${yen(d.initial_capital)}</div></div>
+        <div class="bt-metric ${winCls}"><div class="lbl">勝率 / 取引数</div><div class="val">${d.win_rate}% / ${d.trade_count}</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--sub);margin-top:10px">
+        ${d.started_at ? '開始: '+d.started_at : '未スタート'}
+        ${d.last_run_at ? ' | 最終実行: '+d.last_run_at : ''}
+        | 同時保有上限 ${d.settings.max_positions} 銘柄 / モード ${d.settings.mode}
+      </div>
+    </div>
+  `;
+
+  // 保有ポジション
+  if(d.positions && d.positions.length){
+    document.getElementById('atPositions').innerHTML = `
+      <div style="font-size:16px;font-weight:700;margin-bottom:10px">📊 保有ポジション（${d.positions.length}銘柄）</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+        ${d.positions.map(p => `
+          <div class="card" style="border-left:4px solid ${p.pnl>=0?'var(--buy)':'var(--sell)'}">
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+              <div class="sc-logo">
+                <img src="${p.logo_url}" alt="${p.symbol}" onerror="this.parentNode.innerHTML='${p.symbol[0]||'?'}'">
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:11px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</div>
+                <div style="font-size:15px;font-weight:800">${p.symbol}</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:16px;font-weight:700;color:${p.pnl>=0?'var(--buy)':'var(--sell)'}">${pct(p.pnl_pct)}</div>
+                <div style="font-size:11px;color:var(--sub)">${p.pnl>=0?'+':''}${yen(p.pnl)}</div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--sub);line-height:1.7">
+              ${p.shares}株 @ ${p.avg_price} → ${p.cur_price}<br>
+              保有 ${p.holding_days}日 / 評価額 ${yen(p.value)}<br>
+              📥 ${p.buy_reason || '—'}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } else {
+    document.getElementById('atPositions').innerHTML = `
+      <div class="card" style="text-align:center;padding:30px;color:var(--sub)">
+        保有ポジションなし<br>
+        <span style="font-size:12px">「今すぐ実行」 ボタンを押すと、スキャン結果から自動で買い付けます</span>
+      </div>
+    `;
+  }
+
+  // 取引履歴
+  if(d.trade_history && d.trade_history.length){
+    document.getElementById('atHistory').innerHTML = `
+      <div style="font-size:16px;font-weight:700;margin-bottom:10px">📜 取引履歴（直近30件）</div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow-x:auto">
+        <table style="width:100%;font-size:12px;border-collapse:collapse">
+          <thead><tr style="background:var(--card2)">
+            <th style="padding:8px 10px;text-align:left">日時</th>
+            <th style="padding:8px 10px;text-align:left">種別</th>
+            <th style="padding:8px 10px;text-align:left">銘柄</th>
+            <th style="padding:8px 10px;text-align:right">株数</th>
+            <th style="padding:8px 10px;text-align:right">価格</th>
+            <th style="padding:8px 10px;text-align:right">金額</th>
+            <th style="padding:8px 10px;text-align:right">損益</th>
+            <th style="padding:8px 10px;text-align:left">理由</th>
+          </tr></thead>
+          <tbody>
+            ${d.trade_history.slice().reverse().map(t => `
+              <tr style="border-top:1px solid var(--border)">
+                <td style="padding:6px 10px;color:var(--sub);white-space:nowrap">${t.date}</td>
+                <td style="padding:6px 10px"><span style="color:${t.action==='buy'?'var(--buy)':'var(--sell)'};font-weight:700">${t.action==='buy'?'🟢 買':'🔴 売'}</span></td>
+                <td style="padding:6px 10px"><b>${t.symbol}</b><br><span style="color:var(--sub);font-size:11px">${t.name||''}</span></td>
+                <td style="padding:6px 10px;text-align:right">${t.shares}</td>
+                <td style="padding:6px 10px;text-align:right">${t.price}</td>
+                <td style="padding:6px 10px;text-align:right">${yen(t.amount)}</td>
+                <td style="padding:6px 10px;text-align:right;color:${(t.profit||0)>=0?'var(--buy)':'var(--sell)'};font-weight:700">${t.profit!=null?(t.profit>=0?'+':'')+yen(t.profit)+'<br><span style="font-size:10px">'+pct(t.profit_pct||0)+'</span>':'—'}</td>
+                <td style="padding:6px 10px;font-size:11px;color:var(--sub);max-width:200px">${t.reason||''}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  } else {
+    document.getElementById('atHistory').innerHTML = '';
+  }
+}
+
+async function runAutotrade(){
+  const btn = document.getElementById('atRunBtn');
+  btn.disabled = true; btn.textContent = '⏳ 実行中...';
+  document.getElementById('atActions').innerHTML = `<div style="color:var(--sub);font-size:13px;padding:12px;background:var(--card2);border-radius:8px">🔍 スキャン中... 数十秒かかります</div>`;
+  try{
+    const r = await fetch(AT_API + '/run', {method:'POST'});
+    const d = await r.json();
+    let html = `<div style="background:var(--card2);border-left:4px solid var(--weak-buy);border-radius:8px;padding:14px"><div style="font-size:13px;font-weight:700;margin-bottom:8px">✅ ${d.message}</div>`;
+    if (d.actions && d.actions.length){
+      html += '<div style="font-size:12px;line-height:1.7">' + d.actions.map(a => '• '+a).join('<br>') + '</div>';
+    }
+    html += '</div>';
+    document.getElementById('atActions').innerHTML = html;
+    await refreshAutotrade();
+  }catch(e){
+    document.getElementById('atActions').innerHTML = `<div class="error-box">⚠️ ${e.message}</div>`;
+  }finally{
+    btn.disabled = false; btn.textContent = '▶ 今すぐ実行';
+  }
+}
+
+async function resetAutotrade(){
+  const cap = prompt('初期資金を入力してください（円）', '1000000');
+  if (!cap) return;
+  if (!confirm(`本当にリセットしますか？\n仮想資金を ¥${parseInt(cap).toLocaleString()} で再スタートします。\n（保有ポジション・取引履歴は全消去）`)) return;
+  await fetch(AT_API + '/reset', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({capital: parseFloat(cap)})
+  });
+  await refreshAutotrade();
+  document.getElementById('atActions').innerHTML = '';
+}
+
+function openAutotradeSettings(){
+  fetch(AT_API + '/status').then(r=>r.json()).then(d => {
+    document.getElementById('atMode').value = d.settings.mode;
+    document.getElementById('atMaxPos').value = d.settings.max_positions;
+    document.getElementById('atPosSize').value = d.settings.position_size_pct;
+    document.getElementById('atMinScore').value = d.settings.min_score_buy;
+    document.getElementById('atMaxScore').value = d.settings.max_score_sell;
+    document.getElementById('atSettingsModal').style.display = 'flex';
+  });
+}
+
+function closeAtSettings(e){
+  if (e && e.target.id !== 'atSettingsModal' && e.target !== undefined) return;
+  document.getElementById('atSettingsModal').style.display = 'none';
+}
+
+async function saveAtSettings(){
+  const data = {
+    mode: document.getElementById('atMode').value,
+    max_positions: parseInt(document.getElementById('atMaxPos').value),
+    position_size_pct: parseFloat(document.getElementById('atPosSize').value),
+    min_score_buy: parseInt(document.getElementById('atMinScore').value),
+    max_score_sell: parseInt(document.getElementById('atMaxScore').value),
+  };
+  await fetch(AT_API + '/settings', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(data)
+  });
+  closeAtSettings();
+  refreshAutotrade();
+}
+
 let currentChartPeriod = '6mo';
 
 async function changePeriod(period) {
@@ -2209,7 +2460,7 @@ async function changePeriod(period) {
   if (macdChart)  { macdChart.destroy();  macdChart  = null; }
 
   try {
-    const res = await fetch('http://localhost:5050/api/chart', {
+    const res = await fetch('/api/chart', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({symbol: sym, period})

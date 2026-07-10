@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+autotrade_state.json
+*.log
+.DS_Store

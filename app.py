@@ -384,6 +384,7 @@ def quick_analyze(symbol):
         industry_desc = get_industry_ja(industry_en, sector_en)
         logo_url = get_logo_url(info, symbol)
         company_name = info.get('longName') or info.get('shortName') or ''
+        company_name = get_jp_company_name(symbol, company_name)
         pe = info.get('trailingPE') or info.get('forwardPE')
         roe_raw = info.get('returnOnEquity')
         roe = round(roe_raw * 100, 1) if roe_raw else None
@@ -503,6 +504,8 @@ def scan():
                         r['name'] = w['symbol']
                 else:
                     r['name'] = w['name']
+                # 日本株は日本語企業名に置き換え
+                r['name'] = get_jp_company_name(w['symbol'], r['name'])
                 results.append(r)
     results.sort(key=lambda x: x['score'], reverse=True)
     info = MODE_INFO.get(mode, MODE_INFO['mixed'])
@@ -673,6 +676,74 @@ def get_52w_gainers():
 # ウォッチリストとは別に、日本株コアリスト（補完用）
 JP_CORE_SYMBOLS = ['7203.T','9984.T','6758.T','7974.T','9432.T','6861.T','8306.T','4063.T','6367.T','9983.T','4519.T','8035.T','6098.T','8001.T','9433.T']
 
+# 日本株 銘柄コード → 日本語企業名（主要銘柄200社）
+JP_COMPANY_JA = {
+    # 自動車・輸送機器
+    '7203.T': 'トヨタ自動車', '7267.T': 'ホンダ', '7201.T': '日産自動車',
+    '7269.T': 'スズキ', '7270.T': 'SUBARU', '7261.T': 'マツダ',
+    '7259.T': 'アイシン', '6902.T': 'デンソー', '7012.T': '川崎重工業',
+    '7011.T': '三菱重工業', '7013.T': 'IHI',
+    # IT・テクノロジー
+    '6758.T': 'ソニーグループ', '6861.T': 'キーエンス', '6981.T': '村田製作所',
+    '7974.T': '任天堂', '6098.T': 'リクルートホールディングス',
+    '4307.T': '野村総合研究所', '4716.T': '日本オラクル',
+    '6701.T': 'NEC', '6702.T': '富士通', '6501.T': '日立製作所',
+    '6502.T': '東芝', '6752.T': 'パナソニック',
+    '8035.T': '東京エレクトロン', '6920.T': 'レーザーテック',
+    '4063.T': '信越化学工業', '4543.T': 'テルモ',
+    # 通信
+    '9432.T': 'NTT', '9433.T': 'KDDI', '9434.T': 'ソフトバンク',
+    '9984.T': 'ソフトバンクグループ',
+    # 金融
+    '8306.T': '三菱UFJフィナンシャル・グループ', '8316.T': '三井住友フィナンシャルグループ',
+    '8411.T': 'みずほフィナンシャルグループ', '8604.T': '野村ホールディングス',
+    '8591.T': 'オリックス', '8766.T': '東京海上ホールディングス',
+    '8725.T': 'MS&ADインシュアランスグループ',
+    # 商社・流通
+    '8001.T': '伊藤忠商事', '8031.T': '三井物産', '8053.T': '住友商事',
+    '8002.T': '丸紅', '8058.T': '三菱商事',
+    # 小売
+    '9983.T': 'ファーストリテイリング', '3382.T': 'セブン&アイ・ホールディングス',
+    '8267.T': 'イオン', '3086.T': 'J.フロント リテイリング',
+    '9843.T': 'ニトリホールディングス',
+    # 食品・飲料
+    '2502.T': 'アサヒグループホールディングス', '2503.T': 'キリンホールディングス',
+    '2914.T': 'JT', '2802.T': '味の素', '2269.T': '明治ホールディングス',
+    # 製薬・ヘルスケア
+    '4519.T': '中外製薬', '4502.T': '武田薬品工業', '4503.T': 'アステラス製薬',
+    '4523.T': 'エーザイ', '4568.T': '第一三共', '4151.T': '協和キリン',
+    '4578.T': '大塚ホールディングス',
+    # 機械・電機
+    '6367.T': 'ダイキン工業', '6273.T': 'SMC', '6594.T': 'ニデック',
+    '6326.T': 'クボタ', '6301.T': 'コマツ', '6503.T': '三菱電機',
+    '6954.T': 'ファナック', '6506.T': '安川電機',
+    # エネルギー・素材
+    '5020.T': 'ENEOSホールディングス', '5108.T': 'ブリヂストン',
+    '5401.T': '日本製鉄', '5713.T': '住友金属鉱山',
+    # 不動産・建設
+    '8801.T': '三井不動産', '8802.T': '三菱地所', '8830.T': '住友不動産',
+    '1925.T': '大和ハウス工業', '1928.T': '積水ハウス',
+    # ゲーム・エンタメ
+    '9766.T': 'コナミグループ', '9684.T': 'スクウェア・エニックス',
+    '6460.T': 'セガサミーホールディングス',
+    # 運輸・物流
+    '9020.T': 'JR東日本', '9021.T': 'JR西日本', '9022.T': 'JR東海',
+    '9202.T': 'ANAホールディングス', '9201.T': '日本航空',
+    '9064.T': 'ヤマトホールディングス',
+    # 電力・ガス
+    '9501.T': '東京電力ホールディングス', '9503.T': '関西電力',
+    '9531.T': '東京ガス',
+    # その他大手
+    '4661.T': 'オリエンタルランド', '4452.T': '花王', '4911.T': '資生堂',
+    '7733.T': 'オリンパス', '4523.T': 'エーザイ',
+}
+
+def get_jp_company_name(symbol, fallback):
+    """日本株なら日本語企業名を返す。なければfallback（英語名）"""
+    if symbol.endswith('.T') and symbol in JP_COMPANY_JA:
+        return JP_COMPANY_JA[symbol]
+    return fallback
+
 def get_scan_symbols(mode='mixed', limit=30):
     """
     スキャン用の銘柄リストを動的に生成。
@@ -693,16 +764,28 @@ def get_scan_symbols(mode='mixed', limit=30):
     elif mode == 'watchlist':
         return WATCHLIST
     else:  # mixed: 値上がり/値下がり/出来高/トレンド + 日本株コアをミックス
-        symbols = set()
-        for fn in [get_day_gainers, get_day_losers, get_most_actives, get_trending_symbols]:
-            for s in fn()[:8]:
-                symbols.add(s)
-        result = [{'symbol': s, 'name': s} for s in list(symbols)[:25]]
-        result += [{'symbol': s, 'name': s} for s in JP_CORE_SYMBOLS[:5]]
-        # 取得失敗時のフォールバック
-        if len(result) < 10:
-            return WATCHLIST
-        return result[:limit]
+        symbols = []
+        seen = set()
+        # 各ソースから取れるだけ取る（重複排除）
+        for fn in [get_day_gainers, get_day_losers, get_most_actives, get_trending_symbols, get_52w_gainers]:
+            for s in fn()[:12]:
+                if s not in seen:
+                    seen.add(s); symbols.append(s)
+                if len(symbols) >= 25: break
+            if len(symbols) >= 25: break
+        # 日本株コアを追加
+        for s in JP_CORE_SYMBOLS:
+            if s not in seen:
+                seen.add(s); symbols.append(s)
+            if len(symbols) >= limit: break
+        # それでも足りなければ固定ウォッチリストで穴埋め
+        if len(symbols) < limit:
+            for w in WATCHLIST:
+                if w['symbol'] not in seen:
+                    seen.add(w['symbol']); symbols.append(w['symbol'])
+                if len(symbols) >= limit: break
+        result = [{'symbol': s, 'name': s} for s in symbols[:limit]]
+        return result if result else WATCHLIST
 
 @app.route('/api/trending', methods=['GET'])
 def trending():
@@ -876,6 +959,7 @@ def analyze():
         week52_high = safe_info('fiftyTwoWeekHigh')
         week52_low = safe_info('fiftyTwoWeekLow')
         company_name = info.get('longName') or info.get('shortName') or symbol
+        company_name = get_jp_company_name(symbol, company_name)
 
         # Chart data (last 90 days)
         chart_data = []
@@ -1285,6 +1369,7 @@ def run_backtest(symbol, strategy, period, initial_capital, direction='long'):
     except:
         pass
     company_name = info.get('longName') or info.get('shortName') or symbol
+    company_name = get_jp_company_name(symbol, company_name)
     sector_en   = info.get('sector') or ''
     industry_en = info.get('industry') or ''
     industry_desc = get_industry_ja(industry_en, sector_en)
@@ -2665,7 +2750,282 @@ def forex_backtest():
         return jsonify({'error': f'シミュレーション失敗: {e}'}), 500
 
 
+# ============================================================
+# 🤖 自動売買エンジン（仮想資金）
+# ============================================================
+import os as _os
+import json as _json
+
+AUTOTRADE_FILE = _os.path.join(_os.path.dirname(__file__), 'autotrade_state.json')
+
+DEFAULT_AUTOTRADE = {
+    'cash': 1_000_000,           # 現金残高
+    'initial_capital': 1_000_000, # 初期資金
+    'positions': {},              # {symbol: {shares, avg_price, buy_date, buy_reason}}
+    'trade_history': [],          # 取引履歴
+    'equity_curve': [],           # 日次資産推移
+    'started_at': None,           # 開始日時
+    'last_run_at': None,          # 最終実行日時
+    'settings': {
+        'max_positions': 5,        # 同時保有最大数
+        'position_size_pct': 18,   # 1銘柄あたりの資金割合（%）
+        'mode': 'mixed',           # スキャンモード
+        'min_score_buy': 65,       # 買いシグナル発動最低スコア
+        'max_score_sell': 35,      # 売りシグナル発動最高スコア
+    }
+}
+
+def load_autotrade_state():
+    if not _os.path.exists(AUTOTRADE_FILE):
+        return dict(DEFAULT_AUTOTRADE)
+    try:
+        with open(AUTOTRADE_FILE, 'r', encoding='utf-8') as f:
+            d = _json.load(f)
+        # 不足キーを補完
+        for k, v in DEFAULT_AUTOTRADE.items():
+            if k not in d:
+                d[k] = v
+        return d
+    except:
+        return dict(DEFAULT_AUTOTRADE)
+
+def save_autotrade_state(state):
+    try:
+        with open(AUTOTRADE_FILE, 'w', encoding='utf-8') as f:
+            _json.dump(state, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f'autotrade save failed: {e}')
+
+
+@app.route('/api/autotrade/status', methods=['GET'])
+def autotrade_status():
+    state = load_autotrade_state()
+    # ポジションの現在価値を計算
+    positions_with_value = []
+    total_position_value = 0
+    for sym, pos in state['positions'].items():
+        try:
+            t = yf.Ticker(sym)
+            hist = t.history(period='5d')
+            cur_price = float(hist['Close'].iloc[-1]) if not hist.empty else pos['avg_price']
+        except:
+            cur_price = pos['avg_price']
+        value = cur_price * pos['shares']
+        cost = pos['avg_price'] * pos['shares']
+        pnl = value - cost
+        pnl_pct = (pnl / cost * 100) if cost else 0
+        total_position_value += value
+        positions_with_value.append({
+            'symbol': sym,
+            'name': get_jp_company_name(sym, sym),
+            'logo_url': f'https://assets.parqet.com/logos/symbol/{sym}?format=png',
+            'shares': pos['shares'],
+            'avg_price': pos['avg_price'],
+            'cur_price': round(cur_price, 2),
+            'cost': round(cost, 2),
+            'value': round(value, 2),
+            'pnl': round(pnl, 2),
+            'pnl_pct': round(pnl_pct, 2),
+            'buy_date': pos.get('buy_date'),
+            'buy_reason': pos.get('buy_reason', ''),
+            'holding_days': (datetime.now() - datetime.strptime(pos['buy_date'], '%Y-%m-%d')).days if pos.get('buy_date') else 0,
+        })
+
+    total_equity = state['cash'] + total_position_value
+    initial = state['initial_capital']
+    total_pnl = total_equity - initial
+    total_pnl_pct = (total_pnl / initial * 100) if initial else 0
+
+    # 勝率計算
+    win_count = sum(1 for t in state['trade_history'] if t.get('profit', 0) > 0)
+    total_trades = len([t for t in state['trade_history'] if t.get('action') == 'sell'])
+    win_rate = (win_count / total_trades * 100) if total_trades else 0
+
+    return jsonify({
+        'cash': round(state['cash'], 2),
+        'initial_capital': initial,
+        'total_position_value': round(total_position_value, 2),
+        'total_equity': round(total_equity, 2),
+        'total_pnl': round(total_pnl, 2),
+        'total_pnl_pct': round(total_pnl_pct, 2),
+        'positions': positions_with_value,
+        'trade_count': total_trades,
+        'win_rate': round(win_rate, 1),
+        'trade_history': state['trade_history'][-30:],  # 直近30件
+        'equity_curve': state['equity_curve'][-90:],    # 直近90日
+        'settings': state['settings'],
+        'started_at': state.get('started_at'),
+        'last_run_at': state.get('last_run_at'),
+    })
+
+
+@app.route('/api/autotrade/run', methods=['POST'])
+def autotrade_run():
+    """シグナル判定して自動売買を1回実行"""
+    state = load_autotrade_state()
+    if not state.get('started_at'):
+        state['started_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    settings = state['settings']
+    actions_log = []
+
+    # ① 既存ポジションのチェック → 売りシグナル出てたら売却
+    positions_to_remove = []
+    for sym, pos in list(state['positions'].items()):
+        try:
+            r = quick_analyze(sym)
+            if not r: continue
+            cur_price = r['price']
+            # 売りシグナル（スコア低い）or ストップロス（-7%）or 利益確定（+15%）
+            cost = pos['avg_price'] * pos['shares']
+            value = cur_price * pos['shares']
+            pnl_pct = (value - cost) / cost * 100
+            should_sell = False
+            sell_reason = ''
+            if r['score'] <= settings['max_score_sell']:
+                should_sell = True
+                sell_reason = f'売りシグナル発生（スコア {r["score"]}pt）: {r.get("comment","")}'
+            elif pnl_pct <= -7:
+                should_sell = True
+                sell_reason = f'損切り発動（-7%超）: 含み損 {pnl_pct:.2f}%'
+            elif pnl_pct >= 15:
+                should_sell = True
+                sell_reason = f'利益確定（+15%到達）: 含み益 +{pnl_pct:.2f}%'
+
+            if should_sell:
+                proceeds = cur_price * pos['shares']
+                profit = proceeds - cost
+                state['cash'] += proceeds
+                state['trade_history'].append({
+                    'action': 'sell',
+                    'symbol': sym,
+                    'name': get_jp_company_name(sym, sym),
+                    'shares': pos['shares'],
+                    'price': round(cur_price, 2),
+                    'amount': round(proceeds, 2),
+                    'profit': round(profit, 2),
+                    'profit_pct': round(pnl_pct, 2),
+                    'reason': sell_reason,
+                    'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'holding_days': (datetime.now() - datetime.strptime(pos['buy_date'], '%Y-%m-%d')).days,
+                })
+                positions_to_remove.append(sym)
+                actions_log.append(f'🔴 売却: {sym} {pos["shares"]}株 @ {cur_price} → 損益 {profit:+.0f}円 ({pnl_pct:+.2f}%)')
+        except Exception as e:
+            actions_log.append(f'⚠️ {sym} エラー: {e}')
+
+    for s in positions_to_remove:
+        del state['positions'][s]
+
+    # ② 新規買い候補を探す（スコア高い順）
+    if len(state['positions']) < settings['max_positions']:
+        # スキャン実行
+        try:
+            symbols_list = get_scan_symbols(settings['mode'])
+            from concurrent.futures import ThreadPoolExecutor
+            candidates = []
+            with ThreadPoolExecutor(max_workers=8) as ex:
+                futures = {ex.submit(quick_analyze, w['symbol']): w for w in symbols_list}
+                for fut, w in futures.items():
+                    r = fut.result()
+                    if r and r['score'] >= settings['min_score_buy'] and r['symbol'] not in state['positions']:
+                        candidates.append(r)
+            candidates.sort(key=lambda x: x['score'], reverse=True)
+
+            # 上位から買付
+            for cand in candidates:
+                if len(state['positions']) >= settings['max_positions']: break
+                # 1銘柄あたりの予算
+                budget = state['cash'] * settings['position_size_pct'] / 100
+                if budget < cand['price']: continue  # 1株も買えない
+                shares = int(budget / cand['price'])
+                if shares <= 0: continue
+                cost = shares * cand['price']
+                if state['cash'] < cost: continue
+
+                state['cash'] -= cost
+                state['positions'][cand['symbol']] = {
+                    'shares': shares,
+                    'avg_price': cand['price'],
+                    'buy_date': datetime.now().strftime('%Y-%m-%d'),
+                    'buy_reason': f'スコア {cand["score"]}pt: {cand.get("comment","")}',
+                }
+                state['trade_history'].append({
+                    'action': 'buy',
+                    'symbol': cand['symbol'],
+                    'name': get_jp_company_name(cand['symbol'], cand.get('name', cand['symbol'])),
+                    'shares': shares,
+                    'price': cand['price'],
+                    'amount': round(cost, 2),
+                    'reason': f'スコア {cand["score"]}pt: {cand.get("comment","")}',
+                    'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                })
+                actions_log.append(f'🟢 買付: {cand["symbol"]} {shares}株 @ {cand["price"]} ({cand["score"]}pt)')
+        except Exception as e:
+            actions_log.append(f'⚠️ スキャン失敗: {e}')
+
+    # 資産推移を記録
+    total_value = state['cash']
+    for sym, pos in state['positions'].items():
+        try:
+            t = yf.Ticker(sym)
+            hist = t.history(period='5d')
+            if not hist.empty:
+                total_value += float(hist['Close'].iloc[-1]) * pos['shares']
+        except:
+            total_value += pos['avg_price'] * pos['shares']
+
+    today_str = datetime.now().strftime('%Y-%m-%d')
+    # 同日エントリは更新
+    if state['equity_curve'] and state['equity_curve'][-1]['date'] == today_str:
+        state['equity_curve'][-1]['equity'] = round(total_value, 2)
+    else:
+        state['equity_curve'].append({'date': today_str, 'equity': round(total_value, 2)})
+
+    state['last_run_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    save_autotrade_state(state)
+
+    return jsonify({
+        'success': True,
+        'actions': actions_log,
+        'positions_count': len(state['positions']),
+        'cash': round(state['cash'], 2),
+        'total_equity': round(total_value, 2),
+        'message': f'{len(actions_log)}件のアクション実行' if actions_log else '今回はアクションなし（保有継続）',
+    })
+
+
+@app.route('/api/autotrade/reset', methods=['POST'])
+def autotrade_reset():
+    """リセット（最初からやり直す）"""
+    data = request.get_json() or {}
+    capital = float(data.get('capital', 1_000_000))
+    new_state = dict(DEFAULT_AUTOTRADE)
+    new_state['cash'] = capital
+    new_state['initial_capital'] = capital
+    new_state['positions'] = {}
+    new_state['trade_history'] = []
+    new_state['equity_curve'] = []
+    new_state['started_at'] = None
+    new_state['last_run_at'] = None
+    save_autotrade_state(new_state)
+    return jsonify({'success': True, 'capital': capital})
+
+
+@app.route('/api/autotrade/settings', methods=['POST'])
+def autotrade_settings():
+    """設定変更"""
+    data = request.get_json() or {}
+    state = load_autotrade_state()
+    for k in ('max_positions', 'position_size_pct', 'mode', 'min_score_buy', 'max_score_sell'):
+        if k in data:
+            state['settings'][k] = data[k]
+    save_autotrade_state(state)
+    return jsonify({'success': True, 'settings': state['settings']})
+
+
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 5050))
-    app.run(debug=False, port=port, host='0.0.0.0')
+    # threaded=True で同時複数リクエスト処理可能、落ちにくくなる
+    app.run(debug=False, port=port, host='0.0.0.0', threaded=True, use_reloader=False)
