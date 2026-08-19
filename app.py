@@ -3024,6 +3024,47 @@ def autotrade_settings():
     return jsonify({'success': True, 'settings': state['settings']})
 
 
+
+
+# ============================================================
+# 🤖 完全自動スイングbot（swing_bot.py）
+# ============================================================
+import swing_bot as _swing
+
+@app.route('/api/swing/status', methods=['GET'])
+def swing_status():
+    try:
+        return jsonify(_swing.status())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/swing/run', methods=['POST'])
+def swing_run():
+    try:
+        return jsonify(_swing.run_once())
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/swing/reset', methods=['POST'])
+def swing_reset():
+    data = request.get_json(silent=True) or {}
+    cap = float(data.get('capital', 1_000_000))
+    markets = data.get('markets')
+    _swing.reset(cap, markets)
+    return jsonify({'ok': True, 'capital': cap})
+
+@app.route('/swing')
+def swing_page():
+    return render_template('swing.html')
+
+# サーバー起動時に自動巡回スケジューラを開始（30分ごと）
+try:
+    _swing.start_scheduler(interval_min=30)
+except Exception as _e:
+    print('swing scheduler failed:', _e)
+
+
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 5050))

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🤖 自動スイングbot</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--card2:#1c2128;--border:#30363d;--text:#e6edf3;--sub:#8b949e;--buy:#3fb950;--sell:#f85149;--blue:#58a6ff;--gold:#ffd700}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Hiragino Sans',sans-serif}
+.hdr{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.hdr h1{font-size:20px}.hdr .sub{font-size:12px;color:var(--sub)}
+.hdr a{margin-left:auto;color:var(--blue);text-decoration:none;font-size:13px;border:1px solid var(--border);padding:6px 12px;border-radius:20px}
+.main{max-width:1200px;margin:0 auto;padding:20px}
+.hero{background:linear-gradient(135deg,#0d1b2e,#161b22);border:2px solid var(--blue);border-radius:16px;padding:24px;margin-bottom:18px}
+.hero .lbl{font-size:12px;color:var(--sub)}.hero .big{font-size:38px;font-weight:800;margin:4px 0}
+.hero .pnl{font-size:20px;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.m{background:var(--card2);border-radius:10px;padding:12px}.m .l{font-size:11px;color:var(--sub)}.m .v{font-size:20px;font-weight:800;margin-top:4px}
+.pos{color:var(--buy)}.neg{color:var(--sell)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+.card h2{font-size:15px;margin-bottom:12px;color:var(--sub);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 6px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+th{color:var(--sub);font-weight:600;font-size:11px}td:first-child,th:first-child,td:nth-child(2),th:nth-child(2){text-align:left}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.tag.L{background:#0a2713;color:var(--buy)}.tag.S{background:#2a0d09;color:var(--sell)}
+.tag.jp{background:#2a1a3a;color:#d2a8ff}.tag.us{background:#0d1b2e;color:var(--blue)}.tag.fx{background:#1f1a0d;color:#ffa657}
+.log{font-size:12px;line-height:1.8;color:var(--sub);max-height:300px;overflow:auto;font-family:ui-monospace,Menlo,monospace}
+.log b{color:var(--text)}
+.chart{height:260px;position:relative}
+.empty{color:var(--sub);text-align:center;padding:26px;font-size:13px}
+.btn{background:#238636;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;font-size:13px}
+.btn.gray{background:var(--card2);color:var(--sub);border:1px solid var(--border)}
+.rule{font-size:12px;color:var(--sub);line-height:1.8;background:var(--card2);border-radius:8px;padding:12px}
+@media(max-width:600px){.hero .big{font-size:30px}}
+</style></head><body>
+<div class="hdr"><div><h1>🤖 完全自動スイングbot（仮想）</h1><div class="sub">あなたは何もしなくていい。botが毎日勝手に売買して、ここに成績が出る。</div></div>
+<a href="/">📈 株式版</a></div>
+<div class="main">
+  <div class="hero" id="hero"><div class="empty">読み込み中...</div></div>
+  <div class="card"><h2>📈 資産推移（仮想100万円スタート）</h2><div class="chart"><canvas id="eq"></canvas></div></div>
+  <div class="card"><h2>📊 保有中ポジション</h2><div id="positions"></div></div>
+  <div class="card"><h2>📡 約定待ち（翌寄付で買う予定）</h2><div id="pending"></div></div>
+  <div class="card"><h2>📜 決済履歴</h2><div id="history"></div></div>
+  <div class="card"><h2>🧾 botの行動ログ</h2><div class="log" id="log"></div></div>
+  <div class="card"><h2>📖 botのルール（変えなくていい）</h2><div class="rule" id="rule"></div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="runNow()">▶ 今すぐ巡回</button><button class="btn gray" onclick="doReset()">🔄 リセット（100万に戻す）</button></div></div>
+</div>
+<script>
+const API=location.origin+'/api/swing';
+const yen=n=>'¥'+Math.round(n).toLocaleString();
+const pct=n=>(n>=0?'+':'')+Number(n).toFixed(2)+'%';
+let chart;
+async function load(){
+  const d=await (await fetch(API+'/status')).json();
+  if(d.error){document.getElementById('hero').innerHTML='<div class="empty">⚠️ '+d.error+'</div>';return;}
+  const cls=d.total_pnl>=0?'pos':'neg';
+  document.getElementById('hero').innerHTML=`
+    <div class="lbl">現在の総資産（現金＋含み損益）</div>
+    <div class="big">${yen(d.equity)}</div>
+    <div class="pnl ${cls}">${pct(d.total_pnl_pct)}（${d.total_pnl>=0?'+':''}${yen(d.total_pnl)}）</div>
+    <div class="grid">
+      <div class="m"><div class="l">現金</div><div class="v">${yen(d.cash)}</div></div>
+      <div class="m"><div class="l">保有数</div><div class="v">${d.positions.length} <span style="font-size:12px;color:var(--sub)">/ ${d.settings.max_positions}</span></div></div>
+      <div class="m"><div class="l">決済回数</div><div class="v">${d.trade_count}</div></div>
+      <div class="m"><div class="l">勝率</div><div class="v ${d.win_rate>=50?'pos':''}">${d.win_rate}%</div></div>
+      <div class="m"><div class="l">平均勝ち / 負け</div><div class="v" style="font-size:15px"><span class="pos">${pct(d.avg_win)}</span> / <span class="neg">${pct(d.avg_loss)}</span></div></div>
+    </div>
+    <div class="lbl" style="margin-top:10px">開始 ${d.started_at||'—'} ｜ 最終巡回 ${d.last_run_at||'—'} ｜ 30分ごとに自動巡回中</div>`;
+  // chart
+  const ctx=document.getElementById('eq');
+  const labels=d.equity_curve.map(p=>p.date), vals=d.equity_curve.map(p=>p.equity);
+  if(chart)chart.destroy();
+  chart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#58a6ff',backgroundColor:'rgba(88,166,255,.12)',fill:true,tension:.25,pointRadius:vals.length>40?0:3},{data:vals.map(()=>d.initial_capital),borderColor:'#8b949e',borderDash:[5,5],pointRadius:0,borderWidth:1}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e',maxTicksLimit:8},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e',callback:v=>'¥'+(v/10000).toFixed(0)+'万'},grid:{color:'#21262d'}}}}});
+  // positions
+  const P=document.getElementById('positions');
+  P.innerHTML=d.positions.length?`<div style="overflow-x:auto"><table><tr><th>市場</th><th>銘柄</th><th>売買</th><th>建値</th><th>現在</th><th>損切</th><th>利確</th><th>含み損益</th><th>保有日</th><th>建値SL</th></tr>
+    ${d.positions.map(p=>`<tr><td><span class="tag ${p.market}">${p.market.toUpperCase()}</span></td><td><b>${p.name}</b><br><span style="color:var(--sub);font-size:11px">${p.sym}</span></td><td><span class="tag ${p.side}">${p.side==='L'?'買':'売'}</span></td><td>${p.entry.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td>${p.cur.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td class="neg">${p.sl.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td class="pos">${p.tp.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td class="${p.unreal_pct>=0?'pos':'neg'}"><b>${pct(p.unreal_pct)}</b><br><span style="font-size:11px">${p.unreal_yen>=0?'+':''}${yen(p.unreal_yen)}</span></td><td>${p.days}/${d.settings.max_hold}</td><td>${p.be?'🛡':'—'}</td></tr>`).join('')}</table></div>`
+    :`<div class="empty">保有なし。シグナルが出た翌朝に自動で買う。</div>`;
+  // pending
+  const pend=Object.entries(d.pending);
+  document.getElementById('pending').innerHTML=pend.length?`<table><tr><th>市場</th><th>銘柄</th><th>売買</th><th>シグナル日</th><th>終値</th><th>RSI</th></tr>${pend.map(([s,p])=>`<tr><td><span class="tag ${p.market}">${p.market.toUpperCase()}</span></td><td><b>${p.name}</b></td><td><span class="tag ${p.side}">${p.side==='L'?'買':'売'}</span></td><td>${p.signal_date}</td><td>${p.close.toLocaleString()}</td><td>${p.rsi}</td></tr>`).join('')}</table>`:`<div class="empty">約定待ちなし</div>`;
+  // history
+  document.getElementById('history').innerHTML=d.history.length?`<div style="overflow-x:auto"><table><tr><th>市場</th><th>銘柄</th><th>売買</th><th>建値→決済</th><th>損益</th><th>理由</th><th>期間</th></tr>
+    ${d.history.map(t=>`<tr><td><span class="tag ${t.market}">${t.market.toUpperCase()}</span></td><td><b>${t.name}</b></td><td><span class="tag ${t.side}">${t.side==='L'?'買':'売'}</span></td><td>${t.entry.toLocaleString(undefined,{maximumFractionDigits:3})} → ${t.exit.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td class="${t.pnl_pct>0?'pos':'neg'}"><b>${pct(t.pnl_pct)}</b><br><span style="font-size:11px">${t.pnl_yen>=0?'+':''}${yen(t.pnl_yen)}</span></td><td>${{TP:'💰利確',SL:'🔴損切',BE:'⚪建値',時間:'⏰時間'}[t.reason]||t.reason}</td><td>${t.opened}〜${t.closed}<br><span style="color:var(--sub);font-size:11px">${t.days}日</span></td></tr>`).join('')}</table></div>`
+    :`<div class="empty">まだ決済なし</div>`;
+  document.getElementById('log').innerHTML=d.log.map(l=>`<div><b>${l.t}</b> ${l.msg}</div>`).join('')||'<div class="empty">ログなし</div>';
+  const S=d.settings;
+  document.getElementById('rule').innerHTML=`
+   <b>買う条件:</b> 終値がボリンジャーバンド下限を割って、RSI(7)が30未満 → 翌営業日の寄付で買う<br>
+   <b>売る条件（FX/米国のみ）:</b> 上限超え＆RSI70超 → 翌寄付で空売り<br>
+   <b>損切り:</b> ATR×${S.sl_atr}　<b>利確:</b> ATR×${S.tp_atr}　<b>建値ストップ:</b> 含み益ATR×${S.be_atr}で損切りを建値へ　<b>時間切れ:</b> ${S.max_hold}営業日<br>
+   <b>資金管理:</b> 1銘柄=資金の${S.position_pct}%、同時最大${S.max_positions}銘柄　<b>コスト:</b> 株${S.cost_pct}%/FX0.02%<br>
+   <b>対象:</b> 日本株${d.universe.jp.length}・米国株${d.universe.us.length}・FX${d.universe.fx.length}銘柄（過去1年バックテストで全市場プラスだった戦略）`;
+}
+async function runNow(){const b=event.target;b.disabled=true;b.textContent='⏳ 巡回中...';try{const r=await (await fetch(API+'/run',{method:'POST'})).json();alert(r.actions&&r.actions.length?r.actions.join('\n'):'変化なし（シグナルなし）');}catch(e){alert('エラー: '+e)}b.disabled=false;b.textContent='▶ 今すぐ巡回';load();}
+async function doReset(){if(!confirm('本当にリセット？（履歴・保有が全部消えて100万円に戻る）'))return;await fetch(API+'/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});load();}
+load();setInterval(load,60000);
+</script></body></html>
