@@ -32,8 +32,8 @@ th{color:var(--sub);font-weight:600;font-size:11px}td:first-child,th:first-child
 .rule{font-size:12px;color:var(--sub);line-height:1.8;background:var(--card2);border-radius:8px;padding:12px}
 @media(max-width:600px){.hero .big{font-size:30px}}
 </style></head><body>
-<div class="hdr"><div><h1>🤖 完全自動スイングbot（仮想）</h1><div class="sub">あなたは何もしなくていい。botが毎日勝手に売買して、ここに成績が出る。</div></div>
-<a href="/">📈 株式版</a></div>
+<div class="hdr"><div><h1 id="ttl">🤖 完全自動スイングbot（仮想）</h1><div class="sub">あなたは何もしなくていい。botが毎日勝手に売買して、ここに成績が出る。</div></div>
+<a href="/swing" id="lnkS">📈 株bot</a><a href="/swing-fx" id="lnkF" style="margin-left:8px">💱 FXbot</a></div>
 <div class="main">
   <div class="hero" id="hero"><div class="empty">読み込み中...</div></div>
   <div class="card"><h2>📈 資産推移（仮想100万円スタート）</h2><div class="chart"><canvas id="eq"></canvas></div></div>
@@ -45,10 +45,14 @@ th{color:var(--sub);font-weight:600;font-size:11px}td:first-child,th:first-child
     <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="runNow()">▶ 今すぐ巡回</button><button class="btn gray" onclick="doReset()">🔄 リセット（100万に戻す）</button></div></div>
 </div>
 <script>
-const API=location.origin+'/api/swing';
+const IS_FX=location.pathname.endsWith('/swing-fx');
+const API=location.origin+(IS_FX?'/api/swing-fx':'/api/swing');
 const yen=n=>'¥'+Math.round(n).toLocaleString();
 const pct=n=>(n>=0?'+':'')+Number(n).toFixed(2)+'%';
 let chart;
+document.title=IS_FX?'💱 FX自動スイングbot':'📈 株 自動スイングbot';
+document.getElementById('ttl').textContent=IS_FX?'💱 FX 完全自動スイングbot（仮想・レバ5倍）':'📈 株 完全自動スイングbot（仮想）';
+(IS_FX?document.getElementById('lnkF'):document.getElementById('lnkS')).style.borderColor='var(--blue)';
 async function load(){
   const d=await (await fetch(API+'/status')).json();
   if(d.error){document.getElementById('hero').innerHTML='<div class="empty">⚠️ '+d.error+'</div>';return;}
@@ -87,10 +91,10 @@ async function load(){
   const S=d.settings;
   document.getElementById('rule').innerHTML=`
    <b>買う条件:</b> 終値がボリンジャーバンド下限を割って、RSI(7)が30未満 → 翌営業日の寄付で買う<br>
-   <b>売る条件（FX/米国のみ）:</b> 上限超え＆RSI70超 → 翌寄付で空売り<br>
+   <b>売り（空売り）条件（FX/米国株のみ）:</b> 上限超え＆RSI70超 → 翌寄付で空売り<br>
    <b>損切り:</b> ATR×${S.sl_atr}　<b>利確:</b> ATR×${S.tp_atr}　<b>建値ストップ:</b> 含み益ATR×${S.be_atr}で損切りを建値へ　<b>時間切れ:</b> ${S.max_hold}営業日<br>
-   <b>資金管理:</b> 1銘柄=資金の${S.position_pct}%、同時最大${S.max_positions}銘柄　<b>コスト:</b> 株${S.cost_pct}%/FX0.02%<br>
-   <b>対象:</b> 日本株${d.universe.jp.length}・米国株${d.universe.us.length}・FX${d.universe.fx.length}銘柄（過去1年バックテストで全市場プラスだった戦略）`;
+   <b>資金管理:</b> 1銘柄=資金の${S.position_pct}%、同時最大${S.max_positions}銘柄　<b>レバレッジ:</b> ${S.leverage}倍　<b>コスト:</b> ${S.cost_pct}%<br>
+   <b>対象:</b> ${S.markets.map(m=>({jp:'日本株'+d.universe.jp.length,us:'米国株'+d.universe.us.length,fx:'FX'+d.universe.fx.length+'ペア'})[m]).join('・')}（過去1年バックテストでプラスだった戦略）`;
 }
 async function runNow(){const b=event.target;b.disabled=true;b.textContent='⏳ 巡回中...';try{const r=await (await fetch(API+'/run',{method:'POST'})).json();alert(r.actions&&r.actions.length?r.actions.join('\n'):'変化なし（シグナルなし）');}catch(e){alert('エラー: '+e)}b.disabled=false;b.textContent='▶ 今すぐ巡回';load();}
 async function doReset(){if(!confirm('本当にリセット？（履歴・保有が全部消えて100万円に戻る）'))return;await fetch(API+'/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});load();}

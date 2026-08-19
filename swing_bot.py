@@ -15,8 +15,12 @@ import pandas as pd
 import yfinance as yf
 import ta
 
-BOT_FILE = os.path.join(os.path.dirname(__file__), 'swing_bot_state.json')
 _lock = threading.Lock()
+ACCOUNTS = {
+    'stock': dict(file='swing_bot_state.json',    markets=['jp','us'], leverage=1.0, cost_pct=0.10, label='株（日本+米国）'),
+    'fx':    dict(file='swing_bot_fx_state.json', markets=['fx'],      leverage=5.0, cost_pct=0.02, label='FX（レバ5倍）'),
+}
+def _file(acct): return os.path.join(os.path.dirname(__file__), ACCOUNTS[acct]['file'])
 
 UNIVERSE = {
     'jp': [("8035.T","東京エレクトロン"),("6857.T","アドバンテスト"),("6920.T","レーザーテック"),("9984.T","ソフトバンクG"),
@@ -45,29 +49,45 @@ DEFAULT = {
     'settings': {
         'position_pct': 10,      # 1ポジション = 資金の10%
         'max_positions': 8,
-        'markets': ['jp','us','fx'],
+        'markets': ['jp','us'],
         'sl_atr': 1.5, 'tp_atr': 2.5, 'be_atr': 1.0, 'max_hold': 10,
-        'cost_pct': 0.10,        # 往復コスト（FXは0.02に自動）
+        'cost_pct': 0.10,        # 往復コスト
+        'leverage': 1.0,         # FX口座は5倍
+        'annual_interest': 0.0,  # FXスワップは無視（概算）
     }
 }
 
-def _load():
-    if not os.path.exists(BOT_FILE):
-        return json.loads(json.dumps(DEFAULT))
+def _default_for(acct):
+    d=json.loads(json.dumps(DEFAULT)); a=ACCOUNTS[acct]
+    d['settings'].update(markets=a['markets'], leverage=a['leverage'], cost_pct=a['cost_pct'])
+    d['account']=acct; d['label']=a['label']
+    return d
+
+def _load(acct='stock'):
+    path=_file(acct)
+    if not os.path.exists(path):
+        return _default_for(acct)
     try:
-        with open(BOT_FILE,'r',encoding='utf-8') as f: d=json.load(f)
-        for k,v in DEFAULT.items():
-            if k not in d: d[k]=json.loads(json.dumps(v))
-        for k,v in DEFAULT['settings'].items():
+        with open(path,'r',encoding='utf-8') as f: d=json.load(f)
+        base=_default_for(acct)
+        for k,v in base.items():
+            if k not in d: d[k]=v
+        for k,v in base['settings'].items():
             if k not in d['settings']: d['settings'][k]=v
+        # 口座ごとの市場/レバは常に定義に従わせる（古いstateの['jp','us','fx']を矯正）
+        d['settings']['markets']=ACCOUNTS[acct]['markets']
+        d['settings']['leverage']=ACCOUNTS[acct]['leverage']
+        d['settings']['cost_pct']=ACCOUNTS[acct]['cost_pct']
+        d['account']=acct; d['label']=ACCOUNTS[acct]['label']
         return d
     except Exception:
-        return json.loads(json.dumps(DEFAULT))
+        return _default_for(acct)
 
 def _save(state):
-    tmp=BOT_FILE+'.tmp'
+    path=_file(state.get('account','stock'))
+    tmp=path+'.tmp'
     with open(tmp,'w',encoding='utf-8') as f: json.dump(state,f,ensure_ascii=False,indent=1)
-    os.replace(tmp,BOT_FILE)
+    os.replace(tmp,path)
 
 def _log(state,msg):
     state['log'].append({'t':datetime.now().strftime('%m-%d %H:%M'),'msg':msg})
@@ -109,10 +129,10 @@ def _last_completed_bar(h, market):
         return h.iloc[:-1], len(h)-2
     return h, len(h)-1
 
-def run_once():
+def run_once(acct='stock'):
     """1回の実行: (1) 約定待ちを寄付で約定 (2) 保有をSL/TP/BE/時間切れ判定 (3) 新規シグナル検出→pendingへ"""
     with _lock:
-        state=_load()
+        state=_load(acct)
         if not state['started_at']:
             state['started_at']=datetime.now().strftime('%Y-%m-%d %H:%M')
         S=state['settings']
@@ -177,8 +197,9 @@ def run_once():
                 if hit:
                     px=hit[1]; side_mult=1 if side=='L' else -1
                     pnl_pct=(px/e-1)*100*side_mult
-                    cost_pct=0.02 if pos['market']=='fx' else S['cost_pct']
-                    net_pct=pnl_pct-cost_pct
+                    cost_pct=S['cost_pct']
+                    lev=float(S.get('leverage',1.0))
+                    net_pct=pnl_pct*lev-cost_pct
                     proceeds=pos['cost']*(1+net_pct/100)
                     state['cash']+=proceeds
                     state['history'].append(dict(sym=sym,name=pos['name'],market=pos['market'],side=side,entry=e,exit=px,
@@ -216,7 +237,7 @@ def run_once():
             h=data.get(sym)
             if h is None: equity+=pos['cost']; continue
             cur=float(h['Close'].iloc[-1]); side_mult=1 if pos['side']=='L' else -1
-            equity+=pos['cost']*(1+(cur/pos['entry']-1)*side_mult)
+            equity+=pos['cost']*(1+(cur/pos['entry']-1)*side_mult*float(S.get('leverage',1.0)))
         today=datetime.now().strftime('%Y-%m-%d')
         if state['equity_curve'] and state['equity_curve'][-1]['date']==today:
             state['equity_curve'][-1]['equity']=round(equity)
@@ -227,15 +248,16 @@ def run_once():
         _save(state)
         return dict(actions=actions,equity=equity,positions=len(state['positions']),pending=len(state['pending']))
 
-def status():
+def status(acct='stock'):
     with _lock:
-        state=_load()
+        state=_load(acct)
     # 現在値で評価
     pos_out=[]; equity=state['cash']
     for sym,pos in state['positions'].items():
         h=_fetch(sym,'1mo'); cur=float(h['Close'].iloc[-1]) if h is not None else pos['entry']
         side_mult=1 if pos['side']=='L' else -1
-        upnl=(cur/pos['entry']-1)*100*side_mult
+        lev=float(state['settings'].get('leverage',1.0))
+        upnl=(cur/pos['entry']-1)*100*side_mult*lev
         val=pos['cost']*(1+upnl/100); equity+=val
         pos_out.append(dict(sym=sym,name=pos['name'],market=pos['market'],side=pos['side'],entry=pos['entry'],cur=cur,
                             sl=pos['sl'],tp=pos['tp'],be=pos['be'],unreal_pct=round(upnl,2),unreal_yen=round(val-pos['cost']),
@@ -252,13 +274,13 @@ def status():
         avg_loss=round(np.mean([t['pnl_pct'] for t in hist if t['pnl_pct']<=0]),2) if len(hist)>len(wins) else 0,
         equity_curve=state['equity_curve'][-180:], log=state['log'][::-1][:60],
         started_at=state['started_at'], last_run_at=state['last_run_at'], settings=state['settings'],
+        account=state.get('account','stock'), label=state.get('label',''), leverage=state['settings'].get('leverage',1.0),
         universe={m:[{'sym':s,'name':n} for s,n in v] for m,v in UNIVERSE.items()},
     )
 
-def reset(capital=1_000_000, markets=None):
+def reset(capital=1_000_000, markets=None, acct='stock'):
     with _lock:
-        d=json.loads(json.dumps(DEFAULT)); d['initial_capital']=capital; d['cash']=capital
-        if markets: d['settings']['markets']=markets
+        d=_default_for(acct); d['initial_capital']=capital; d['cash']=capital
         _save(d)
     return d
 
@@ -273,7 +295,8 @@ def start_scheduler(interval_min=30):
         import time
         time.sleep(20)  # 起動直後は待つ
         while True:
-            try: run_once()
-            except Exception: traceback.print_exc()
+            for acct in ACCOUNTS:
+                try: run_once(acct)
+                except Exception: traceback.print_exc()
             time.sleep(interval_min*60)
     threading.Thread(target=loop,daemon=True).start()

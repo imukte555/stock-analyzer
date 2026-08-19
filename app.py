@@ -3031,30 +3031,36 @@ def autotrade_settings():
 # ============================================================
 import swing_bot as _swing
 
+def _swing_acct(a):
+    return 'fx' if a=='fx' else 'stock'
+
 @app.route('/api/swing/status', methods=['GET'])
-def swing_status():
+@app.route('/api/swing-<acct>/status', methods=['GET'])
+def swing_status(acct='stock'):
     try:
-        return jsonify(_swing.status())
+        return jsonify(_swing.status(_swing_acct(acct)))
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/swing/run', methods=['POST'])
-def swing_run():
+@app.route('/api/swing-<acct>/run', methods=['POST'])
+def swing_run(acct='stock'):
     try:
-        return jsonify(_swing.run_once())
+        return jsonify(_swing.run_once(_swing_acct(acct)))
     except Exception as e:
         import traceback; traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/swing/reset', methods=['POST'])
-def swing_reset():
+@app.route('/api/swing-<acct>/reset', methods=['POST'])
+def swing_reset(acct='stock'):
     data = request.get_json(silent=True) or {}
     cap = float(data.get('capital', 1_000_000))
-    markets = data.get('markets')
-    _swing.reset(cap, markets)
-    return jsonify({'ok': True, 'capital': cap})
+    _swing.reset(cap, None, _swing_acct(acct))
+    return jsonify({'ok': True, 'capital': cap, 'account': _swing_acct(acct)})
 
 @app.route('/swing')
+@app.route('/swing-fx')
 def swing_page():
     # JS内の {{ }} がJinjaと衝突するのでテンプレート処理を通さず生で返す
     from flask import send_from_directory
