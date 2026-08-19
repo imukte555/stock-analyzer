@@ -3056,7 +3056,9 @@ def swing_reset():
 
 @app.route('/swing')
 def swing_page():
-    return render_template('swing.html')
+    # JS内の {{ }} がJinjaと衝突するのでテンプレート処理を通さず生で返す
+    from flask import send_from_directory
+    return send_from_directory(app.template_folder, 'swing.html')
 
 # サーバー起動時に自動巡回スケジューラを開始（30分ごと）
 try:
