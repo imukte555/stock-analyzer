@@ -63,7 +63,28 @@ def _default_for(acct):
     d['account']=acct; d['label']=a['label']
     return d
 
+RAW_BASE='https://raw.githubusercontent.com/imukte555/stock-analyzer/main/'
+IS_RENDER=bool(os.environ.get('RENDER'))
+
+def _load_remote(acct):
+    """GitHub raw から最新stateを取得（Render表示用）"""
+    try:
+        import urllib.request
+        url=RAW_BASE+ACCOUNTS[acct]['file']+'?t='+datetime.now().strftime('%Y%m%d%H%M')
+        with urllib.request.urlopen(url,timeout=10) as r:
+            d=json.loads(r.read().decode())
+        base=_default_for(acct)
+        for k,v in base.items():
+            if k not in d: d[k]=v
+        d['account']=acct; d['label']=ACCOUNTS[acct]['label']
+        return d
+    except Exception:
+        return None
+
 def _load(acct='stock'):
+    if IS_RENDER:
+        d=_load_remote(acct)
+        if d: return d
     path=_file(acct)
     if not os.path.exists(path):
         return _default_for(acct)
@@ -130,6 +151,8 @@ def _last_completed_bar(h, market):
     return h, len(h)-1
 
 def run_once(acct='stock'):
+    if IS_RENDER:
+        return dict(actions=[], note='viewer mode: bot runs on Mac', account=acct)
     """1回の実行: (1) 約定待ちを寄付で約定 (2) 保有をSL/TP/BE/時間切れ判定 (3) 新規シグナル検出→pendingへ"""
     with _lock:
         state=_load(acct)
@@ -289,6 +312,7 @@ _sched_started=False
 def start_scheduler(interval_min=30):
     """30分ごとに run_once を回すバックグラウンドスレッド。日足戦略なので頻度は低くてよい。"""
     global _sched_started
+    if IS_RENDER: return  # Renderは表示専用
     if _sched_started: return
     _sched_started=True
     def loop():

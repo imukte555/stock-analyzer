@@ -6,3 +6,4 @@ venv/
 autotrade_state.json
 *.log
 .DS_Store
+*.tmp
