@@ -1,0 +1,69 @@
+{
+ "initial_capital": 1000000,
+ "cash": 1000000,
+ "positions": {},
+ "pending": {
+  "MSTR": {
+   "side": "S",
+   "atr": 6.56770450699275,
+   "signal_date": "2026-08-20",
+   "name": "MicroStrategy",
+   "market": "us",
+   "close": 112.38999938964844,
+   "rsi": 72.1
+  },
+  "COIN": {
+   "side": "S",
+   "atr": 9.355334934821693,
+   "signal_date": "2026-08-20",
+   "name": "Coinbase",
+   "market": "us",
+   "close": 172.35000610351562,
+   "rsi": 72.2
+  }
+ },
+ "history": [],
+ "equity_curve": [
+  {
+   "date": "2026-08-19",
+   "equity": 1000000
+  },
+  {
+   "date": "2026-08-22",
+   "equity": 1000000
+  }
+ ],
+ "log": [
+  {
+   "t": "08-19 16:51",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-22 04:54",
+   "msg": "📡 シグナル MicroStrategy 売候補 終値112.39 RSI72 → 翌寄付で約定予定"
+  },
+  {
+   "t": "08-22 04:54",
+   "msg": "📡 シグナル Coinbase 売候補 終値172.35 RSI72 → 翌寄付で約定予定"
+  }
+ ],
+ "started_at": "2026-08-19 16:51",
+ "last_run_at": "2026-08-22 04:54",
+ "settings": {
+  "position_pct": 10,
+  "max_positions": 8,
+  "markets": [
+   "jp",
+   "us"
+  ],
+  "sl_atr": 1.5,
+  "tp_atr": 2.5,
+  "be_atr": 1.0,
+  "max_hold": 10,
+  "cost_pct": 0.1,
+  "leverage": 1.0,
+  "annual_interest": 0.0
+ },
+ "account": "stock",
+ "label": "株（日本+米国）"
+}
