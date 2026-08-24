@@ -1,6 +1,6 @@
 {
  "initial_capital": 1000000,
- "cash": 810000.0,
+ "cash": 729000.0,
  "positions": {
   "MSTR": {
    "side": "S",
@@ -14,7 +14,7 @@
    "opened": "2026-08-21",
    "name": "MicroStrategy",
    "market": "us",
-   "bars": 0
+   "bars": 1
   },
   "COIN": {
    "side": "S",
@@ -28,20 +28,24 @@
    "opened": "2026-08-21",
    "name": "Coinbase",
    "market": "us",
+   "bars": 1
+  },
+  "TSLA": {
+   "side": "S",
+   "entry": 361.75,
+   "sl": 382.53846933928924,
+   "tp": 327.1025511011846,
+   "atr": 13.858979559526173,
+   "be": false,
+   "qty": 223.9115411195577,
+   "cost": 81000.0,
+   "opened": "2026-08-24",
+   "name": "Tesla",
+   "market": "us",
    "bars": 0
   }
  },
- "pending": {
-  "TSLA": {
-   "side": "S",
-   "atr": 13.858979559526173,
-   "signal_date": "2026-08-21",
-   "name": "Tesla",
-   "market": "us",
-   "close": 362.8599853515625,
-   "rsi": 71.9
-  }
- },
+ "pending": {},
  "history": [],
  "equity_curve": [
   {
@@ -58,7 +62,7 @@
   },
   {
    "date": "2026-08-24",
-   "equity": 997150
+   "equity": 998986
   }
  ],
  "log": [
@@ -469,10 +473,14 @@
   {
    "t": "08-24 22:23",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-24 22:53",
+   "msg": "🟢 約定 Tesla 売 @361.75 損切382.54 利確327.10 投入¥81,000"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-08-24 22:23",
+ "last_run_at": "2026-08-24 22:53",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
