@@ -70,7 +70,11 @@ DEFAULT = {
     'started_at': None,
     'last_run_at': None,
     'settings': {
-        'position_pct': 10,      # 1ポジション = 資金の10%
+        'position_pct': 10,      # （旧）固定配分。sizing='fixed' の時のみ使用
+        'sizing': 'risk',        # 'risk'=1トレードのリスク額を一定にする / 'fixed'=旧方式
+        'risk_pct': 1.0,         # 1トレードで失ってよい資産の割合(%)。損切りに当たった時の損失額
+        'min_position_pct': 3,   # 1銘柄の下限（小さすぎる建玉を防ぐ）
+        'max_position_pct': 25,  # 1銘柄の上限（低ボラ銘柄への集中を防ぐ）
         'max_positions': 8,
         'markets': ['jp','us'],
         'sl_atr': 1.5, 'tp_atr': 2.5, 'be_atr': 1.0, 'max_hold': 10,
@@ -247,8 +251,27 @@ def run_once(acct='stock'):
             entry=float(h['Open'].iloc[i])
             if len(state['positions'])>=S['max_positions']:
                 _log(state,f"⏭ {p['name']} 約定見送り（ポジション上限）"); del state['pending'][sym]; continue
-            budget=state['cash']*S['position_pct']/100
-            if budget<entry and p['market']!='fx':
+            a_pre=p['atr']
+            lev=float(S.get('leverage',1.0))
+            # --- ポジションサイズ決定 ---
+            if S.get('sizing','risk')=='risk' and a_pre>0 and entry>0:
+                # 損切りまでの距離（％）。ATR×sl_atr が実際の損失幅になる
+                stop_dist_pct = (a_pre*S['sl_atr'])/entry
+                # 建玉に対する損失率 = stop_dist_pct × レバレッジ
+                loss_rate = stop_dist_pct*lev
+                # equity（現金＋建玉の簿価）を基準にする
+                equity_base = state['cash']+sum(pp['cost'] for pp in state['positions'].values())
+                risk_amount = equity_base*S.get('risk_pct',1.0)/100
+                budget = risk_amount/loss_rate if loss_rate>0 else 0
+                lo_cap = equity_base*S.get('min_position_pct',3)/100
+                hi_cap = equity_base*S.get('max_position_pct',25)/100
+                budget = max(lo_cap, min(hi_cap, budget))
+                budget = min(budget, state['cash'])   # 現金以上は使えない
+                size_note = f"想定損失{risk_amount:,.0f}円/損切幅{stop_dist_pct*100*lev:.1f}%"
+            else:
+                budget=state['cash']*S['position_pct']/100
+                size_note = f"固定{S['position_pct']}%"
+            if budget<=0 or (budget<entry and p['market']!='fx'):
                 _log(state,f"⏭ {p['name']} 約定見送り（資金不足）"); del state['pending'][sym]; continue
             qty=budget/entry
             a=p['atr']
@@ -260,7 +283,7 @@ def run_once(acct='stock'):
                                           strategy=p.get('strategy','reversal'),reason=p.get('reason',''))
             del state['pending'][sym]
             _tag='逆張り' if p.get('strategy','reversal')=='reversal' else '順張り'
-            act=f"🟢 約定[{_tag}] {p['name']} {'買' if p['side']=='L' else '売'} @{entry:,.2f} 損切{sl:,.2f} 利確{tp:,.2f} 投入¥{budget:,.0f}"
+            act=f"🟢 約定[{_tag}] {p['name']} {'買' if p['side']=='L' else '売'} @{entry:,.2f} 損切{sl:,.2f} 利確{tp:,.2f} 投入¥{budget:,.0f}（{size_note}）"
             _log(state,act); actions.append(act)
 
         # 保有ポジションの管理（約定日以降のバーを順に判定）

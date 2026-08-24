@@ -112,7 +112,7 @@ async function load(){
    <b>戦略1 逆張り:</b> 終値がボリンジャーバンド下限を割って、RSI(7)が30未満 → 翌寄付で買い（上限超え＆RSI70超なら空売り）<br><b>戦略2 順張り:</b> 20日高値を更新かつトレンドの強さ(ADX)が20超 → 翌寄付で買い（20日安値割れなら空売り）<br><b>分散:</b> 同じセクターは1銘柄まで／1戦略あたり最大4銘柄<br>
    
    <b>損切り:</b> ATR×${S.sl_atr}　<b>利確:</b> ATR×${S.tp_atr}　<b>建値ストップ:</b> 含み益ATR×${S.be_atr}で損切りを建値へ　<b>時間切れ:</b> ${S.max_hold}営業日<br>
-   <b>資金管理:</b> 1銘柄=資金の${S.position_pct}%、同時最大${S.max_positions}銘柄　<b>レバレッジ:</b> ${S.leverage}倍　<b>コスト:</b> ${S.cost_pct}%<br>
+   <b>資金管理:</b> ${S.sizing==='risk'?`1回の取引で失う額を資産の${S.risk_pct}%に固定（値動きの荒い銘柄ほど小さく建てる／1銘柄${S.min_position_pct}〜${S.max_position_pct}%の範囲）`:`1銘柄=資金の${S.position_pct}%`}、同時最大${S.max_positions}銘柄　<b>レバレッジ:</b> ${S.leverage}倍　<b>コスト:</b> ${S.cost_pct}%<br>
    <b>対象:</b> ${S.markets.map(m=>({jp:'日本株'+d.universe.jp.length,us:'米国株'+d.universe.us.length,fx:'FX'+d.universe.fx.length+'ペア'})[m]).join('・')}（過去1年バックテストでプラスだった戦略）`;
 }
 async function runNow(){const b=event.target;b.disabled=true;b.textContent='⏳ 巡回中...';try{const r=await (await fetch(API+'/run',{method:'POST'})).json();alert(r.actions&&r.actions.length?r.actions.join('\n'):'変化なし（シグナルなし）');}catch(e){alert('エラー: '+e)}b.disabled=false;b.textContent='▶ 今すぐ巡回';load();}
