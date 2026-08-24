@@ -84,7 +84,13 @@ def _load_remote(acct):
 def _load(acct='stock'):
     if IS_RENDER:
         d=_load_remote(acct)
-        if d: return d
+        if d:
+            d['_remote_load_failed']=False
+            return d
+        # リモート取得失敗: ローカルファイルもRenderには無いはずなので、
+        # 「失敗した」というフラグ付きの初期状態を返す（無言で0円スタートに見せない）
+        d=_default_for(acct); d['_remote_load_failed']=True
+        return d
     path=_file(acct)
     if not os.path.exists(path):
         return _default_for(acct)
@@ -169,9 +175,15 @@ def run_once(acct='stock'):
         for m in S['markets']:
             for sym,_ in UNIVERSE[m]: symbols.add(sym)
         data={}
+        fetch_fail=[]
         for sym in symbols:
             h=_fetch(sym)
             if h is not None: data[sym]=h
+            else: fetch_fail.append(ALL_NAME.get(sym,sym))
+        if fetch_fail:
+            _log(state, f"⚠️ データ取得失敗: {', '.join(fetch_fail)}（{len(fetch_fail)}/{len(symbols)}銘柄）")
+        state['last_fetch_fail_count']=len(fetch_fail)
+        state['last_fetch_total']=len(symbols)
 
         # 約定待ち → 今日のバーが「シグナル日の翌日」以降なら、そのバーのOpenで約定
         for sym,p in list(state['pending'].items()):
@@ -200,7 +212,9 @@ def run_once(acct='stock'):
         # 保有ポジションの管理（約定日以降のバーを順に判定）
         for sym,pos in list(state['positions'].items()):
             h=data.get(sym)
-            if h is None: continue
+            if h is None:
+                _log(state, f"⚠️ {pos['name']} の当日データ取得失敗、この巡回はスキップ")
+                continue
             bars=[(d,r) for d,r in h.iterrows() if d.strftime('%Y-%m-%d')>pos['opened']]
             # 建値判定は「前日終値」ベース、SL/TPは当日高安ベースで順に
             closed=False
@@ -280,18 +294,42 @@ def status(acct='stock'):
         state=_load(acct)
     # 現在値で評価
     pos_out=[]; equity=state['cash']
+    price_fail=[]
     for sym,pos in state['positions'].items():
-        h=_fetch(sym,'1mo'); cur=float(h['Close'].iloc[-1]) if h is not None else pos['entry']
+        h=_fetch(sym,'1mo')
+        stale = h is None
+        cur=float(h['Close'].iloc[-1]) if h is not None else pos['entry']
+        if stale: price_fail.append(pos['name'])
         side_mult=1 if pos['side']=='L' else -1
         lev=float(state['settings'].get('leverage',1.0))
         upnl=(cur/pos['entry']-1)*100*side_mult*lev
         val=pos['cost']*(1+upnl/100); equity+=val
         pos_out.append(dict(sym=sym,name=pos['name'],market=pos['market'],side=pos['side'],entry=pos['entry'],cur=cur,
                             sl=pos['sl'],tp=pos['tp'],be=pos['be'],unreal_pct=round(upnl,2),unreal_yen=round(val-pos['cost']),
-                            opened=pos['opened'],days=pos.get('bars',0),cost=pos['cost']))
+                            opened=pos['opened'],days=pos.get('bars',0),cost=pos['cost'],stale=stale))
     hist=state['history']
     wins=[t for t in hist if t['pnl_pct']>0]
     total_pnl=equity-state['initial_capital']
+    # ---- 健全性チェック（サイレント故障を可視化） ----
+    warnings=[]
+    if state.get('last_run_at'):
+        try:
+            last=datetime.strptime(state['last_run_at'],'%Y-%m-%d %H:%M')
+            mins=(datetime.now()-last).total_seconds()/60
+            if mins>90:
+                warnings.append(f"⚠️ 最終巡回から{int(mins)}分経過（想定30分ごと）。Macが寝ているか停止している可能性")
+        except Exception:
+            pass
+    else:
+        warnings.append("⚠️ まだ一度もbotが巡回していません")
+    ff=state.get('last_fetch_fail_count',0); ft=state.get('last_fetch_total',0)
+    if ft and ff/ft>0.3:
+        warnings.append(f"⚠️ 前回巡回でデータ取得失敗が多発（{ff}/{ft}銘柄）。Yahoo Financeの一時制限の可能性")
+    if price_fail:
+        warnings.append(f"⚠️ 現在値の取得に失敗中: {', '.join(price_fail)}（表示は建値で代用・不正確）")
+    if IS_RENDER and state.get('_remote_load_failed'):
+        warnings.append("⚠️ GitHub上の最新データを取得できず、この画面は古い/初期状態を表示している可能性があります")
+
     return dict(
         initial_capital=state['initial_capital'], cash=round(state['cash']), equity=round(equity),
         total_pnl=round(total_pnl), total_pnl_pct=round(total_pnl/state['initial_capital']*100,2),
@@ -303,6 +341,7 @@ def status(acct='stock'):
         started_at=state['started_at'], last_run_at=state['last_run_at'], settings=state['settings'],
         account=state.get('account','stock'), label=state.get('label',''), leverage=state['settings'].get('leverage',1.0),
         universe={m:[{'sym':s,'name':n} for s,n in v] for m,v in UNIVERSE.items()},
+        warnings=warnings, healthy=len(warnings)==0,
     )
 
 def reset(capital=1_000_000, markets=None, acct='stock'):

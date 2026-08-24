@@ -27,6 +27,9 @@ th{color:var(--sub);font-weight:600;font-size:11px}td:first-child,th:first-child
 .log b{color:var(--text)}
 .chart{height:260px;position:relative}
 .empty{color:var(--sub);text-align:center;padding:26px;font-size:13px}
+.warn{background:#2a0d09;border:2px solid var(--sell);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:13px;line-height:1.7;color:#ffb4a8}
+.ok{background:#0a2713;border:1px solid var(--buy);border-radius:8px;padding:8px 14px;margin-bottom:14px;font-size:12px;color:var(--buy)}
+.stale{color:var(--sell)!important;font-weight:700}
 .btn{background:#238636;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;font-size:13px}
 .btn.gray{background:var(--card2);color:var(--sub);border:1px solid var(--border)}
 .rule{font-size:12px;color:var(--sub);line-height:1.8;background:var(--card2);border-radius:8px;padding:12px}
@@ -35,6 +38,7 @@ th{color:var(--sub);font-weight:600;font-size:11px}td:first-child,th:first-child
 <div class="hdr"><div><h1 id="ttl">🤖 完全自動スイングbot（仮想）</h1><div class="sub">あなたは何もしなくていい。botが毎日勝手に売買して、ここに成績が出る。</div></div>
 <a href="/swing" id="lnkS">📈 株bot</a><a href="/swing-fx" id="lnkF" style="margin-left:8px">💱 FXbot</a></div>
 <div class="main">
+  <div id="warnbox"></div>
   <div class="hero" id="hero"><div class="empty">読み込み中...</div></div>
   <div class="card"><h2>📈 資産推移（仮想100万円スタート）</h2><div class="chart"><canvas id="eq"></canvas></div></div>
   <div class="card"><h2>📊 保有中ポジション</h2><div id="positions"></div></div>
@@ -54,8 +58,16 @@ document.title=IS_FX?'💱 FX自動スイングbot':'📈 株 自動スイング
 document.getElementById('ttl').textContent=IS_FX?'💱 FX 完全自動スイングbot（仮想・レバ5倍）':'📈 株 完全自動スイングbot（仮想）';
 (IS_FX?document.getElementById('lnkF'):document.getElementById('lnkS')).style.borderColor='var(--blue)';
 async function load(){
-  const d=await (await fetch(API+'/status')).json();
+  let d;
+  try{ d=await (await fetch(API+'/status')).json(); }
+  catch(e){ document.getElementById('warnbox').innerHTML='<div class="warn">🔴 サーバーに接続できません（Renderが起動中の可能性、30秒後に再試行）</div>'; return; }
   if(d.error){document.getElementById('hero').innerHTML='<div class="empty">⚠️ '+d.error+'</div>';return;}
+  const wb=document.getElementById('warnbox');
+  if(d.warnings && d.warnings.length){
+    wb.innerHTML='<div class="warn"><b>bot状態に問題の可能性:</b><br>'+d.warnings.join('<br>')+'</div>';
+  } else {
+    wb.innerHTML='<div class="ok">✅ 正常稼働中 — データ取得OK・巡回OK</div>';
+  }
   const cls=d.total_pnl>=0?'pos':'neg';
   document.getElementById('hero').innerHTML=`
     <div class="lbl">現在の総資産（現金＋含み損益）</div>
@@ -78,7 +90,7 @@ async function load(){
   // positions
   const P=document.getElementById('positions');
   P.innerHTML=d.positions.length?`<div style="overflow-x:auto"><table><tr><th>市場</th><th>銘柄</th><th>売買</th><th>建値</th><th>現在</th><th>損切</th><th>利確</th><th>含み損益</th><th>保有日</th><th>建値SL</th></tr>
-    ${d.positions.map(p=>`<tr><td><span class="tag ${p.market}">${p.market.toUpperCase()}</span></td><td><b>${p.name}</b><br><span style="color:var(--sub);font-size:11px">${p.sym}</span></td><td><span class="tag ${p.side}">${p.side==='L'?'買':'売'}</span></td><td>${p.entry.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td>${p.cur.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td class="neg">${p.sl.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td class="pos">${p.tp.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td class="${p.unreal_pct>=0?'pos':'neg'}"><b>${pct(p.unreal_pct)}</b><br><span style="font-size:11px">${p.unreal_yen>=0?'+':''}${yen(p.unreal_yen)}</span></td><td>${p.days}/${d.settings.max_hold}</td><td>${p.be?'🛡':'—'}</td></tr>`).join('')}</table></div>`
+    ${d.positions.map(p=>`<tr><td><span class="tag ${p.market}">${p.market.toUpperCase()}</span></td><td><b>${p.name}</b><br><span style="color:var(--sub);font-size:11px">${p.sym}</span></td><td><span class="tag ${p.side}">${p.side==='L'?'買':'売'}</span></td><td>${p.entry.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td class="${p.stale?'stale':''}">${p.cur.toLocaleString(undefined,{maximumFractionDigits:3})}${p.stale?' ⚠️':''}</td><td class="neg">${p.sl.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td class="pos">${p.tp.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td class="${p.unreal_pct>=0?'pos':'neg'}"><b>${pct(p.unreal_pct)}</b><br><span style="font-size:11px">${p.unreal_yen>=0?'+':''}${yen(p.unreal_yen)}</span></td><td>${p.days}/${d.settings.max_hold}</td><td>${p.be?'🛡':'—'}</td></tr>`).join('')}</table></div>`
     :`<div class="empty">保有なし。シグナルが出た翌朝に自動で買う。</div>`;
   // pending
   const pend=Object.entries(d.pending);
