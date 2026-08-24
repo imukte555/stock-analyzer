@@ -421,10 +421,14 @@
   {
    "t": "08-24 16:26",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-24 16:51",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-08-24 16:26",
+ "last_run_at": "2026-08-24 16:51",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -441,5 +445,7 @@
   "annual_interest": 0.0
  },
  "account": "stock",
- "label": "株（日本+米国）"
+ "label": "株（日本+米国）",
+ "last_fetch_fail_count": 0,
+ "last_fetch_total": 22
 }
