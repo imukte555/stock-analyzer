@@ -22,7 +22,8 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 6px;b
 th{color:var(--sub);font-weight:600;font-size:11px}td:first-child,th:first-child,td:nth-child(2),th:nth-child(2){text-align:left}
 .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
 .tag.L{background:#0a2713;color:var(--buy)}.tag.S{background:#2a0d09;color:var(--sell)}
-.tag.jp{background:#2a1a3a;color:#d2a8ff}.tag.us{background:#0d1b2e;color:var(--blue)}.tag.fx{background:#1f1a0d;color:#ffa657}
+.tag.jp{background:#2a1a3a;color:#d2a8ff}
+.tag.rev{background:#0d2b1f;color:#5DCAA5}.tag.brk{background:#2b1a0d;color:#EF9F27}.tag.us{background:#0d1b2e;color:var(--blue)}.tag.fx{background:#1f1a0d;color:#ffa657}
 .log{font-size:12px;line-height:1.8;color:var(--sub);max-height:300px;overflow:auto;font-family:ui-monospace,Menlo,monospace}
 .log b{color:var(--text)}
 .chart{height:260px;position:relative}
@@ -41,6 +42,7 @@ th{color:var(--sub);font-weight:600;font-size:11px}td:first-child,th:first-child
   <div id="warnbox"></div>
   <div class="hero" id="hero"><div class="empty">読み込み中...</div></div>
   <div class="card"><h2>📈 資産推移（仮想100万円スタート）</h2><div class="chart"><canvas id="eq"></canvas></div></div>
+  <div class="card"><h2>🎯 戦略別の成績</h2><div id="byStrategy"></div></div>
   <div class="card"><h2>📊 保有中ポジション</h2><div id="positions"></div></div>
   <div class="card"><h2>📡 約定待ち（翌寄付で買う予定）</h2><div id="pending"></div></div>
   <div class="card"><h2>📜 決済履歴</h2><div id="history"></div></div>
@@ -87,9 +89,14 @@ async function load(){
   if(chart)chart.destroy();
   chart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#58a6ff',backgroundColor:'rgba(88,166,255,.12)',fill:true,tension:.25,pointRadius:vals.length>40?0:3},{data:vals.map(()=>d.initial_capital),borderColor:'#8b949e',borderDash:[5,5],pointRadius:0,borderWidth:1}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e',maxTicksLimit:8},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e',callback:v=>'¥'+(v/10000).toFixed(0)+'万'},grid:{color:'#21262d'}}}}});
+  // by strategy
+  const BS=d.by_strategy||{};
+  const bsKeys=Object.keys(BS);
+  document.getElementById('byStrategy').innerHTML = bsKeys.length?`<table><tr><th>戦略</th><th>決済数</th><th>勝率</th><th>損益</th></tr>${bsKeys.map(k=>`<tr><td><span class="tag ${k==='breakout'?'brk':'rev'}">${k==='breakout'?'順張り':'逆張り'}</span></td><td>${BS[k].n}</td><td>${BS[k].win_rate}%</td><td class="${BS[k].pnl>=0?'pos':'neg'}">${BS[k].pnl>=0?'+':''}${yen(BS[k].pnl)}</td></tr>`).join('')}</table>`
+    :`<div class="empty">まだ決済がないため集計なし。決済が10件ほど貯まると、どちらの戦略が効いているか比較できる。</div>`;
   // positions
   const P=document.getElementById('positions');
-  P.innerHTML=d.positions.length?`<div style="overflow-x:auto"><table><tr><th>市場</th><th>銘柄</th><th>売買</th><th>建値</th><th>現在</th><th>損切</th><th>利確</th><th>含み損益</th><th>保有日</th><th>建値SL</th></tr>
+  P.innerHTML=d.positions.length?`<div style="overflow-x:auto"><table><tr><th>市場</th><th>銘柄</th><th>戦略</th><th>売買</th><th>建値</th><th>現在</th><th>損切</th><th>利確</th><th>含み損益</th><th>保有日</th></tr>
     ${d.positions.map(p=>`<tr><td><span class="tag ${p.market}">${p.market.toUpperCase()}</span></td><td><b>${p.name}</b><br><span style="color:var(--sub);font-size:11px">${p.sym}</span></td><td><span class="tag ${p.side}">${p.side==='L'?'買':'売'}</span></td><td>${p.entry.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td class="${p.stale?'stale':''}">${p.cur.toLocaleString(undefined,{maximumFractionDigits:3})}${p.stale?' ⚠️':''}</td><td class="neg">${p.sl.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td class="pos">${p.tp.toLocaleString(undefined,{maximumFractionDigits:3})}</td><td class="${p.unreal_pct>=0?'pos':'neg'}"><b>${pct(p.unreal_pct)}</b><br><span style="font-size:11px">${p.unreal_yen>=0?'+':''}${yen(p.unreal_yen)}</span></td><td>${p.days}/${d.settings.max_hold}</td><td>${p.be?'🛡':'—'}</td></tr>`).join('')}</table></div>`
     :`<div class="empty">保有なし。シグナルが出た翌朝に自動で買う。</div>`;
   // pending
@@ -102,8 +109,8 @@ async function load(){
   document.getElementById('log').innerHTML=d.log.map(l=>`<div><b>${l.t}</b> ${l.msg}</div>`).join('')||'<div class="empty">ログなし</div>';
   const S=d.settings;
   document.getElementById('rule').innerHTML=`
-   <b>買う条件:</b> 終値がボリンジャーバンド下限を割って、RSI(7)が30未満 → 翌営業日の寄付で買う<br>
-   <b>売り（空売り）条件（FX/米国株のみ）:</b> 上限超え＆RSI70超 → 翌寄付で空売り<br>
+   <b>戦略1 逆張り:</b> 終値がボリンジャーバンド下限を割って、RSI(7)が30未満 → 翌寄付で買い（上限超え＆RSI70超なら空売り）<br><b>戦略2 順張り:</b> 20日高値を更新かつトレンドの強さ(ADX)が20超 → 翌寄付で買い（20日安値割れなら空売り）<br><b>分散:</b> 同じセクターは1銘柄まで／1戦略あたり最大4銘柄<br>
+   
    <b>損切り:</b> ATR×${S.sl_atr}　<b>利確:</b> ATR×${S.tp_atr}　<b>建値ストップ:</b> 含み益ATR×${S.be_atr}で損切りを建値へ　<b>時間切れ:</b> ${S.max_hold}営業日<br>
    <b>資金管理:</b> 1銘柄=資金の${S.position_pct}%、同時最大${S.max_positions}銘柄　<b>レバレッジ:</b> ${S.leverage}倍　<b>コスト:</b> ${S.cost_pct}%<br>
    <b>対象:</b> ${S.markets.map(m=>({jp:'日本株'+d.universe.jp.length,us:'米国株'+d.universe.us.length,fx:'FX'+d.universe.fx.length+'ペア'})[m]).join('・')}（過去1年バックテストでプラスだった戦略）`;

@@ -31,6 +31,29 @@ UNIVERSE = {
     'fx': [("USDJPY=X","ドル円"),("GBPJPY=X","ポンド円"),("EURUSD=X","ユーロドル"),("AUDJPY=X","豪ドル円"),
            ("MXNJPY=X","ペソ円"),("GBPUSD=X","ポンドドル"),("NZDJPY=X","NZ円"),("EURJPY=X","ユーロ円")],
 }
+# セクター定義: 同じセクターは同時に1銘柄までしか持たない（分散の実効性を担保）
+SECTOR = {
+    # 仮想通貨連動（ビットコイン価格に強く連動する一群）
+    'MSTR':'crypto', 'COIN':'crypto',
+    # 半導体・AI（同じ設備投資サイクルで動く）
+    '8035.T':'semi', '6857.T':'semi', '6920.T':'semi', '6146.T':'semi',
+    'AMD':'semi', 'MU':'semi', 'NVDA':'semi', 'ARM':'semi', 'INTC':'semi', 'SMCI':'semi',
+    # 電線・AI電力
+    '5803.T':'power', '5802.T':'power',
+    # 防衛・重工
+    '7013.T':'defense', '7011.T':'defense',
+    # 日本ハイテク・その他
+    '9984.T':'jp_tech', '6758.T':'jp_tech', '7974.T':'jp_game',
+    '4568.T':'pharma',
+    # 米国その他
+    'TSLA':'ev', 'PLTR':'us_soft',
+    # FX: 通貨ごとにグループ化（円ペア/ドルストレートで相関が高い）
+    'USDJPY=X':'jpy', 'GBPJPY=X':'jpy', 'AUDJPY=X':'jpy', 'EURJPY=X':'jpy',
+    'NZDJPY=X':'jpy', 'MXNJPY=X':'jpy',
+    'EURUSD=X':'usd_straight', 'GBPUSD=X':'usd_straight',
+}
+def _sector_of(sym): return SECTOR.get(sym, sym)
+
 JP_NAME = {s:n for s,n in UNIVERSE['jp']}
 US_NAME = {s:n for s,n in UNIVERSE['us']}
 FX_NAME = {s:n for s,n in UNIVERSE['fx']}
@@ -54,6 +77,9 @@ DEFAULT = {
         'cost_pct': 0.10,        # 往復コスト
         'leverage': 1.0,         # FX口座は5倍
         'annual_interest': 0.0,  # FXスワップは無視（概算）
+        'strategies': ['reversal','breakout'],  # 逆張り + 順張り（相関-0.79で補完関係）
+        'max_per_sector': 1,     # 同一セクターは1銘柄まで
+        'max_per_strategy': 4,   # 1戦略あたり最大4ポジション
     }
 }
 
@@ -145,7 +171,33 @@ def _indicators(h):
         bbu=bb.bollinger_hband(), bbl=bb.bollinger_lband(),
         rsi=ta.momentum.RSIIndicator(c,7).rsi(),
         atr=ta.volatility.AverageTrueRange(hi,lo,c,14).average_true_range(),
+        # 順張り(ブレイクアウト)用
+        don_hi=hi.rolling(20).max(), don_lo=lo.rolling(20).min(),
+        adx=ta.trend.ADXIndicator(hi,lo,c,14).adx(),
     )
+
+def _detect_signal(strategy, ind, i, close, allow_short):
+    """戦略ごとのシグナル判定。(side, reason) を返す。無ければ (None, '')"""
+    c = float(close.iloc[i])
+    try:
+        if strategy == 'reversal':
+            rsi = float(ind['rsi'].iloc[i])
+            if c < float(ind['bbl'].iloc[i]) and rsi < 30:
+                return 'L', f'売られすぎ(RSI{rsi:.0f}・下限割れ)'
+            if allow_short and c > float(ind['bbu'].iloc[i]) and rsi > 70:
+                return 'S', f'買われすぎ(RSI{rsi:.0f}・上限超え)'
+        elif strategy == 'breakout':
+            adx = float(ind['adx'].iloc[i])
+            if adx <= 20:
+                return None, ''
+            prev_hi = float(ind['don_hi'].iloc[i-1]); prev_lo = float(ind['don_lo'].iloc[i-1])
+            if c >= prev_hi:
+                return 'L', f'20日高値ブレイク(ADX{adx:.0f})'
+            if allow_short and c <= prev_lo:
+                return 'S', f'20日安値ブレイク(ADX{adx:.0f})'
+    except Exception:
+        pass
+    return None, ''
 
 def _last_completed_bar(h, market):
     """当日の未確定バーを除いた最新の確定足を返す。
@@ -204,9 +256,11 @@ def run_once(acct='stock'):
             else: sl,tp=entry+a*S['sl_atr'],entry-a*S['tp_atr']
             state['cash']-=budget
             state['positions'][sym]=dict(side=p['side'],entry=entry,sl=sl,tp=tp,atr=a,be=False,qty=qty,cost=budget,
-                                          opened=h.index[i].strftime('%Y-%m-%d'),name=p['name'],market=p['market'],bars=0)
+                                          opened=h.index[i].strftime('%Y-%m-%d'),name=p['name'],market=p['market'],bars=0,
+                                          strategy=p.get('strategy','reversal'),reason=p.get('reason',''))
             del state['pending'][sym]
-            act=f"🟢 約定 {p['name']} {'買' if p['side']=='L' else '売'} @{entry:,.2f} 損切{sl:,.2f} 利確{tp:,.2f} 投入¥{budget:,.0f}"
+            _tag='逆張り' if p.get('strategy','reversal')=='reversal' else '順張り'
+            act=f"🟢 約定[{_tag}] {p['name']} {'買' if p['side']=='L' else '売'} @{entry:,.2f} 損切{sl:,.2f} 利確{tp:,.2f} 投入¥{budget:,.0f}"
             _log(state,act); actions.append(act)
 
         # 保有ポジションの管理（約定日以降のバーを順に判定）
@@ -245,14 +299,29 @@ def run_once(acct='stock'):
                     state['cash']+=proceeds
                     state['history'].append(dict(sym=sym,name=pos['name'],market=pos['market'],side=side,entry=e,exit=px,
                         pnl_pct=round(net_pct,2),pnl_yen=round(proceeds-pos['cost']),reason=hit[0],
-                        opened=pos['opened'],closed=d.strftime('%Y-%m-%d'),days=pos['bars']))
+                        opened=pos['opened'],closed=d.strftime('%Y-%m-%d'),days=pos['bars'],
+                        strategy=pos.get('strategy','reversal')))
                     emoji={'TP':'💰','SL':'🔴','BE':'⚪','時間':'⏰'}[hit[0]]
                     act=f"{emoji} 決済 {pos['name']} {hit[0]} @{px:,.2f} 損益 {net_pct:+.2f}% (¥{proceeds-pos['cost']:+,.0f})"
                     _log(state,act); actions.append(act)
                     del state['positions'][sym]; closed=True; break
             if not closed: state['positions'][sym]=pos
 
-        # ---------- (3) 新規シグナル検出 ----------
+        # ---------- (3) 新規シグナル検出（複数戦略 + セクター分散） ----------
+        # 現在使用中のセクターを集計（保有＋約定待ち）
+        used_sectors={}
+        for sym in list(state['positions'].keys())+list(state['pending'].keys()):
+            sec=_sector_of(sym); used_sectors[sec]=used_sectors.get(sec,0)+1
+        # 戦略ごとの現在の保有数
+        strat_count={}
+        for p in list(state['positions'].values())+list(state['pending'].values()):
+            st=p.get('strategy','reversal'); strat_count[st]=strat_count.get(st,0)+1
+
+        enabled=S.get('strategies',['reversal','breakout'])
+        max_per_sector=int(S.get('max_per_sector',1))
+        max_per_strategy=int(S.get('max_per_strategy',4))
+
+        candidates=[]
         for m in S['markets']:
             for sym,name in UNIVERSE[m]:
                 if sym in state['positions'] or sym in state['pending']: continue
@@ -261,16 +330,38 @@ def run_once(acct='stock'):
                 hh,i=_last_completed_bar(h,m)
                 if i<25: continue
                 ind=_indicators(hh)
-                c=float(hh['Close'].iloc[i]); rsi=float(ind['rsi'].iloc[i]); a=float(ind['atr'].iloc[i])
-                if np.isnan(rsi) or np.isnan(a) or a<=0: continue
-                sig=None
-                if c<float(ind['bbl'].iloc[i]) and rsi<30: sig='L'
-                elif m!='jp' and c>float(ind['bbu'].iloc[i]) and rsi>70: sig='S'
-                if sig:
-                    sd=hh.index[i].strftime('%Y-%m-%d')
-                    state['pending'][sym]=dict(side=sig,atr=a,signal_date=sd,name=name,market=m,close=c,rsi=round(rsi,1))
-                    act=f"📡 シグナル {name} {'買' if sig=='L' else '売'}候補 終値{c:,.2f} RSI{rsi:.0f} → 翌寄付で約定予定"
-                    _log(state,act); actions.append(act)
+                a=float(ind['atr'].iloc[i])
+                if np.isnan(a) or a<=0: continue
+                allow_short = (m!='jp')
+                for strategy in enabled:
+                    sig,reason=_detect_signal(strategy, ind, i, hh['Close'], allow_short)
+                    if not sig: continue
+                    c=float(hh['Close'].iloc[i]); rsi=float(ind['rsi'].iloc[i])
+                    candidates.append(dict(sym=sym,name=name,market=m,side=sig,atr=a,strategy=strategy,
+                                           reason=reason,close=c,rsi=round(rsi,1) if not np.isnan(rsi) else 50,
+                                           signal_date=hh.index[i].strftime('%Y-%m-%d')))
+                    break  # 1銘柄につき最初に成立した戦略のみ
+
+        # セクター分散・戦略枠の制約をかけながら採用
+        for cand in candidates:
+            sec=_sector_of(cand['sym'])
+            if used_sectors.get(sec,0)>=max_per_sector:
+                _log(state,f"⏭ {cand['name']} 見送り（{sec}セクターは既に保有中）")
+                continue
+            if strat_count.get(cand['strategy'],0)>=max_per_strategy:
+                _log(state,f"⏭ {cand['name']} 見送り（{cand['strategy']}戦略の枠が上限）")
+                continue
+            if len(state['positions'])+len(state['pending'])>=S['max_positions']:
+                _log(state,f"⏭ {cand['name']} 見送り（全体のポジション上限）")
+                continue
+            state['pending'][cand['sym']]=dict(side=cand['side'],atr=cand['atr'],signal_date=cand['signal_date'],
+                name=cand['name'],market=cand['market'],close=cand['close'],rsi=cand['rsi'],
+                strategy=cand['strategy'],reason=cand['reason'])
+            used_sectors[sec]=used_sectors.get(sec,0)+1
+            strat_count[cand['strategy']]=strat_count.get(cand['strategy'],0)+1
+            tag='逆張り' if cand['strategy']=='reversal' else '順張り'
+            act=f"📡 シグナル[{tag}] {cand['name']} {'買' if cand['side']=='L' else '売'}候補 {cand['reason']} 終値{cand['close']:,.2f} → 翌寄付で約定予定"
+            _log(state,act); actions.append(act)
 
         # ---------- 資産推移 ----------
         equity=state['cash']
@@ -306,7 +397,8 @@ def status(acct='stock'):
         val=pos['cost']*(1+upnl/100); equity+=val
         pos_out.append(dict(sym=sym,name=pos['name'],market=pos['market'],side=pos['side'],entry=pos['entry'],cur=cur,
                             sl=pos['sl'],tp=pos['tp'],be=pos['be'],unreal_pct=round(upnl,2),unreal_yen=round(val-pos['cost']),
-                            opened=pos['opened'],days=pos.get('bars',0),cost=pos['cost'],stale=stale))
+                            opened=pos['opened'],days=pos.get('bars',0),cost=pos['cost'],stale=stale,
+                            strategy=pos.get('strategy','reversal'),reason=pos.get('reason','')))
     hist=state['history']
     wins=[t for t in hist if t['pnl_pct']>0]
     total_pnl=equity-state['initial_capital']
@@ -330,7 +422,19 @@ def status(acct='stock'):
     if IS_RENDER and state.get('_remote_load_failed'):
         warnings.append("⚠️ GitHub上の最新データを取得できず、この画面は古い/初期状態を表示している可能性があります")
 
+    # 戦略別サマリー
+    by_strategy={}
+    for t in hist:
+        st=t.get('strategy','reversal')
+        d0=by_strategy.setdefault(st, dict(n=0,wins=0,pnl=0.0))
+        d0['n']+=1; d0['pnl']+=t['pnl_yen']
+        if t['pnl_pct']>0: d0['wins']+=1
+    for st,v in by_strategy.items():
+        v['win_rate']=round(v['wins']/v['n']*100,1) if v['n'] else 0
+        v['pnl']=round(v['pnl'])
+
     return dict(
+        by_strategy=by_strategy,
         initial_capital=state['initial_capital'], cash=round(state['cash']), equity=round(equity),
         total_pnl=round(total_pnl), total_pnl_pct=round(total_pnl/state['initial_capital']*100,2),
         positions=pos_out, pending=state['pending'], history=hist[::-1][:100],
