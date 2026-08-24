@@ -461,10 +461,18 @@
   {
    "t": "08-25 00:54",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-25 01:06",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-25 01:07",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 18:17",
- "last_run_at": "2026-08-25 00:54",
+ "last_run_at": "2026-08-25 01:07",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -477,7 +485,13 @@
   "max_hold": 10,
   "cost_pct": 0.02,
   "leverage": 5.0,
-  "annual_interest": 0.0
+  "annual_interest": 0.0,
+  "strategies": [
+   "reversal",
+   "breakout"
+  ],
+  "max_per_sector": 1,
+  "max_per_strategy": 4
  },
  "account": "fx",
  "label": "FX（レバ5倍）",
