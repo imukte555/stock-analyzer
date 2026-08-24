@@ -66,7 +66,7 @@
   },
   {
    "date": "2026-08-25",
-   "equity": 999179
+   "equity": 998180
   }
  ],
  "log": [
@@ -529,10 +529,18 @@
   {
    "t": "08-25 02:54",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-25 03:17",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-25 03:18",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-08-25 02:54",
+ "last_run_at": "2026-08-25 03:18",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -556,7 +564,10 @@
   "sizing": "risk",
   "risk_pct": 1.0,
   "min_position_pct": 3,
-  "max_position_pct": 25
+  "max_position_pct": 25,
+  "earnings_guard": true,
+  "earnings_buffer": 2,
+  "max_exposure_pct": 100
  },
  "account": "stock",
  "label": "株（日本+米国）",
