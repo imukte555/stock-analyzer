@@ -17,8 +17,12 @@ import ta
 
 _lock = threading.Lock()
 ACCOUNTS = {
-    'stock': dict(file='swing_bot_state.json',    markets=['jp','us'], leverage=1.0, cost_pct=0.10, label='株（日本+米国）'),
-    'fx':    dict(file='swing_bot_fx_state.json', markets=['fx'],      leverage=5.0, cost_pct=0.02, label='FX（レバ5倍）'),
+    # max_exposure_pct = レバ適用後の建玉合計の上限（対資産%）。ギャップで損切りが機能しない時の被弾量を縛る。
+    # 株はレバ1倍なので100%＝信用を使わない。FXはレバ5倍かつ分散させたいので200%（1銘柄15%×5倍=75%が最大）。
+    'stock': dict(file='swing_bot_state.json',    markets=['jp','us'], leverage=1.0, cost_pct=0.10, label='株（日本+米国）',
+                  max_exposure_pct=100, max_position_pct=25),
+    'fx':    dict(file='swing_bot_fx_state.json', markets=['fx'],      leverage=5.0, cost_pct=0.02, label='FX（レバ5倍）',
+                  max_exposure_pct=200, max_position_pct=15),
 }
 def _file(acct): return os.path.join(os.path.dirname(__file__), ACCOUNTS[acct]['file'])
 
@@ -84,12 +88,16 @@ DEFAULT = {
         'strategies': ['reversal','breakout'],  # 逆張り + 順張り（相関-0.79で補完関係）
         'max_per_sector': 1,     # 同一セクターは1銘柄まで
         'max_per_strategy': 4,   # 1戦略あたり最大4ポジション
+        'earnings_guard': True,  # 決算をまたがない（株のみ。FXは決算がないので無効）
+        'earnings_buffer': 2,    # 決算の何日前に手仕舞うか（データ遅延・時差の余裕を見て2日）
+        'max_exposure_pct': 100, # レバ適用後の建玉合計の上限（対資産%）
     }
 }
 
 def _default_for(acct):
     d=json.loads(json.dumps(DEFAULT)); a=ACCOUNTS[acct]
-    d['settings'].update(markets=a['markets'], leverage=a['leverage'], cost_pct=a['cost_pct'])
+    d['settings'].update(markets=a['markets'], leverage=a['leverage'], cost_pct=a['cost_pct'],
+                         max_exposure_pct=a['max_exposure_pct'], max_position_pct=a['max_position_pct'])
     d['account']=acct; d['label']=a['label']
     return d
 
@@ -135,6 +143,8 @@ def _load(acct='stock'):
         d['settings']['markets']=ACCOUNTS[acct]['markets']
         d['settings']['leverage']=ACCOUNTS[acct]['leverage']
         d['settings']['cost_pct']=ACCOUNTS[acct]['cost_pct']
+        d['settings']['max_exposure_pct']=ACCOUNTS[acct]['max_exposure_pct']
+        d['settings']['max_position_pct']=ACCOUNTS[acct]['max_position_pct']
         d['account']=acct; d['label']=ACCOUNTS[acct]['label']
         return d
     except Exception:
@@ -167,6 +177,48 @@ def _fetch(sym, period='6mo'):
 
 def _has_enough_bars(h, min_bars=40):
     return h is not None and len(h) >= min_bars
+
+# ---- 決算日ガード -------------------------------------------------
+# 決算はザラ場外に出るので、損切り注文は素通りされる（翌朝いきなり-15%で寄る）。
+# 「売られすぎだから戻る」という前提が、決算という新情報で無効になるのが本質的な問題。
+# 避けられる負けなので、決算をまたぐ持ち越しはしない。
+_EARN_CACHE = {}   # sym -> (取得日, date or None)
+
+def _earnings_date(sym):
+    """次回決算日を返す。取得できない/過去日付なら None（＝不明）。
+    yfinanceは銘柄によって古い日付を返すことがある（実測: 9984.Tが19日前の日付を返した）。
+    不明を『決算なし』と誤読すると穴になるので、呼び出し側で安全側に倒す。"""
+    if _market_of(sym) == 'fx':
+        return None
+    today = datetime.now().date()
+    hit = _EARN_CACHE.get(sym)
+    if hit and hit[0] == today:
+        return hit[1]
+    d = None
+    try:
+        cal = yf.Ticker(sym).calendar
+        ed = cal.get('Earnings Date') if isinstance(cal, dict) else None
+        if ed:
+            v = ed[0] if isinstance(ed, (list, tuple)) else ed
+            v = v.date() if hasattr(v, 'date') else v
+            # 過去日付は古いデータ。信用せず「不明」に倒す
+            if v and v >= today:
+                d = v
+    except Exception:
+        d = None
+    _EARN_CACHE[sym] = (today, d)
+    return d
+
+def _earnings_within(sym, days, unknown_is_risky=True):
+    """今日から days 営業日以内に決算があるなら (True, 決算日) を返す。
+    決算日が取得できない場合は unknown_is_risky に従う（既定: 危険側＝True）。"""
+    if _market_of(sym) == 'fx':
+        return False, None
+    d = _earnings_date(sym)
+    if d is None:
+        return (unknown_is_risky, None)
+    # 営業日換算はしない（暦日で多めに見る＝安全側）
+    return ((d - datetime.now().date()).days <= days, d)
 
 def _indicators(h):
     c,hi,lo=h['Close'],h['High'],h['Low']
@@ -271,6 +323,21 @@ def run_once(acct='stock'):
             else:
                 budget=state['cash']*S['position_pct']/100
                 size_note = f"固定{S['position_pct']}%"
+            # --- レバ適用後の合計エクスポージャー上限 ---
+            # FXはレバ5倍なので、1銘柄25%上限でも実効125%になりうる（検証で指摘された穴）。
+            # 建玉合計×レバが資産の max_exposure_pct を超えないところまで削る
+            max_exp_pct=float(S.get('max_exposure_pct',100))
+            if max_exp_pct>0 and lev>0:
+                eq_now=state['cash']+sum(pp['cost'] for pp in state['positions'].values())
+                used_exp=sum(pp['cost'] for pp in state['positions'].values())*lev
+                room=(eq_now*max_exp_pct/100)-used_exp
+                allowed=room/lev
+                if allowed<=0:
+                    _log(state,f"⏭ {p['name']} 約定見送り（エクスポージャー上限{max_exp_pct:.0f}%に到達）")
+                    del state['pending'][sym]; continue
+                if budget>allowed:
+                    budget=allowed
+                    size_note+=f"/上限{max_exp_pct:.0f}%で縮小"
             if budget<=0 or (budget<entry and p['market']!='fx'):
                 _log(state,f"⏭ {p['name']} 約定見送り（資金不足）"); del state['pending'][sym]; continue
             qty=budget/entry
@@ -312,6 +379,12 @@ def run_once(acct='stock'):
                     if float(r['High'])>=pos['sl']: hit=('BE' if pos['be'] else 'SL',pos['sl'])
                     elif float(r['Low'])<=pos['tp']: hit=('TP',pos['tp'])
                 if not hit and pos['bars']>=S['max_hold']: hit=('時間',float(r['Close']))
+                # 決算が迫ったらシグナルに関係なく手仕舞う（ギャップは損切りを素通りするため）
+                # 決算日が取得できない銘柄まで強制決済すると無駄な回転を生むので、
+                # 決済側では「不明＝安全」に倒す（入口側では逆に「不明＝危険」で見送る）
+                if not hit and S.get('earnings_guard',True) and _market_of(sym)!='fx':
+                    near,ed=_earnings_within(sym,S.get('earnings_buffer',1),unknown_is_risky=False)
+                    if near: hit=('決算前',float(r['Close']))
                 if hit:
                     px=hit[1]; side_mult=1 if side=='L' else -1
                     pnl_pct=(px/e-1)*100*side_mult
@@ -324,7 +397,7 @@ def run_once(acct='stock'):
                         pnl_pct=round(net_pct,2),pnl_yen=round(proceeds-pos['cost']),reason=hit[0],
                         opened=pos['opened'],closed=d.strftime('%Y-%m-%d'),days=pos['bars'],
                         strategy=pos.get('strategy','reversal')))
-                    emoji={'TP':'💰','SL':'🔴','BE':'⚪','時間':'⏰'}[hit[0]]
+                    emoji={'TP':'💰','SL':'🔴','BE':'⚪','時間':'⏰','決算前':'📅'}[hit[0]]
                     act=f"{emoji} 決済 {pos['name']} {hit[0]} @{px:,.2f} 損益 {net_pct:+.2f}% (¥{proceeds-pos['cost']:+,.0f})"
                     _log(state,act); actions.append(act)
                     del state['positions'][sym]; closed=True; break
@@ -377,6 +450,15 @@ def run_once(acct='stock'):
             if len(state['positions'])+len(state['pending'])>=S['max_positions']:
                 _log(state,f"⏭ {cand['name']} 見送り（全体のポジション上限）")
                 continue
+            # 保有予定期間(max_hold)の中に決算が入るならエントリーしない。
+            # 入口では「決算日が不明な銘柄」も見送る（見送りは機会損失で済むが、
+            # 決算を踏み抜くと損切りが機能しないので損失が青天井になる）
+            if S.get('earnings_guard',True) and cand['market']!='fx':
+                near,ed=_earnings_within(cand['sym'],int(S.get('max_hold',10)),unknown_is_risky=True)
+                if near:
+                    when=ed.strftime('%m/%d') if ed else '不明'
+                    _log(state,f"⏭ {cand['name']} 見送り（保有期間中に決算 {when}）")
+                    continue
             state['pending'][cand['sym']]=dict(side=cand['side'],atr=cand['atr'],signal_date=cand['signal_date'],
                 name=cand['name'],market=cand['market'],close=cand['close'],rsi=cand['rsi'],
                 strategy=cand['strategy'],reason=cand['reason'])
