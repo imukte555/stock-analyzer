@@ -122,11 +122,15 @@ def _market_of(sym):
 def _fetch(sym, period='6mo'):
     try:
         h=yf.Ticker(sym).history(period=period)
-        if h is None or len(h)<40: return None
+        if h is None or len(h)==0: return None
         h=h[['Open','High','Low','Close']].dropna()
+        # 巡回のシグナル計算(指標に必要な最低本数)と、単なる現在値取得を区別する
         return h
     except Exception:
         return None
+
+def _has_enough_bars(h, min_bars=40):
+    return h is not None and len(h) >= min_bars
 
 def _indicators(h):
     c,hi,lo=h['Close'],h['High'],h['Low']
@@ -239,7 +243,7 @@ def run_once(acct='stock'):
             for sym,name in UNIVERSE[m]:
                 if sym in state['positions'] or sym in state['pending']: continue
                 h=data.get(sym)
-                if h is None: continue
+                if not _has_enough_bars(h, 40): continue
                 hh,i=_last_completed_bar(h,m)
                 if i<25: continue
                 ind=_indicators(hh)
