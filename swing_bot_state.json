@@ -14,7 +14,7 @@
    "opened": "2026-08-21",
    "name": "MicroStrategy",
    "market": "us",
-   "bars": 1
+   "bars": 2
   },
   "COIN": {
    "side": "S",
@@ -28,7 +28,7 @@
    "opened": "2026-08-21",
    "name": "Coinbase",
    "market": "us",
-   "bars": 1
+   "bars": 2
   },
   "TSLA": {
    "side": "S",
@@ -42,7 +42,7 @@
    "opened": "2026-08-24",
    "name": "Tesla",
    "market": "us",
-   "bars": 0
+   "bars": 1
   }
  },
  "pending": {},
@@ -67,6 +67,10 @@
   {
    "date": "2026-08-25",
    "equity": 1000695
+  },
+  {
+   "date": "2026-08-26",
+   "equity": 991782
   }
  ],
  "log": [
@@ -693,10 +697,14 @@
   {
    "t": "08-25 22:00",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-26 01:00",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-08-25 22:00",
+ "last_run_at": "2026-08-26 01:00",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
