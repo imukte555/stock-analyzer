@@ -70,7 +70,7 @@
   },
   {
    "date": "2026-08-26",
-   "equity": 993056
+   "equity": 1000000
   }
  ],
  "log": [
@@ -837,10 +837,30 @@
   {
    "t": "08-26 18:05",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-26 23:11",
+   "msg": "⚠️ データ取得失敗: ソフトバンクG, NVIDIA, レーザーテック, 任天堂, Intel, フジクラ, 東京エレクトロン, Micron, AMD, Coinbase, Super Micro, ディスコ, IHI, 三菱重工, Palantir, 第一三共, Arm, アドバンテスト, Tesla, 住友電工, ソニーG, MicroStrategy（22/22銘柄）"
+  },
+  {
+   "t": "08-26 23:11",
+   "msg": "⚠️ MicroStrategy の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "08-26 23:11",
+   "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "08-26 23:11",
+   "msg": "⚠️ Tesla の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "08-26 23:11",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-08-26 18:05",
+ "last_run_at": "2026-08-26 23:11",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -871,6 +891,6 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 0,
+ "last_fetch_fail_count": 22,
  "last_fetch_total": 22
 }
