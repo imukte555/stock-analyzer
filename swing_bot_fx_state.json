@@ -43,6 +43,10 @@
   {
    "date": "2026-08-26",
    "equity": 1000000
+  },
+  {
+   "date": "2026-08-27",
+   "equity": 1001049
   }
  ],
  "log": [
@@ -813,10 +817,14 @@
   {
    "t": "08-26 23:11",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-27 01:15",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 18:17",
- "last_run_at": "2026-08-26 23:11",
+ "last_run_at": "2026-08-27 01:15",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -846,6 +854,6 @@
  },
  "account": "fx",
  "label": "FX（レバ5倍）",
- "last_fetch_fail_count": 8,
+ "last_fetch_fail_count": 0,
  "last_fetch_total": 8
 }
