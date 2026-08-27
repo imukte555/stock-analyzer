@@ -19,10 +19,13 @@ _lock = threading.Lock()
 ACCOUNTS = {
     # max_exposure_pct = レバ適用後の建玉合計の上限（対資産%）。ギャップで損切りが機能しない時の被弾量を縛る。
     # 株はレバ1倍なので100%＝信用を使わない。FXはレバ5倍かつ分散させたいので200%（1銘柄15%×5倍=75%が最大）。
+    # allow_short: 株はバックテスト(2019-2026)で空売りが損失のほぼ全額を出したため停止。
+    # FXは一度もバックテストしていないので、株の結果を流用せず従来どおり両建て可のままにする
+    # （通貨ペアは上下対称で、株の「空売りが不利」という性質がそのまま当てはまらない）。
     'stock': dict(file='swing_bot_state.json',    markets=['jp','us'], leverage=1.0, cost_pct=0.10, label='株（日本+米国）',
-                  max_exposure_pct=100, max_position_pct=25),
+                  max_exposure_pct=100, max_position_pct=25, allow_short=False),
     'fx':    dict(file='swing_bot_fx_state.json', markets=['fx'],      leverage=5.0, cost_pct=0.02, label='FX（レバ5倍）',
-                  max_exposure_pct=200, max_position_pct=15),
+                  max_exposure_pct=200, max_position_pct=15, allow_short=True),
 }
 def _file(acct): return os.path.join(os.path.dirname(__file__), ACCOUNTS[acct]['file'])
 
@@ -91,13 +94,15 @@ DEFAULT = {
         'earnings_guard': True,  # 決算をまたがない（株のみ。FXは決算がないので無効）
         'earnings_buffer': 2,    # 決算の何日前に手仕舞うか（データ遅延・時差の余裕を見て2日）
         'max_exposure_pct': 100, # レバ適用後の建玉合計の上限（対資産%）
+        'allow_short': False,    # 口座定義(ACCOUNTS)で上書きされる。株=False / FX=True
     }
 }
 
 def _default_for(acct):
     d=json.loads(json.dumps(DEFAULT)); a=ACCOUNTS[acct]
     d['settings'].update(markets=a['markets'], leverage=a['leverage'], cost_pct=a['cost_pct'],
-                         max_exposure_pct=a['max_exposure_pct'], max_position_pct=a['max_position_pct'])
+                         max_exposure_pct=a['max_exposure_pct'], max_position_pct=a['max_position_pct'],
+                         allow_short=a['allow_short'])
     d['account']=acct; d['label']=a['label']
     return d
 
@@ -145,6 +150,7 @@ def _load(acct='stock'):
         d['settings']['cost_pct']=ACCOUNTS[acct]['cost_pct']
         d['settings']['max_exposure_pct']=ACCOUNTS[acct]['max_exposure_pct']
         d['settings']['max_position_pct']=ACCOUNTS[acct]['max_position_pct']
+        d['settings']['allow_short']=ACCOUNTS[acct]['allow_short']
         d['account']=acct; d['label']=ACCOUNTS[acct]['label']
         return d
     except Exception:
@@ -428,7 +434,7 @@ def run_once(acct='stock'):
                 ind=_indicators(hh)
                 a=float(ind['atr'].iloc[i])
                 if np.isnan(a) or a<=0: continue
-                allow_short = (m!='jp')
+                allow_short = bool(S.get('allow_short',False)) and (m!='jp')
                 for strategy in enabled:
                     sig,reason=_detect_signal(strategy, ind, i, hh['Close'], allow_short)
                     if not sig: continue

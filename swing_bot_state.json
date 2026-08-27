@@ -80,14 +80,10 @@
   },
   {
    "date": "2026-08-28",
-   "equity": 988103
+   "equity": 987183
   }
  ],
  "log": [
-  {
-   "t": "08-23 10:36",
-   "msg": "👀 巡回完了・変化なし"
-  },
   {
    "t": "08-23 11:06",
    "msg": "👀 巡回完了・変化なし"
@@ -883,10 +879,14 @@
   {
    "t": "08-28 01:30",
    "msg": "🛡 Tesla 建値ストップ発動 SL→361.75"
+  },
+  {
+   "t": "08-28 01:57",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-08-28 01:30",
+ "last_run_at": "2026-08-28 01:57",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -913,7 +913,8 @@
   "max_position_pct": 25,
   "earnings_guard": true,
   "earnings_buffer": 2,
-  "max_exposure_pct": 100
+  "max_exposure_pct": 100,
+  "allow_short": false
  },
  "account": "stock",
  "label": "株（日本+米国）",
