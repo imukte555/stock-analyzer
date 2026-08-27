@@ -23,9 +23,9 @@ ACCOUNTS = {
     # FXは一度もバックテストしていないので、株の結果を流用せず従来どおり両建て可のままにする
     # （通貨ペアは上下対称で、株の「空売りが不利」という性質がそのまま当てはまらない）。
     'stock': dict(file='swing_bot_state.json',    markets=['jp','us'], leverage=1.0, cost_pct=0.10, label='株（日本+米国）',
-                  max_exposure_pct=100, max_position_pct=25, allow_short=False),
+                  max_exposure_pct=100, max_position_pct=25, allow_short=False, use_be_stop=False),
     'fx':    dict(file='swing_bot_fx_state.json', markets=['fx'],      leverage=5.0, cost_pct=0.02, label='FX（レバ5倍）',
-                  max_exposure_pct=200, max_position_pct=15, allow_short=True),
+                  max_exposure_pct=200, max_position_pct=15, allow_short=True, use_be_stop=True),
 }
 def _file(acct): return os.path.join(os.path.dirname(__file__), ACCOUNTS[acct]['file'])
 
@@ -85,6 +85,11 @@ DEFAULT = {
         'max_positions': 8,
         'markets': ['jp','us'],
         'sl_atr': 1.5, 'tp_atr': 2.5, 'be_atr': 1.0, 'max_hold': 10,
+        # 建値ストップ。含み益がATR×be_atr乗ったら損切りを建値に引き上げる機能だが、
+        # バックテスト(2019-2026)で「勝ちかけた玉を勝つ前に切る」害の方が大きいと判明したため停止。
+        # 廃止で年率+0.29%→+16.61%、最大DD-31.2%→-18.7%、勝率33.9%→46.6%。
+        # 2年ごとの4区間すべてでプラス(+12.96/+1.48/+37.86/+16.80%)。株のみ、FXは未検証のため据え置き。
+        'use_be_stop': False,
         'cost_pct': 0.10,        # 往復コスト
         'leverage': 1.0,         # FX口座は5倍
         'annual_interest': 0.0,  # FXスワップは無視（概算）
@@ -102,7 +107,7 @@ def _default_for(acct):
     d=json.loads(json.dumps(DEFAULT)); a=ACCOUNTS[acct]
     d['settings'].update(markets=a['markets'], leverage=a['leverage'], cost_pct=a['cost_pct'],
                          max_exposure_pct=a['max_exposure_pct'], max_position_pct=a['max_position_pct'],
-                         allow_short=a['allow_short'])
+                         allow_short=a['allow_short'], use_be_stop=a['use_be_stop'])
     d['account']=acct; d['label']=a['label']
     return d
 
@@ -151,6 +156,7 @@ def _load(acct='stock'):
         d['settings']['max_exposure_pct']=ACCOUNTS[acct]['max_exposure_pct']
         d['settings']['max_position_pct']=ACCOUNTS[acct]['max_position_pct']
         d['settings']['allow_short']=ACCOUNTS[acct]['allow_short']
+        d['settings']['use_be_stop']=ACCOUNTS[acct]['use_be_stop']
         d['account']=acct; d['label']=ACCOUNTS[acct]['label']
         return d
     except Exception:
@@ -372,7 +378,7 @@ def run_once(acct='stock'):
                 pos['bars']=pos.get('bars',0)+1
                 side=pos['side']; e=pos['entry']
                 # 建値ストップ（前バーで含み益ATR×be_atr以上）
-                if not pos['be']:
+                if S.get('use_be_stop', False) and not pos['be']:
                     prev_close=float(h['Close'].loc[:d].iloc[-2]) if len(h.loc[:d])>=2 else e
                     unreal=(prev_close/e-1)*(1 if side=='L' else -1)
                     if unreal>=pos['atr']/e*S['be_atr']:
