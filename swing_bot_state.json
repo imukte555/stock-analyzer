@@ -1,21 +1,7 @@
 {
  "initial_capital": 1000000,
- "cash": 729000.0,
+ "cash": 820668.762199568,
  "positions": {
-  "MSTR": {
-   "side": "S",
-   "entry": 119.68499755859375,
-   "sl": 129.53655431908288,
-   "tp": 103.26573629111188,
-   "atr": 6.56770450699275,
-   "be": false,
-   "qty": 835.5266076773187,
-   "cost": 100000.0,
-   "opened": "2026-08-21",
-   "name": "MicroStrategy",
-   "market": "us",
-   "bars": 3
-  },
   "COIN": {
    "side": "S",
    "entry": 180.05999755859375,
@@ -28,25 +14,41 @@
    "opened": "2026-08-21",
    "name": "Coinbase",
    "market": "us",
-   "bars": 3
+   "bars": 4
   },
   "TSLA": {
    "side": "S",
    "entry": 361.75,
-   "sl": 382.53846933928924,
+   "sl": 361.75,
    "tp": 327.1025511011846,
    "atr": 13.858979559526173,
-   "be": false,
+   "be": true,
    "qty": 223.9115411195577,
    "cost": 81000.0,
    "opened": "2026-08-24",
    "name": "Tesla",
    "market": "us",
-   "bars": 2
+   "bars": 3
   }
  },
  "pending": {},
- "history": [],
+ "history": [
+  {
+   "sym": "MSTR",
+   "name": "MicroStrategy",
+   "market": "us",
+   "side": "S",
+   "entry": 119.68499755859375,
+   "exit": 129.53655431908288,
+   "pnl_pct": -8.33,
+   "pnl_yen": -8331,
+   "reason": "SL",
+   "opened": "2026-08-21",
+   "closed": "2026-08-27",
+   "days": 4,
+   "strategy": "reversal"
+  }
+ ],
  "equity_curve": [
   {
    "date": "2026-08-19",
@@ -75,17 +77,13 @@
   {
    "date": "2026-08-27",
    "equity": 1000000
+  },
+  {
+   "date": "2026-08-28",
+   "equity": 988103
   }
  ],
  "log": [
-  {
-   "t": "08-23 09:36",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "08-23 10:06",
-   "msg": "👀 巡回完了・変化なし"
-  },
   {
    "t": "08-23 10:36",
    "msg": "👀 巡回完了・変化なし"
@@ -877,10 +875,18 @@
   {
    "t": "08-27 16:58",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-28 01:30",
+   "msg": "🔴 決済 MicroStrategy SL @129.54 損益 -8.33% (¥-8,331)"
+  },
+  {
+   "t": "08-28 01:30",
+   "msg": "🛡 Tesla 建値ストップ発動 SL→361.75"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-08-27 16:58",
+ "last_run_at": "2026-08-28 01:30",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -911,6 +917,6 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 22,
+ "last_fetch_fail_count": 0,
  "last_fetch_total": 22
 }
