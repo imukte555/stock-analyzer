@@ -571,7 +571,28 @@ def status(acct='stock'):
         v['win_rate']=round(v['wins']/v['n']*100,1) if v['n'] else 0
         v['pnl']=round(v['pnl'])
 
+    # ---- 実運用（フォワードテスト）の成績 ----
+    # バックテストの数字ではなく「新ルール適用後に実際に何が起きたか」だけを出す。
+    # 開始前に建てた旧ルールの玉は成績から除外しないと実力が測れない。
+    ft=state.get('forward_test')
+    fwd=None
+    if ft:
+        legacy=set(ft.get('legacy_positions',[]))
+        new_closed=[h for h in state['history'] if h.get('opened','') >= ft['start_date']]
+        nw=[h for h in new_closed if h['pnl_yen']>0]
+        days=(_today()-datetime.strptime(ft['start_date'],'%Y-%m-%d').date()).days
+        fwd=dict(
+            start_date=ft['start_date'], start_equity=round(ft['start_equity']),
+            days=days, rules=ft.get('rules',''),
+            equity=round(equity), ret_pct=round((equity/ft['start_equity']-1)*100,2),
+            closed=len(new_closed), wins=len(nw),
+            win_rate=round(len(nw)/len(new_closed)*100,1) if new_closed else None,
+            pnl_yen=round(sum(h['pnl_yen'] for h in new_closed)),
+            legacy_positions=sorted(legacy),
+            open_new=[p['sym'] for p in pos_out if p['sym'] not in legacy],
+        )
     return dict(
+        forward=fwd,
         by_strategy=by_strategy,
         initial_capital=state['initial_capital'], cash=round(state['cash']), equity=round(equity),
         total_pnl=round(total_pnl), total_pnl_pct=round(total_pnl/state['initial_capital']*100,2),

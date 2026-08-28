@@ -33,6 +33,9 @@ th{color:var(--sub);font-weight:600;font-size:11px}td:first-child,th:first-child
 .stale{color:var(--sell)!important;font-weight:700}
 .btn{background:#238636;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;font-size:13px}
 .btn.gray{background:var(--card2);color:var(--sub);border:1px solid var(--border)}
+.fwd-top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.fwd-big{font-size:30px;font-weight:800}
+.fwd-note{font-size:12px;color:var(--sub);line-height:1.8;background:var(--card2);border-radius:8px;padding:10px;margin-top:10px}
 .rule{font-size:12px;color:var(--sub);line-height:1.8;background:var(--card2);border-radius:8px;padding:12px}
 @media(max-width:600px){.hero .big{font-size:30px}}
 </style></head><body>
@@ -41,6 +44,7 @@ th{color:var(--sub);font-weight:600;font-size:11px}td:first-child,th:first-child
 <div class="main">
   <div id="warnbox"></div>
   <div class="hero" id="hero"><div class="empty">読み込み中...</div></div>
+  <div class="card" id="fwdCard" style="display:none"><h2>🎯 実運用テスト（新ルール適用後の成績）</h2><div id="fwd"></div></div>
   <div class="card"><h2>📈 資産推移（仮想100万円スタート）</h2><div class="chart"><canvas id="eq"></canvas></div></div>
   <div class="card"><h2>🎯 戦略別の成績</h2><div id="byStrategy"></div></div>
   <div class="card"><h2>📊 保有中ポジション</h2><div id="positions"></div></div>
@@ -83,6 +87,29 @@ async function load(){
       <div class="m"><div class="l">平均勝ち / 負け</div><div class="v" style="font-size:15px"><span class="pos">${pct(d.avg_win)}</span> / <span class="neg">${pct(d.avg_loss)}</span></div></div>
     </div>
     <div class="lbl" style="margin-top:10px">開始 ${d.started_at||'—'} ｜ 最終巡回 ${d.last_run_at||'—'} ｜ 30分ごとに自動巡回中</div>`;
+  // 実運用テストの成績（バックテストではなく、新ルール適用後に実際に起きたことだけ）
+  const F=d.forward;
+  if(F){
+    document.getElementById('fwdCard').style.display='';
+    const fc=F.ret_pct>=0?'pos':'neg';
+    const wr=(F.win_rate===null||F.win_rate===undefined)?'—':F.win_rate+'%';
+    document.getElementById('fwd').innerHTML=`
+      <div class="fwd-top">
+        <div class="fwd-big ${fc}">${pct(F.ret_pct)}</div>
+        <div style="color:var(--sub);font-size:13px">${F.start_date} から ${F.days}日　${yen(F.start_equity)} → ${yen(F.equity)}</div>
+      </div>
+      <div class="grid">
+        <div class="m"><div class="l">新ルールでの決済</div><div class="v">${F.closed}件</div></div>
+        <div class="m"><div class="l">勝率</div><div class="v">${wr}</div></div>
+        <div class="m"><div class="l">新ルールの損益</div><div class="v ${F.pnl_yen>=0?'pos':'neg'}" style="font-size:16px">${F.pnl_yen>=0?'+':''}${yen(F.pnl_yen)}</div></div>
+        <div class="m"><div class="l">新ルールの建玉</div><div class="v" style="font-size:14px">${F.open_new.length?F.open_new.join(', '):'—'}</div></div>
+      </div>
+      <div class="fwd-note">
+        <b>ルール:</b> ${F.rules}<br>
+        ${F.legacy_positions.length?`<b>旧ルールの建玉（成績から除外）:</b> ${F.legacy_positions.join(', ')} — 開始前に建てた玉なので実力に含めない<br>`:''}
+        過去のバックテストの数字ではなく、<b>この日から先に実際に起きたこと</b>だけを出しています。
+      </div>`;
+  }
   // chart
   const ctx=document.getElementById('eq');
   const labels=d.equity_curve.map(p=>p.date), vals=d.equity_curve.map(p=>p.equity);
