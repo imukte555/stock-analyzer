@@ -9,7 +9,16 @@
   資金管理: 1銘柄あたり資金の10%、同時最大8ポジション
 """
 import os, json, threading, traceback
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+# ---- 時刻は必ず日本時間 -------------------------------------------
+# このMacのシステムTZは滞在地で変わる（2026-08-28時点はCEST）。
+# 環境のTZに引きずられると last_run_at・ログ・決算日判定が最大7時間ずれ、
+# 死活監視の誤判定や、開始日が未来になる等の記録破壊が起きる。
+# 起動スクリプトのexport TZに頼らず、コード側でJSTに固定する。
+JST = timezone(timedelta(hours=9))
+def _now():  return datetime.now(JST).replace(tzinfo=None)
+def _today():return datetime.now(JST).date()
 import numpy as np
 import pandas as pd
 import yfinance as yf
@@ -127,7 +136,7 @@ def _load_remote(acct):
     """GitHub raw から最新stateを取得（Render表示用）"""
     try:
         import urllib.request
-        url=RAW_BASE+ACCOUNTS[acct]['file']+'?t='+datetime.now().strftime('%Y%m%d%H%M')
+        url=RAW_BASE+ACCOUNTS[acct]['file']+'?t='+_now().strftime('%Y%m%d%H%M')
         with urllib.request.urlopen(url,timeout=10) as r:
             d=json.loads(r.read().decode())
         base=_default_for(acct)
@@ -179,7 +188,7 @@ def _save(state):
     os.replace(tmp,path)
 
 def _log(state,msg):
-    state['log'].append({'t':datetime.now().strftime('%m-%d %H:%M'),'msg':msg})
+    state['log'].append({'t':_now().strftime('%m-%d %H:%M'),'msg':msg})
     state['log']=state['log'][-200:]
 
 def _market_of(sym):
@@ -212,7 +221,7 @@ def _earnings_date(sym):
     不明を『決算なし』と誤読すると穴になるので、呼び出し側で安全側に倒す。"""
     if _market_of(sym) == 'fx':
         return None
-    today = datetime.now().date()
+    today = _today()
     hit = _EARN_CACHE.get(sym)
     if hit and hit[0] == today:
         return hit[1]
@@ -240,7 +249,7 @@ def _earnings_within(sym, days, unknown_is_risky=True):
     if d is None:
         return (unknown_is_risky, None)
     # 営業日換算はしない（暦日で多めに見る＝安全側）
-    return ((d - datetime.now().date()).days <= days, d)
+    return ((d - _today()).days <= days, d)
 
 def _indicators(h):
     c,hi,lo=h['Close'],h['High'],h['Low']
@@ -282,7 +291,7 @@ def _last_completed_bar(h, market):
        yfinanceは取引時間中に当日バーを含めることがあるので、簡易的に
        '当日日付のバー' は未確定として扱う（jp: 15:30以降なら確定扱い）。"""
     last_date=h.index[-1]
-    now=datetime.now(last_date.tzinfo) if last_date.tzinfo else datetime.now()
+    now=datetime.now(last_date.tzinfo) if last_date.tzinfo else _now()
     if last_date.date()==now.date():
         # jp市場は15:30以降なら確定、それ以外は前日を確定足とみなす
         if market=='jp' and now.hour*60+now.minute>=15*60+30:
@@ -297,7 +306,7 @@ def run_once(acct='stock'):
     with _lock:
         state=_load(acct)
         if not state['started_at']:
-            state['started_at']=datetime.now().strftime('%Y-%m-%d %H:%M')
+            state['started_at']=_now().strftime('%Y-%m-%d %H:%M')
         S=state['settings']
         actions=[]
         # ---------- (1)&(2): 既存ポジションと約定待ち ----------
@@ -499,12 +508,12 @@ def run_once(acct='stock'):
             if h is None: equity+=pos['cost']; continue
             cur=float(h['Close'].iloc[-1]); side_mult=1 if pos['side']=='L' else -1
             equity+=pos['cost']*(1+(cur/pos['entry']-1)*side_mult*float(S.get('leverage',1.0)))
-        today=datetime.now().strftime('%Y-%m-%d')
+        today=_now().strftime('%Y-%m-%d')
         if state['equity_curve'] and state['equity_curve'][-1]['date']==today:
             state['equity_curve'][-1]['equity']=round(equity)
         else:
             state['equity_curve'].append({'date':today,'equity':round(equity)})
-        state['last_run_at']=datetime.now().strftime('%Y-%m-%d %H:%M')
+        state['last_run_at']=_now().strftime('%Y-%m-%d %H:%M')
         if not actions: _log(state,"👀 巡回完了・変化なし")
         _save(state)
         return dict(actions=actions,equity=equity,positions=len(state['positions']),pending=len(state['pending']))
@@ -536,7 +545,7 @@ def status(acct='stock'):
     if state.get('last_run_at'):
         try:
             last=datetime.strptime(state['last_run_at'],'%Y-%m-%d %H:%M')
-            mins=(datetime.now()-last).total_seconds()/60
+            mins=(_now()-last).total_seconds()/60
             if mins>90:
                 warnings.append(f"⚠️ 最終巡回から{int(mins)}分経過（想定30分ごと）。Macが寝ているか停止している可能性")
         except Exception:
