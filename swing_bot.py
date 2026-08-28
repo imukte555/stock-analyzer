@@ -23,9 +23,16 @@ ACCOUNTS = {
     # FXは一度もバックテストしていないので、株の結果を流用せず従来どおり両建て可のままにする
     # （通貨ペアは上下対称で、株の「空売りが不利」という性質がそのまま当てはまらない）。
     'stock': dict(file='swing_bot_state.json',    markets=['jp','us'], leverage=1.0, cost_pct=0.10, label='株（日本+米国）',
-                  max_exposure_pct=100, max_position_pct=25, allow_short=False, use_be_stop=False),
+                  max_exposure_pct=100, max_position_pct=25, allow_short=False, use_be_stop=False,
+                  new_entries=True),
     'fx':    dict(file='swing_bot_fx_state.json', markets=['fx'],      leverage=5.0, cost_pct=0.02, label='FX（レバ5倍）',
-                  max_exposure_pct=200, max_position_pct=15, allow_short=True, use_be_stop=True),
+                  max_exposure_pct=200, max_position_pct=15, allow_short=True, use_be_stop=True,
+                  # 2026-08-28: FXをバックテスト(2019-2026, 366取引)した結果、どの構成でも年率ほぼ0%。
+                  # 最良でも+1.87%/シャープ0.28、2年区間では3/4しか勝てない（株は4/4で平均+17%）。
+                  # レバ1倍だと-0.03%＝素の戦略に中身がなく、5倍にしても+0.23%にしかならない。
+                  # 年率0%のために最大DD-15〜24%を負う理由がないため新規エントリーを停止。
+                  # 既存建玉は強制決済せず、通常の損切り・利確・時間切れで自然に閉じる。
+                  new_entries=False),
 }
 def _file(acct): return os.path.join(os.path.dirname(__file__), ACCOUNTS[acct]['file'])
 
@@ -90,6 +97,7 @@ DEFAULT = {
         # 廃止で年率+0.29%→+16.61%、最大DD-31.2%→-18.7%、勝率33.9%→46.6%。
         # 2年ごとの4区間すべてでプラス(+12.96/+1.48/+37.86/+16.80%)。株のみ、FXは未検証のため据え置き。
         'use_be_stop': False,
+        'new_entries': True,     # 新規エントリーの可否。口座定義(ACCOUNTS)で上書き
         'cost_pct': 0.10,        # 往復コスト
         'leverage': 1.0,         # FX口座は5倍
         'annual_interest': 0.0,  # FXスワップは無視（概算）
@@ -107,7 +115,8 @@ def _default_for(acct):
     d=json.loads(json.dumps(DEFAULT)); a=ACCOUNTS[acct]
     d['settings'].update(markets=a['markets'], leverage=a['leverage'], cost_pct=a['cost_pct'],
                          max_exposure_pct=a['max_exposure_pct'], max_position_pct=a['max_position_pct'],
-                         allow_short=a['allow_short'], use_be_stop=a['use_be_stop'])
+                         allow_short=a['allow_short'], use_be_stop=a['use_be_stop'],
+                         new_entries=a['new_entries'])
     d['account']=acct; d['label']=a['label']
     return d
 
@@ -157,6 +166,7 @@ def _load(acct='stock'):
         d['settings']['max_position_pct']=ACCOUNTS[acct]['max_position_pct']
         d['settings']['allow_short']=ACCOUNTS[acct]['allow_short']
         d['settings']['use_be_stop']=ACCOUNTS[acct]['use_be_stop']
+        d['settings']['new_entries']=ACCOUNTS[acct]['new_entries']
         d['account']=acct; d['label']=ACCOUNTS[acct]['label']
         return d
     except Exception:
@@ -430,7 +440,9 @@ def run_once(acct='stock'):
         max_per_strategy=int(S.get('max_per_strategy',4))
 
         candidates=[]
-        for m in S['markets']:
+        if not S.get('new_entries', True):
+            _log(state,'⏸ 新規エントリー停止中（検証で優位が確認できなかったため）。既存建玉の管理のみ継続')
+        for m in (S['markets'] if S.get('new_entries', True) else []):
             for sym,name in UNIVERSE[m]:
                 if sym in state['positions'] or sym in state['pending']: continue
                 h=data.get(sym)
