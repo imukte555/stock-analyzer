@@ -1,6 +1,6 @@
 {
  "initial_capital": 1000000,
- "cash": 820668.762199568,
+ "cash": 667752.9070818749,
  "positions": {
   "COIN": {
    "side": "S",
@@ -14,7 +14,7 @@
    "opened": "2026-08-21",
    "name": "Coinbase",
    "market": "us",
-   "bars": 4
+   "bars": 5
   },
   "TSLA": {
    "side": "S",
@@ -28,7 +28,23 @@
    "opened": "2026-08-24",
    "name": "Tesla",
    "market": "us",
-   "bars": 3
+   "bars": 4
+  },
+  "PLTR": {
+   "side": "L",
+   "entry": 184.94000244140625,
+   "sl": 172.94652909221696,
+   "tp": 204.9291246900551,
+   "atr": 7.995648899459534,
+   "be": false,
+   "qty": 826.8403433494099,
+   "cost": 152915.85511769305,
+   "opened": "2026-08-28",
+   "name": "Palantir",
+   "market": "us",
+   "bars": 0,
+   "strategy": "breakout",
+   "reason": "20日高値ブレイク(ADX35)"
   }
  },
  "pending": {},
@@ -85,25 +101,17 @@
   {
    "date": "2026-08-29",
    "equity": 991669
+  },
+  {
+   "date": "2026-08-28",
+   "equity": 996569
+  },
+  {
+   "date": "2026-08-29",
+   "equity": 997343
   }
  ],
  "log": [
-  {
-   "t": "08-24 00:40",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "08-24 01:10",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "08-24 01:40",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "08-24 02:10",
-   "msg": "👀 巡回完了・変化なし"
-  },
   {
    "t": "08-24 02:40",
    "msg": "👀 巡回完了・変化なし"
@@ -887,10 +895,26 @@
   {
    "t": "08-29 00:53",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-28 19:47",
+   "msg": "⏭ MicroStrategy 見送り（cryptoセクターは既に保有中）"
+  },
+  {
+   "t": "08-28 19:47",
+   "msg": "📡 シグナル[順張り] Palantir 買候補 20日高値ブレイク(ADX35) 終値185.93 → 翌寄付で約定予定"
+  },
+  {
+   "t": "08-29 02:48",
+   "msg": "🟢 約定[順張り] Palantir 買 @184.94 損切172.95 利確204.93 投入¥152,916（想定損失9,917円/損切幅6.5%）"
+  },
+  {
+   "t": "08-29 02:48",
+   "msg": "⏭ MicroStrategy 見送り（cryptoセクターは既に保有中）"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-08-29 00:53",
+ "last_run_at": "2026-08-29 02:48",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -919,10 +943,11 @@
   "earnings_buffer": 2,
   "max_exposure_pct": 100,
   "allow_short": false,
-  "use_be_stop": false
+  "use_be_stop": false,
+  "new_entries": true
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 22,
+ "last_fetch_fail_count": 0,
  "last_fetch_total": 22
 }
