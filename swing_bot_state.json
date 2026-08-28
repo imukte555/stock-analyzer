@@ -113,14 +113,6 @@
  ],
  "log": [
   {
-   "t": "08-24 09:12",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "08-24 09:42",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
    "t": "08-24 10:12",
    "msg": "👀 巡回完了・変化なし"
   },
@@ -911,10 +903,18 @@
   {
    "t": "08-29 05:20",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-29 05:41",
+   "msg": "⏭ MicroStrategy 見送り（cryptoセクターは既に保有中）"
+  },
+  {
+   "t": "08-29 05:41",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-08-29 05:20",
+ "last_run_at": "2026-08-29 05:41",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -948,7 +948,7 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 1,
+ "last_fetch_fail_count": 0,
  "last_fetch_total": 22,
  "forward_test": {
   "start_date": "2026-08-29",
