@@ -4,7 +4,9 @@ botのlaunchdジョブ自体が死ぬと誰も気づけないので、監視は�
 (2026-08-27にDNS障害でジョブが異常終了し、2時間無言で停止していた事故を受けて追加)
 """
 import json, os, sys, urllib.request
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+JST = timezone(timedelta(hours=9))   # botはJSTで記録する。環境TZ(欧州等)に依存させない
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 STALE_MIN = 90          # 30分間隔なので、90分途絶えたら異常
@@ -37,7 +39,8 @@ def check():
         if not lr:
             problems.append(f"{lab}: 実行記録なし"); continue
         try:
-            age = (datetime.now() - datetime.strptime(lr, "%Y-%m-%d %H:%M")).total_seconds() / 60
+            now = datetime.now(JST).replace(tzinfo=None)
+            age = (now - datetime.strptime(lr, "%Y-%m-%d %H:%M")).total_seconds() / 60
         except Exception:
             problems.append(f"{lab}: 実行時刻が読めない ({lr})"); continue
         if age > STALE_MIN:
