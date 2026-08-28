@@ -75,5 +75,7 @@ if __name__ == "__main__":
             out.append(f"同期間のS&P500 {sp:+.2f}%\n→ 市場との差 {diff:+.2f}%")
     body = "\n\n".join(out)
     print(body)
+    # スマホ通知は停止（2026-08-29 shoさんの指示）。
+    # 成績は /swing のダッシュボードで見る。手動で送りたい時だけ --push を付ける。
     if "--push" in sys.argv:
         push("📊 スイングbot 実運用レポート", body)

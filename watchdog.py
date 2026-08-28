@@ -55,7 +55,8 @@ if __name__ == "__main__":
         print("テスト送信:", "成功" if ok else "失敗"); sys.exit(0)
     probs = check()
     if probs:
-        push("⚠️ スイングbotが停止しています", "\n".join(probs) + "\n→ Macのlaunchdを確認してください")
+        # 2026-08-29: shoさんの指示でスマホ通知を停止。ログに残すだけにする。
+        # (状態は /swing のダッシュボードでも確認できる)
         print("異常検知:", probs)
     else:
         print("正常")
