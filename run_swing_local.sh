@@ -4,23 +4,11 @@
 # 設計上の前提（2026-08-27の障害を受けて）:
 #   - Macはスリープする。起床直後はWi-Fiがまだ繋がっていない
 #   - 一時的な通信エラーでジョブ全体を落とさない（次回巡回で取り返せるため）
-#   - 動かなくなったこと自体を検知してiPhoneへ通知する
+#   - 動かなくなったことはログに残す（スマホ通知はshoさんの指示で廃止）
 cd /Users/sho/stock_analyzer || exit 1
 export TZ=Asia/Tokyo
 LOG=/tmp/swing_local.log
 HEARTBEAT=/tmp/swing_last_success
-
-notify() {  # ntfy.sh 経由でiPhoneに通知（エルメス監視と同じトピック）
-  python3 - "$1" "$2" <<'PY' 2>/dev/null
-import json,sys,urllib.request
-try:
-    payload=json.dumps({"topic":"imukte","title":sys.argv[1],"message":sys.argv[2],
-                        "tags":["warning"],"priority":4},ensure_ascii=False).encode()
-    urllib.request.urlopen(urllib.request.Request("https://ntfy.sh",data=payload,
-        headers={"Content-Type":"application/json"},method="POST"),timeout=10)
-except Exception: pass
-PY
-}
 
 # --- 起床直後を想定してネット復帰を待つ（最大60秒） ---
 for i in $(seq 1 12); do
@@ -30,15 +18,15 @@ done
 
 # --- bot本体 ---
 python3 -c "
-import swing_bot
-r1=swing_bot.run_once('stock'); r2=swing_bot.run_once('fx')
-print('stock:',r1); print('fx:',r2)
+import swing_bot, benchmark
+r1=swing_bot.run_once('stock'); r2=swing_bot.run_once('fx'); r3=benchmark.run_once()
+print('stock:',r1); print('fx:',r2); print('bench:',r3)
 " >> "$LOG" 2>&1
 BOT_RC=$?
 
 # --- stateをGitHubへpush（失敗しても致命傷にしない） ---
 PUSH_OK=0
-git add swing_bot_state.json swing_bot_fx_state.json 2>/dev/null
+git add swing_bot_state.json swing_bot_fx_state.json benchmark_state.json 2>/dev/null
 if git diff --cached --quiet 2>/dev/null; then
   PUSH_OK=1   # 変更なし＝pushの必要なし
 else
@@ -61,7 +49,7 @@ else
     LAST=$(cat "$HEARTBEAT")
     GAP=$(( (NOW - LAST) / 60 ))
     if [ "$GAP" -ge 120 ]; then
-      notify "⚠️ スイングbotが${GAP}分停止" "bot_rc=$BOT_RC push_ok=$PUSH_OK / Macがスリープしていた可能性。電源接続を確認してください"
+      echo "[$(date '+%m-%d %H:%M')] ⚠️ ${GAP}分停止していた (bot_rc=$BOT_RC push_ok=$PUSH_OK)" >> "$LOG"
     fi
   fi
 fi

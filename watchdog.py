@@ -3,7 +3,7 @@
 botのlaunchdジョブ自体が死ぬと誰も気づけないので、監視は別ジョブとして独立して動かす。
 (2026-08-27にDNS障害でジョブが異常終了し、2時間無言で停止していた事故を受けて追加)
 """
-import json, os, sys, urllib.request
+import json, os, sys, time, urllib.request
 from datetime import datetime, timedelta, timezone
 
 JST = timezone(timedelta(hours=9))   # botはJSTで記録する。環境TZ(欧州等)に依存させない
@@ -19,8 +19,18 @@ def push(title, body, priority=5):
                        ensure_ascii=False).encode()
         r = urllib.request.Request("https://ntfy.sh", data=p,
                                    headers={"Content-Type": "application/json"})
-        urllib.request.urlopen(r, timeout=20)
-        return True
+        # 回線が断続的に切れるため一発では落ちる（2026-08-29 実測で連続失敗）。
+        # 間を空けて数回試す。
+        last = None
+        for i in range(4):
+            try:
+                urllib.request.urlopen(r, timeout=20)
+                return True
+            except Exception as e:
+                last = e
+                if i < 3:
+                    time.sleep([2, 5, 15][i])
+        raise last
     except Exception as e:
         print(f"push失敗: {e}", file=sys.stderr)
         return False
