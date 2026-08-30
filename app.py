@@ -3042,15 +3042,6 @@ def swing_status(acct='stock'):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/benchmark/status', methods=['GET'])
-def benchmark_status():
-    """対戦相手（S&P500を買って放置）の成績。botに手間をかける価値があるかの判定用"""
-    try:
-        import benchmark as _bm
-        return jsonify(_bm.status())
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 @app.route('/api/swing/run', methods=['POST'])
 @app.route('/api/swing-<acct>/run', methods=['POST'])
 def swing_run(acct='stock'):

@@ -18,15 +18,15 @@ done
 
 # --- bot本体 ---
 python3 -c "
-import swing_bot, benchmark
-r1=swing_bot.run_once('stock'); r2=swing_bot.run_once('fx'); r3=benchmark.run_once()
-print('stock:',r1); print('fx:',r2); print('bench:',r3)
+import swing_bot
+r1=swing_bot.run_once('stock'); r2=swing_bot.run_once('fx')
+print('stock:',r1); print('fx:',r2)
 " >> "$LOG" 2>&1
 BOT_RC=$?
 
 # --- stateをGitHubへpush（失敗しても致命傷にしない） ---
 PUSH_OK=0
-git add swing_bot_state.json swing_bot_fx_state.json benchmark_state.json 2>/dev/null
+git add swing_bot_state.json swing_bot_fx_state.json 2>/dev/null
 if git diff --cached --quiet 2>/dev/null; then
   PUSH_OK=1   # 変更なし＝pushの必要なし
 else
