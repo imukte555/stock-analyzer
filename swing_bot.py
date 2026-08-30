@@ -100,7 +100,12 @@ DEFAULT = {
         'max_position_pct': 25,  # 1銘柄の上限（低ボラ銘柄への集中を防ぐ）
         'max_positions': 8,
         'markets': ['jp','us'],
-        'sl_atr': 1.5, 'tp_atr': 2.5, 'be_atr': 1.0, 'max_hold': 10,
+        # 2026-08-30: 周辺パラメータ12通りの総当たりで、どこを取っても年率+10〜17%の台地状に
+        # 安定することを確認（一点だけ尖る＝過剰最適化ではない）。その上で最良の組み合わせに更新。
+        # 旧 損1.5/利2.5/10日 → 新 損2.5/利10/30日 で 年率+16.61%→+21.23%、シャープ1.11→1.48、
+        # 最弱区間(2021-2022)が+1.48%→+9.44%。4区間すべてで旧構成以上。
+        # 方向性は建値ストップ廃止と同じ「早く切らず、大きく取る」。
+        'sl_atr': 2.5, 'tp_atr': 10.0, 'be_atr': 1.0, 'max_hold': 30,
         # 建値ストップ。含み益がATR×be_atr乗ったら損切りを建値に引き上げる機能だが、
         # バックテスト(2019-2026)で「勝ちかけた玉を勝つ前に切る」害の方が大きいと判明したため停止。
         # 廃止で年率+0.29%→+16.61%、最大DD-31.2%→-18.7%、勝率33.9%→46.6%。
@@ -176,6 +181,10 @@ def _load(acct='stock'):
         d['settings']['allow_short']=ACCOUNTS[acct]['allow_short']
         d['settings']['use_be_stop']=ACCOUNTS[acct]['use_be_stop']
         d['settings']['new_entries']=ACCOUNTS[acct]['new_entries']
+        # 戦略パラメータはコード側を正とする（stateに残った旧値で上書きされないように）。
+        # 既存の建玉の損切り/利確は建てた時の値のまま。途中で動かすのは恣意的なので触らない。
+        for _k in ('sl_atr','tp_atr','max_hold'):
+            d['settings'][_k]=DEFAULT['settings'][_k]
         d['account']=acct; d['label']=ACCOUNTS[acct]['label']
         return d
     except Exception:
