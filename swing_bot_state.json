@@ -155,26 +155,6 @@
  ],
  "log": [
   {
-   "t": "08-29 19:14",
-   "msg": "⏭ MicroStrategy 見送り（cryptoセクターは既に保有中）"
-  },
-  {
-   "t": "08-29 19:14",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "08-29 19:39",
-   "msg": "⏭ MicroStrategy 見送り（cryptoセクターは既に保有中）"
-  },
-  {
-   "t": "08-29 19:39",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "08-29 23:28",
-   "msg": "⚠️ データ取得失敗: Arm, ディスコ, ソフトバンクG, Tesla, Coinbase, Intel, IHI, アドバンテスト, ソニーG, 第一三共, NVIDIA, Super Micro, レーザーテック, AMD, 住友電工, Micron, 三菱重工, MicroStrategy, Palantir, 任天堂, フジクラ, 東京エレクトロン（22/22銘柄）"
-  },
-  {
    "t": "08-29 23:28",
    "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
   },
@@ -953,10 +933,30 @@
   {
    "t": "08-31 22:11",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-31 22:18",
+   "msg": "⚠️ データ取得失敗: Airbnb, オリエンタルランド（2/54銘柄）"
+  },
+  {
+   "t": "08-31 22:18",
+   "msg": "⏭ Adobe 見送り（breakout戦略の枠が上限）"
+  },
+  {
+   "t": "08-31 22:18",
+   "msg": "⏭ Salesforce 見送り（breakout戦略の枠が上限）"
+  },
+  {
+   "t": "08-31 22:18",
+   "msg": "⏭ ServiceNow 見送り（breakout戦略の枠が上限）"
+  },
+  {
+   "t": "08-31 22:18",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-08-31 22:11",
+ "last_run_at": "2026-08-31 22:18",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -990,8 +990,8 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 0,
- "last_fetch_total": 24,
+ "last_fetch_fail_count": 2,
+ "last_fetch_total": 54,
  "forward_test": {
   "start_date": "2026-08-29",
   "start_equity": 991668.762199568,
