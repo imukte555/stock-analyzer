@@ -155,10 +155,6 @@
  ],
  "log": [
   {
-   "t": "08-29 18:57",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
    "t": "08-29 19:14",
    "msg": "⏭ MicroStrategy 見送り（cryptoセクターは既に保有中）"
   },
@@ -953,6 +949,10 @@
   {
    "t": "08-31 22:11",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-31 22:11",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
@@ -991,7 +991,7 @@
  "account": "stock",
  "label": "株（日本+米国）",
  "last_fetch_fail_count": 0,
- "last_fetch_total": 54,
+ "last_fetch_total": 24,
  "forward_test": {
   "start_date": "2026-08-29",
   "start_equity": 991668.762199568,

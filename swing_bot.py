@@ -46,11 +46,20 @@ ACCOUNTS = {
 def _file(acct): return os.path.join(os.path.dirname(__file__), ACCOUNTS[acct]['file'])
 
 UNIVERSE = {
+    # 2026-08-31: 22→54銘柄に拡大。バックテスト(2019-2026)で年率+21.23%→+27.09%、
+    # シャープ1.48→1.67。銘柄が少ないとシグナルの機会自体が不足していた。
     'jp': [("8035.T","東京エレクトロン"),("6857.T","アドバンテスト"),("6920.T","レーザーテック"),("9984.T","ソフトバンクG"),
            ("5803.T","フジクラ"),("6146.T","ディスコ"),("7013.T","IHI"),("6758.T","ソニーG"),
-           ("7011.T","三菱重工"),("5802.T","住友電工"),("7974.T","任天堂"),("4568.T","第一三共")],
+           ("7011.T","三菱重工"),("5802.T","住友電工"),("7974.T","任天堂"),("4568.T","第一三共"),
+           ("6501.T","日立"),("6702.T","富士通"),("4063.T","信越化学"),("6981.T","村田製作所"),
+           ("8058.T","三菱商事"),("9433.T","KDDI"),("4661.T","オリエンタルランド"),("6367.T","ダイキン"),
+           ("6273.T","SMC"),("7741.T","HOYA"),("4519.T","中外製薬"),("6098.T","リクルート")],
     'us': [("AMD","AMD"),("MU","Micron"),("MSTR","MicroStrategy"),("COIN","Coinbase"),("PLTR","Palantir"),("SMCI","Super Micro"),
-           ("NVDA","NVIDIA"),("TSLA","Tesla"),("ARM","Arm"),("INTC","Intel")],
+           ("NVDA","NVIDIA"),("TSLA","Tesla"),("ARM","Arm"),("INTC","Intel"),
+           ("AAPL","Apple"),("MSFT","Microsoft"),("GOOGL","Alphabet"),("AMZN","Amazon"),("META","Meta"),
+           ("AVGO","Broadcom"),("QCOM","Qualcomm"),("TXN","Texas Instruments"),("ADBE","Adobe"),("CRM","Salesforce"),
+           ("ORCL","Oracle"),("NOW","ServiceNow"),("PANW","Palo Alto"),("SNPS","Synopsys"),("KLAC","KLA"),
+           ("LRCX","Lam Research"),("AMAT","Applied Materials"),("NFLX","Netflix"),("UBER","Uber"),("ABNB","Airbnb")],
     'fx': [("USDJPY=X","ドル円"),("GBPJPY=X","ポンド円"),("EURUSD=X","ユーロドル"),("AUDJPY=X","豪ドル円"),
            ("MXNJPY=X","ペソ円"),("GBPUSD=X","ポンドドル"),("NZDJPY=X","NZ円"),("EURJPY=X","ユーロ円")],
 }
@@ -70,6 +79,15 @@ SECTOR = {
     '4568.T':'pharma',
     # 米国その他
     'TSLA':'ev', 'PLTR':'us_soft',
+    # 拡大分（2026-08-31）
+    'AVGO':'semi', 'QCOM':'semi', 'TXN':'semi', 'KLAC':'semi', 'LRCX':'semi', 'AMAT':'semi', 'SNPS':'semi',
+    '6501.T':'jp_tech', '6702.T':'jp_tech', '6981.T':'jp_tech', '7741.T':'jp_tech',
+    '4063.T':'chem', '6367.T':'machine', '6273.T':'machine',
+    '8058.T':'trading', '9433.T':'telecom', '4661.T':'jp_consumer', '6098.T':'jp_soft',
+    '4519.T':'pharma',
+    'AAPL':'us_bigtech', 'MSFT':'us_bigtech', 'GOOGL':'us_bigtech', 'AMZN':'us_bigtech', 'META':'us_bigtech',
+    'ADBE':'us_soft', 'CRM':'us_soft', 'ORCL':'us_soft', 'NOW':'us_soft', 'PANW':'us_soft',
+    'NFLX':'us_consumer', 'UBER':'us_consumer', 'ABNB':'us_consumer',
     # FX: 通貨ごとにグループ化（円ペア/ドルストレートで相関が高い）
     'USDJPY=X':'jpy', 'GBPJPY=X':'jpy', 'AUDJPY=X':'jpy', 'EURJPY=X':'jpy',
     'NZDJPY=X':'jpy', 'MXNJPY=X':'jpy',
@@ -116,7 +134,9 @@ DEFAULT = {
         'leverage': 1.0,         # FX口座は5倍
         'annual_interest': 0.0,  # FXスワップは無視（概算）
         'strategies': ['reversal','breakout'],  # 逆張り + 順張り（相関-0.79で補完関係）
-        'max_per_sector': 1,     # 同一セクターは1銘柄まで
+        # 2026-08-31: 1→3に緩和。54銘柄でのバックテストでセクタ3〜8が+27〜29%の台地を形成し、
+        # セクタ1(+23.28%/DD-28.4%)より年率もDDも改善。26年長期でもほぼ同等(+8.85% vs +9.37%)。
+        'max_per_sector': 3,     # 同一セクターは3銘柄まで
         'max_per_strategy': 4,   # 1戦略あたり最大4ポジション
         'earnings_guard': True,  # 決算をまたがない（株のみ。FXは決算がないので無効）
         'earnings_buffer': 2,    # 決算の何日前に手仕舞うか（データ遅延・時差の余裕を見て2日）
@@ -183,7 +203,7 @@ def _load(acct='stock'):
         d['settings']['new_entries']=ACCOUNTS[acct]['new_entries']
         # 戦略パラメータはコード側を正とする（stateに残った旧値で上書きされないように）。
         # 既存の建玉の損切り/利確は建てた時の値のまま。途中で動かすのは恣意的なので触らない。
-        for _k in ('sl_atr','tp_atr','max_hold'):
+        for _k in ('sl_atr','tp_atr','max_hold','max_per_sector'):
             d['settings'][_k]=DEFAULT['settings'][_k]
         d['account']=acct; d['label']=ACCOUNTS[acct]['label']
         return d
