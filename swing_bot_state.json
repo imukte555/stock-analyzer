@@ -58,6 +58,28 @@
    "rsi": 76.2,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX32)"
+  },
+  "6098.T": {
+   "side": "L",
+   "atr": 626.2415579541276,
+   "signal_date": "2026-08-31",
+   "name": "リクルート",
+   "market": "jp",
+   "close": 18215.0,
+   "rsi": 82.3,
+   "strategy": "breakout",
+   "reason": "20日高値ブレイク(ADX45)"
+  },
+  "MSFT": {
+   "side": "L",
+   "atr": 12.050914477764389,
+   "signal_date": "2026-08-28",
+   "name": "Microsoft",
+   "market": "us",
+   "close": 513.530029296875,
+   "rsi": 81.0,
+   "strategy": "breakout",
+   "reason": "20日高値ブレイク(ADX37)"
   }
  },
  "history": [
@@ -128,46 +150,10 @@
   },
   {
    "date": "2026-08-31",
-   "equity": 991669
+   "equity": 996406
   }
  ],
  "log": [
-  {
-   "t": "08-29 15:11",
-   "msg": "⏭ MicroStrategy 見送り（cryptoセクターは既に保有中）"
-  },
-  {
-   "t": "08-29 15:11",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "08-29 15:28",
-   "msg": "⏭ MicroStrategy 見送り（cryptoセクターは既に保有中）"
-  },
-  {
-   "t": "08-29 15:28",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "08-29 15:41",
-   "msg": "⏭ MicroStrategy 見送り（cryptoセクターは既に保有中）"
-  },
-  {
-   "t": "08-29 15:41",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "08-29 15:59",
-   "msg": "⏭ MicroStrategy 見送り（cryptoセクターは既に保有中）"
-  },
-  {
-   "t": "08-29 15:59",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "08-29 16:12",
-   "msg": "⏭ MicroStrategy 見送り（cryptoセクターは既に保有中）"
-  },
   {
    "t": "08-29 16:12",
    "msg": "👀 巡回完了・変化なし"
@@ -931,10 +917,46 @@
   {
    "t": "08-31 19:33",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-31 22:08",
+   "msg": "📡 シグナル[順張り] リクルート 買候補 20日高値ブレイク(ADX45) 終値18,215.00 → 翌寄付で約定予定"
+  },
+  {
+   "t": "08-31 22:08",
+   "msg": "📡 シグナル[順張り] Microsoft 買候補 20日高値ブレイク(ADX37) 終値513.53 → 翌寄付で約定予定"
+  },
+  {
+   "t": "08-31 22:08",
+   "msg": "⏭ Adobe 見送り（breakout戦略の枠が上限）"
+  },
+  {
+   "t": "08-31 22:08",
+   "msg": "⏭ Salesforce 見送り（breakout戦略の枠が上限）"
+  },
+  {
+   "t": "08-31 22:08",
+   "msg": "⏭ ServiceNow 見送り（breakout戦略の枠が上限）"
+  },
+  {
+   "t": "08-31 22:09",
+   "msg": "⏭ Adobe 見送り（breakout戦略の枠が上限）"
+  },
+  {
+   "t": "08-31 22:09",
+   "msg": "⏭ Salesforce 見送り（breakout戦略の枠が上限）"
+  },
+  {
+   "t": "08-31 22:09",
+   "msg": "⏭ ServiceNow 見送り（breakout戦略の枠が上限）"
+  },
+  {
+   "t": "08-31 22:09",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-08-31 19:33",
+ "last_run_at": "2026-08-31 22:09",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -953,7 +975,7 @@
    "reversal",
    "breakout"
   ],
-  "max_per_sector": 1,
+  "max_per_sector": 3,
   "max_per_strategy": 4,
   "sizing": "risk",
   "risk_pct": 1.0,
@@ -968,8 +990,8 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 22,
- "last_fetch_total": 22,
+ "last_fetch_fail_count": 0,
+ "last_fetch_total": 54,
  "forward_test": {
   "start_date": "2026-08-29",
   "start_equity": 991668.762199568,
