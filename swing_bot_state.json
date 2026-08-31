@@ -1,6 +1,6 @@
 {
  "initial_capital": 1000000,
- "cash": 667752.9070818749,
+ "cash": 499774.4937893064,
  "positions": {
   "COIN": {
    "side": "S",
@@ -14,7 +14,7 @@
    "opened": "2026-08-21",
    "name": "Coinbase",
    "market": "us",
-   "bars": 5
+   "bars": 6
   },
   "TSLA": {
    "side": "S",
@@ -28,7 +28,7 @@
    "opened": "2026-08-24",
    "name": "Tesla",
    "market": "us",
-   "bars": 4
+   "bars": 5
   },
   "PLTR": {
    "side": "L",
@@ -42,9 +42,25 @@
    "opened": "2026-08-28",
    "name": "Palantir",
    "market": "us",
-   "bars": 0,
+   "bars": 1,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX35)"
+  },
+  "MSFT": {
+   "side": "L",
+   "entry": 510.32501220703125,
+   "sl": 480.19772601262025,
+   "tp": 630.8341569846751,
+   "atr": 12.050914477764389,
+   "be": false,
+   "qty": 329.15967133592545,
+   "cost": 167978.41329256856,
+   "opened": "2026-08-31",
+   "name": "Microsoft",
+   "market": "us",
+   "bars": 0,
+   "strategy": "breakout",
+   "reason": "20日高値ブレイク(ADX37)"
   }
  },
  "pending": {
@@ -69,17 +85,6 @@
    "rsi": 82.3,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX45)"
-  },
-  "MSFT": {
-   "side": "L",
-   "atr": 12.050914477764389,
-   "signal_date": "2026-08-28",
-   "name": "Microsoft",
-   "market": "us",
-   "close": 513.530029296875,
-   "rsi": 81.0,
-   "strategy": "breakout",
-   "reason": "20日高値ブレイク(ADX37)"
   }
  },
  "history": [
@@ -150,30 +155,10 @@
   },
   {
    "date": "2026-08-31",
-   "equity": 996406
+   "equity": 994074
   }
  ],
  "log": [
-  {
-   "t": "08-29 23:28",
-   "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "08-29 23:28",
-   "msg": "⚠️ Tesla の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "08-29 23:28",
-   "msg": "⚠️ Palantir の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "08-29 23:28",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "08-30 01:55",
-   "msg": "⚠️ データ取得失敗: AMD, NVIDIA, Coinbase, MicroStrategy, IHI, Palantir, Tesla, 第一三共, ソフトバンクG, ディスコ, フジクラ, Super Micro, アドバンテスト, 任天堂, 住友電工, Arm, レーザーテック, Micron, Intel, 三菱重工, 東京エレクトロン, ソニーG（22/22銘柄）"
-  },
   {
    "t": "08-30 01:55",
    "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
@@ -953,10 +938,30 @@
   {
    "t": "08-31 22:18",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "08-31 22:46",
+   "msg": "🟢 約定[順張り] Microsoft 買 @510.33 損切480.20 利確630.83 投入¥167,978（想定損失9,917円/損切幅5.9%）"
+  },
+  {
+   "t": "08-31 22:54",
+   "msg": "⏭ Adobe 見送り（breakout戦略の枠が上限）"
+  },
+  {
+   "t": "08-31 22:54",
+   "msg": "⏭ Salesforce 見送り（breakout戦略の枠が上限）"
+  },
+  {
+   "t": "08-31 22:54",
+   "msg": "⏭ ServiceNow 見送り（breakout戦略の枠が上限）"
+  },
+  {
+   "t": "08-31 22:54",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-08-31 22:18",
+ "last_run_at": "2026-08-31 22:54",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -990,7 +995,7 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 2,
+ "last_fetch_fail_count": 0,
  "last_fetch_total": 54,
  "forward_test": {
   "start_date": "2026-08-29",
