@@ -188,50 +188,10 @@
   },
   {
    "date": "2026-09-02",
-   "equity": 988372
+   "equity": 991669
   }
  ],
  "log": [
-  {
-   "t": "09-01 01:48",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-01 01:58",
-   "msg": "⏭ Adobe 見送り（breakout戦略の枠が上限）"
-  },
-  {
-   "t": "09-01 01:58",
-   "msg": "⏭ Salesforce 見送り（breakout戦略の枠が上限）"
-  },
-  {
-   "t": "09-01 01:58",
-   "msg": "⏭ ServiceNow 見送り（breakout戦略の枠が上限）"
-  },
-  {
-   "t": "09-01 01:58",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-01 02:18",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-01 02:29",
-   "msg": "⏭ Adobe 見送り（breakout戦略の枠が上限）"
-  },
-  {
-   "t": "09-01 02:29",
-   "msg": "⏭ Salesforce 見送り（breakout戦略の枠が上限）"
-  },
-  {
-   "t": "09-01 02:29",
-   "msg": "⏭ ServiceNow 見送り（breakout戦略の枠が上限）"
-  },
-  {
-   "t": "09-01 02:29",
-   "msg": "👀 巡回完了・変化なし"
-  },
   {
    "t": "09-01 02:48",
    "msg": "👀 巡回完了・変化なし"
@@ -991,10 +951,50 @@
   {
    "t": "09-02 00:06",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-02 00:09",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-02 04:24",
+   "msg": "⚠️ データ取得失敗: IHI, SMC, 中外製薬, Micron, Qualcomm, Texas Instruments, KLA, Netflix, NVIDIA, HOYA, MicroStrategy, 住友電工, Broadcom, Applied Materials, Alphabet, Adobe, AMD, Salesforce, 任天堂, 富士通, リクルート, Coinbase, Amazon, 日立, Airbnb, Lam Research, 東京エレクトロン, Synopsys, 信越化学, ソニーG, 三菱商事, オリエンタルランド, Tesla, Palo Alto, 三菱重工, ダイキン, Meta, ServiceNow, レーザーテック, Uber, Arm, Intel, Oracle, ディスコ, KDDI, Super Micro, Palantir, ソフトバンクG, Microsoft, アドバンテスト, Apple, 村田製作所, フジクラ, 第一三共（54/54銘柄）"
+  },
+  {
+   "t": "09-02 04:24",
+   "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-02 04:24",
+   "msg": "⚠️ Tesla の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-02 04:24",
+   "msg": "⚠️ Palantir の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-02 04:24",
+   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-02 04:24",
+   "msg": "⚠️ ソニーG の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-02 04:24",
+   "msg": "⚠️ リクルート の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-02 04:24",
+   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-02 04:24",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-02 00:06",
+ "last_run_at": "2026-09-02 04:24",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -1028,7 +1028,7 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 0,
+ "last_fetch_fail_count": 54,
  "last_fetch_total": 54,
  "forward_test": {
   "start_date": "2026-08-29",
