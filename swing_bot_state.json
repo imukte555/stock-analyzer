@@ -199,37 +199,13 @@
   {
    "date": "2026-09-02",
    "equity": 968200
+  },
+  {
+   "date": "2026-09-03",
+   "equity": 971567
   }
  ],
  "log": [
-  {
-   "t": "09-02 06:45",
-   "msg": "⚠️ ソニーG の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 06:45",
-   "msg": "⚠️ リクルート の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 06:45",
-   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 06:45",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-02 08:25",
-   "msg": "⚠️ データ取得失敗: AMD, MSFT, NVIDIA, Coinbase, IHI, MicroStrategy, Palantir, Tesla, 第一三共, ソフトバンクG, ディスコ, フジクラ, アドバンテスト, Super Micro, 任天堂, 住友電工, AMAT, Arm, レーザーテック, Micron, Intel, 三菱重工, 東京エレクトロン, ソニーG, 6098.T（25/25銘柄）"
-  },
-  {
-   "t": "09-02 08:25",
-   "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 08:25",
-   "msg": "⚠️ Tesla の当日データ取得失敗、この巡回はスキップ"
-  },
   {
    "t": "09-02 08:25",
    "msg": "⚠️ Palantir の当日データ取得失敗、この巡回はスキップ"
@@ -1001,10 +977,38 @@
   {
    "t": "09-02 22:39",
    "msg": "⏭ SMC 見送り（reversal戦略の枠が上限）"
+  },
+  {
+   "t": "09-03 01:26",
+   "msg": "⚠️ データ取得失敗: Synopsys, Tesla, 日立, Adobe, ソフトバンクG, Netflix, ダイキン, 三菱商事, 村田製作所, Amazon, Microsoft, 中外製薬, 東京エレクトロン, Coinbase, ソニーG, 三菱重工, オリエンタルランド, MicroStrategy, Alphabet, Broadcom, 第一三共, Intel, Uber, Palo Alto, 任天堂, NVIDIA, HOYA, ServiceNow, Texas Instruments, Qualcomm, IHI, Applied Materials, AMD, Palantir, Arm, Oracle, KLA, 信越化学, Meta, Micron, Apple, Airbnb, Lam Research, KDDI, フジクラ, ディスコ, SMC, アドバンテスト, Salesforce, Super Micro, レーザーテック, リクルート, 富士通, 住友電工（54/54銘柄）"
+  },
+  {
+   "t": "09-03 01:26",
+   "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-03 01:26",
+   "msg": "⚠️ Tesla の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-03 01:26",
+   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-03 01:26",
+   "msg": "⚠️ ソニーG の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-03 01:26",
+   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-03 01:26",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-02 22:39",
+ "last_run_at": "2026-09-03 01:26",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -1038,7 +1042,7 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 0,
+ "last_fetch_fail_count": 54,
  "last_fetch_total": 54,
  "forward_test": {
   "start_date": "2026-08-29",
