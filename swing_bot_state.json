@@ -90,6 +90,17 @@
    "rsi": 21.6,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI22・下限割れ)"
+  },
+  "7974.T": {
+   "side": "L",
+   "atr": 277.5019882563849,
+   "signal_date": "2026-09-01",
+   "name": "任天堂",
+   "market": "jp",
+   "close": 9103.0,
+   "rsi": 70.2,
+   "strategy": "breakout",
+   "reason": "20日高値ブレイク(ADX34)"
   }
  },
  "history": [
@@ -202,14 +213,10 @@
   },
   {
    "date": "2026-09-03",
-   "equity": 971567
+   "equity": 971027
   }
  ],
  "log": [
-  {
-   "t": "09-02 08:25",
-   "msg": "⚠️ Palantir の当日データ取得失敗、この巡回はスキップ"
-  },
   {
    "t": "09-02 08:25",
    "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
@@ -1005,10 +1012,14 @@
   {
    "t": "09-03 01:26",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-03 05:29",
+   "msg": "📡 シグナル[順張り] 任天堂 買候補 20日高値ブレイク(ADX34) 終値9,103.00 → 翌寄付で約定予定"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-03 01:26",
+ "last_run_at": "2026-09-03 05:29",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -1042,7 +1053,7 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 54,
+ "last_fetch_fail_count": 0,
  "last_fetch_total": 54,
  "forward_test": {
   "start_date": "2026-08-29",
