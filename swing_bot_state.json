@@ -1,6 +1,6 @@
 {
  "initial_capital": 1000000,
- "cash": 173447.42168751403,
+ "cash": 278601.1104424127,
  "positions": {
   "COIN": {
    "side": "S",
@@ -74,25 +74,9 @@
    "opened": "2026-09-01",
    "name": "ソニーG",
    "market": "jp",
-   "bars": 0,
+   "bars": 1,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX32)"
-  },
-  "6098.T": {
-   "side": "L",
-   "entry": 18185.0,
-   "sl": 16619.39610511468,
-   "tp": 24447.415579541277,
-   "atr": 626.2415579541276,
-   "be": false,
-   "qty": 6.334097439583899,
-   "cost": 115185.5619388332,
-   "opened": "2026-09-01",
-   "name": "リクルート",
-   "market": "jp",
-   "bars": 0,
-   "strategy": "breakout",
-   "reason": "20日高値ブレイク(ADX45)"
   },
   "AMAT": {
    "side": "L",
@@ -111,7 +95,19 @@
    "reason": "売られすぎ(RSI25・下限割れ)"
   }
  },
- "pending": {},
+ "pending": {
+  "6146.T": {
+   "side": "L",
+   "atr": 3344.7581546984115,
+   "signal_date": "2026-09-02",
+   "name": "ディスコ",
+   "market": "jp",
+   "close": 55170.0,
+   "rsi": 21.6,
+   "strategy": "reversal",
+   "reason": "売られすぎ(RSI22・下限割れ)"
+  }
+ },
  "history": [
   {
    "sym": "MSTR",
@@ -127,6 +123,21 @@
    "closed": "2026-08-27",
    "days": 4,
    "strategy": "reversal"
+  },
+  {
+   "sym": "6098.T",
+   "name": "リクルート",
+   "market": "jp",
+   "side": "L",
+   "entry": 18185.0,
+   "exit": 16619.39610511468,
+   "pnl_pct": -8.71,
+   "pnl_yen": -10032,
+   "reason": "SL",
+   "opened": "2026-09-01",
+   "closed": "2026-09-02",
+   "days": 1,
+   "strategy": "breakout"
   }
  ],
  "equity_curve": [
@@ -188,58 +199,10 @@
   },
   {
    "date": "2026-09-02",
-   "equity": 991669
+   "equity": 973457
   }
  ],
  "log": [
-  {
-   "t": "09-02 06:09",
-   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 06:09",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-02 06:42",
-   "msg": "⚠️ データ取得失敗: AMD, MSFT, NVIDIA, Coinbase, IHI, MicroStrategy, Palantir, Tesla, 第一三共, ソフトバンクG, ディスコ, フジクラ, アドバンテスト, Super Micro, 任天堂, 住友電工, AMAT, Arm, レーザーテック, Micron, Intel, 三菱重工, 東京エレクトロン, ソニーG, 6098.T（25/25銘柄）"
-  },
-  {
-   "t": "09-02 06:42",
-   "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 06:42",
-   "msg": "⚠️ Tesla の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 06:42",
-   "msg": "⚠️ Palantir の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 06:42",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 06:42",
-   "msg": "⚠️ ソニーG の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 06:42",
-   "msg": "⚠️ リクルート の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 06:42",
-   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 06:42",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-02 06:45",
-   "msg": "⚠️ データ取得失敗: Palo Alto, Airbnb, AMD, Salesforce, Alphabet, レーザーテック, フジクラ, Arm, Tesla, 富士通, 中外製薬, 三菱商事, ダイキン, Texas Instruments, 住友電工, 三菱重工, MicroStrategy, Lam Research, ソフトバンクG, 日立, HOYA, KDDI, Synopsys, Super Micro, Micron, Microsoft, オリエンタルランド, NVIDIA, Adobe, 任天堂, Meta, Amazon, ディスコ, KLA, Broadcom, ServiceNow, Uber, Coinbase, Netflix, Applied Materials, Palantir, 第一三共, IHI, 村田製作所, Oracle, ソニーG, SMC, Qualcomm, 東京エレクトロン, 信越化学, Intel, リクルート, Apple, アドバンテスト（54/54銘柄）"
-  },
   {
    "t": "09-02 06:45",
    "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
@@ -991,10 +954,58 @@
   {
    "t": "09-02 15:58",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-02 16:10",
+   "msg": "⚠️ データ取得失敗: AMD, MSFT, NVIDIA, Coinbase, IHI, MicroStrategy, Palantir, Tesla, 第一三共, ソフトバンクG, ディスコ, フジクラ, アドバンテスト, Super Micro, 任天堂, 住友電工, AMAT, Arm, レーザーテック, Micron, Intel, 三菱重工, 東京エレクトロン, ソニーG, 6098.T（25/25銘柄）"
+  },
+  {
+   "t": "09-02 16:10",
+   "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-02 16:10",
+   "msg": "⚠️ Tesla の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-02 16:10",
+   "msg": "⚠️ Palantir の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-02 16:10",
+   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-02 16:10",
+   "msg": "⚠️ ソニーG の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-02 16:10",
+   "msg": "⚠️ リクルート の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-02 16:10",
+   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-02 16:10",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-02 17:39",
+   "msg": "🔴 決済 リクルート SL @16,619.40 損益 -8.71% (¥-10,032)"
+  },
+  {
+   "t": "09-02 17:39",
+   "msg": "📡 シグナル[逆張り] ディスコ 買候補 売られすぎ(RSI22・下限割れ) 終値55,170.00 → 翌寄付で約定予定"
+  },
+  {
+   "t": "09-02 17:39",
+   "msg": "⏭ SMC 見送り（reversal戦略の枠が上限）"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-02 15:58",
+ "last_run_at": "2026-09-02 17:39",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -1028,7 +1039,7 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 54,
+ "last_fetch_fail_count": 0,
  "last_fetch_total": 54,
  "forward_test": {
   "start_date": "2026-08-29",
