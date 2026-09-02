@@ -1,6 +1,6 @@
 {
  "initial_capital": 1000000,
- "cash": 278601.1104424127,
+ "cash": 421447.36208299245,
  "positions": {
   "COIN": {
    "side": "S",
@@ -14,7 +14,7 @@
    "opened": "2026-08-21",
    "name": "Coinbase",
    "market": "us",
-   "bars": 7
+   "bars": 8
   },
   "TSLA": {
    "side": "S",
@@ -28,23 +28,7 @@
    "opened": "2026-08-24",
    "name": "Tesla",
    "market": "us",
-   "bars": 6
-  },
-  "PLTR": {
-   "side": "L",
-   "entry": 184.94000244140625,
-   "sl": 172.94652909221696,
-   "tp": 204.9291246900551,
-   "atr": 7.995648899459534,
-   "be": false,
-   "qty": 826.8403433494099,
-   "cost": 152915.85511769305,
-   "opened": "2026-08-28",
-   "name": "Palantir",
-   "market": "us",
-   "bars": 2,
-   "strategy": "breakout",
-   "reason": "20日高値ブレイク(ADX35)"
+   "bars": 7
   },
   "MSFT": {
    "side": "L",
@@ -58,7 +42,7 @@
    "opened": "2026-08-31",
    "name": "Microsoft",
    "market": "us",
-   "bars": 1,
+   "bars": 2,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX37)"
   },
@@ -90,7 +74,7 @@
    "opened": "2026-09-01",
    "name": "Applied Materials",
    "market": "us",
-   "bars": 0,
+   "bars": 1,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI25・下限割れ)"
   }
@@ -137,6 +121,21 @@
    "opened": "2026-09-01",
    "closed": "2026-09-02",
    "days": 1,
+   "strategy": "breakout"
+  },
+  {
+   "sym": "PLTR",
+   "name": "Palantir",
+   "market": "us",
+   "side": "L",
+   "entry": 184.94000244140625,
+   "exit": 172.94652909221696,
+   "pnl_pct": -6.59,
+   "pnl_yen": -10070,
+   "reason": "SL",
+   "opened": "2026-08-28",
+   "closed": "2026-09-02",
+   "days": 3,
    "strategy": "breakout"
   }
  ],
@@ -199,18 +198,10 @@
   },
   {
    "date": "2026-09-02",
-   "equity": 973457
+   "equity": 968200
   }
  ],
  "log": [
-  {
-   "t": "09-02 06:45",
-   "msg": "⚠️ Palantir の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 06:45",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
   {
    "t": "09-02 06:45",
    "msg": "⚠️ ソニーG の当日データ取得失敗、この巡回はスキップ"
@@ -1002,10 +993,18 @@
   {
    "t": "09-02 18:10",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-02 22:39",
+   "msg": "🔴 決済 Palantir SL @172.95 損益 -6.59% (¥-10,070)"
+  },
+  {
+   "t": "09-02 22:39",
+   "msg": "⏭ SMC 見送り（reversal戦略の枠が上限）"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-02 18:10",
+ "last_run_at": "2026-09-02 22:39",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
