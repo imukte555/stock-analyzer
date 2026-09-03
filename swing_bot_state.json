@@ -234,46 +234,10 @@
   },
   {
    "date": "2026-09-03",
-   "equity": 963331
+   "equity": 971567
   }
  ],
  "log": [
-  {
-   "t": "09-02 11:51",
-   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 11:51",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-02 12:16",
-   "msg": "⚠️ データ取得失敗: AMD, MSFT, NVIDIA, Coinbase, IHI, MicroStrategy, Palantir, Tesla, 第一三共, ソフトバンクG, ディスコ, フジクラ, アドバンテスト, Super Micro, 任天堂, 住友電工, AMAT, Arm, レーザーテック, Micron, Intel, 三菱重工, 東京エレクトロン, ソニーG, 6098.T（25/25銘柄）"
-  },
-  {
-   "t": "09-02 12:16",
-   "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 12:16",
-   "msg": "⚠️ Tesla の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 12:16",
-   "msg": "⚠️ Palantir の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 12:16",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 12:16",
-   "msg": "⚠️ ソニーG の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 12:16",
-   "msg": "⚠️ リクルート の当日データ取得失敗、この巡回はスキップ"
-  },
   {
    "t": "09-02 12:16",
    "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
@@ -1037,10 +1001,46 @@
   {
    "t": "09-03 17:57",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-03 23:48",
+   "msg": "⚠️ データ取得失敗: Intel, ソニーG, ソフトバンクG, NVIDIA, Broadcom, リクルート, Texas Instruments, レーザーテック, SMC, Apple, 第一三共, KDDI, Qualcomm, MicroStrategy, 村田製作所, ServiceNow, Super Micro, Applied Materials, Amazon, KLA, 富士通, Lam Research, Palo Alto, 日立, 東京エレクトロン, AMD, オリエンタルランド, Netflix, Arm, フジクラ, Uber, Synopsys, 信越化学, 中外製薬, Palantir, アドバンテスト, HOYA, Adobe, 三菱重工, Oracle, Meta, 三菱商事, Alphabet, Tesla, 任天堂, 住友電工, Airbnb, Salesforce, ダイキン, Micron, IHI, Coinbase, Microsoft, ディスコ（54/54銘柄）"
+  },
+  {
+   "t": "09-03 23:48",
+   "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-03 23:48",
+   "msg": "⚠️ Tesla の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-03 23:48",
+   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-03 23:48",
+   "msg": "⚠️ ソニーG の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-03 23:48",
+   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-03 23:48",
+   "msg": "⚠️ 任天堂 の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-03 23:48",
+   "msg": "⚠️ ディスコ の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-03 23:48",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-03 17:57",
+ "last_run_at": "2026-09-03 23:48",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -1074,7 +1074,7 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 0,
+ "last_fetch_fail_count": 54,
  "last_fetch_total": 54,
  "forward_test": {
   "start_date": "2026-08-29",
