@@ -1,35 +1,7 @@
 {
  "initial_capital": 1000000,
- "cash": 232504.39219881166,
+ "cash": 248481.0494147403,
  "positions": {
-  "COIN": {
-   "side": "S",
-   "entry": 180.05999755859375,
-   "sl": 194.0929999608263,
-   "tp": 156.67166022153953,
-   "atr": 9.355334934821693,
-   "be": false,
-   "qty": 499.8333956475418,
-   "cost": 90000.0,
-   "opened": "2026-08-21",
-   "name": "Coinbase",
-   "market": "us",
-   "bars": 8
-  },
-  "TSLA": {
-   "side": "S",
-   "entry": 361.75,
-   "sl": 382.53846933928924,
-   "tp": 327.1025511011846,
-   "atr": 13.858979559526173,
-   "be": false,
-   "qty": 223.9115411195577,
-   "cost": 81000.0,
-   "opened": "2026-08-24",
-   "name": "Tesla",
-   "market": "us",
-   "bars": 7
-  },
   "MSFT": {
    "side": "L",
    "entry": 510.32501220703125,
@@ -42,7 +14,7 @@
    "opened": "2026-08-31",
    "name": "Microsoft",
    "market": "us",
-   "bars": 2,
+   "bars": 3,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX37)"
   },
@@ -74,7 +46,7 @@
    "opened": "2026-09-01",
    "name": "Applied Materials",
    "market": "us",
-   "bars": 1,
+   "bars": 2,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI25・下限割れ)"
   },
@@ -109,21 +81,25 @@
    "bars": 0,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI22・下限割れ)"
-  }
- },
- "pending": {
+  },
   "NFLX": {
    "side": "L",
+   "entry": 83.18000030517578,
+   "sl": 77.53584278732647,
+   "tp": 105.756630376573,
    "atr": 2.257663007139722,
-   "signal_date": "2026-09-02",
+   "be": false,
+   "qty": 1721.368127069447,
+   "cost": 143183.40133495646,
+   "opened": "2026-09-03",
    "name": "Netflix",
    "market": "us",
-   "close": 82.7300033569336,
-   "rsi": 67.7,
+   "bars": 0,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX21)"
   }
  },
+ "pending": {},
  "history": [
   {
    "sym": "MSTR",
@@ -169,6 +145,36 @@
    "closed": "2026-09-02",
    "days": 3,
    "strategy": "breakout"
+  },
+  {
+   "sym": "COIN",
+   "name": "Coinbase",
+   "market": "us",
+   "side": "S",
+   "entry": 180.05999755859375,
+   "exit": 194.0929999608263,
+   "pnl_pct": -7.89,
+   "pnl_yen": -7104,
+   "reason": "SL",
+   "opened": "2026-08-21",
+   "closed": "2026-09-03",
+   "days": 9,
+   "strategy": "reversal"
+  },
+  {
+   "sym": "TSLA",
+   "name": "Tesla",
+   "market": "us",
+   "side": "S",
+   "entry": 361.75,
+   "exit": 382.53846933928924,
+   "pnl_pct": -5.85,
+   "pnl_yen": -4736,
+   "reason": "SL",
+   "opened": "2026-08-24",
+   "closed": "2026-09-03",
+   "days": 8,
+   "strategy": "reversal"
   }
  ],
  "equity_curve": [
@@ -238,26 +244,10 @@
   },
   {
    "date": "2026-09-04",
-   "equity": 971567
+   "equity": 951180
   }
  ],
  "log": [
-  {
-   "t": "09-02 12:27",
-   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 12:27",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-02 12:51",
-   "msg": "⚠️ データ取得失敗: AMD, MSFT, NVIDIA, Coinbase, IHI, MicroStrategy, Palantir, Tesla, 第一三共, ソフトバンクG, ディスコ, フジクラ, アドバンテスト, Super Micro, 任天堂, 住友電工, AMAT, Arm, レーザーテック, Micron, Intel, 三菱重工, 東京エレクトロン, ソニーG, 6098.T（25/25銘柄）"
-  },
-  {
-   "t": "09-02 12:51",
-   "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
-  },
   {
    "t": "09-02 12:51",
    "msg": "⚠️ Tesla の当日データ取得失敗、この巡回はスキップ"
@@ -1041,10 +1031,26 @@
   {
    "t": "09-04 00:29",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-04 04:42",
+   "msg": "🟢 約定[順張り] Netflix 買 @83.18 損切77.54 利確105.76 投入¥143,183（想定損失9,716円/損切幅6.8%）"
+  },
+  {
+   "t": "09-04 04:42",
+   "msg": "🔴 決済 Coinbase SL @194.09 損益 -7.89% (¥-7,104)"
+  },
+  {
+   "t": "09-04 04:42",
+   "msg": "🔴 決済 Tesla SL @382.54 損益 -5.85% (¥-4,736)"
+  },
+  {
+   "t": "09-04 04:42",
+   "msg": "⏭ オリエンタルランド 見送り（breakout戦略の枠が上限）"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-04 00:29",
+ "last_run_at": "2026-09-04 04:42",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -1078,7 +1084,7 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 54,
+ "last_fetch_fail_count": 0,
  "last_fetch_total": 54,
  "forward_test": {
   "start_date": "2026-08-29",
