@@ -249,14 +249,6 @@
  ],
  "log": [
   {
-   "t": "09-02 12:51",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-02 13:03",
-   "msg": "⚠️ データ取得失敗: IHI, AMD, 信越化学, Micron, ServiceNow, Qualcomm, ディスコ, Alphabet, Microsoft, ダイキン, Super Micro, 富士通, Uber, リクルート, フジクラ, KLA, アドバンテスト, Texas Instruments, 三菱商事, 三菱重工, Arm, 第一三共, Tesla, MicroStrategy, Intel, Salesforce, ソニーG, Apple, Meta, Amazon, 日立, Broadcom, Palantir, Adobe, SMC, Netflix, 東京エレクトロン, ソフトバンクG, Airbnb, NVIDIA, レーザーテック, Applied Materials, Synopsys, 任天堂, 村田製作所, オリエンタルランド, Oracle, Lam Research, 中外製薬, Coinbase, Palo Alto, KDDI, HOYA, 住友電工（54/54銘柄）"
-  },
-  {
    "t": "09-02 13:03",
    "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
   },
@@ -1047,10 +1039,18 @@
   {
    "t": "09-04 06:13",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-04 06:43",
+   "msg": "⏭ オリエンタルランド 見送り（breakout戦略の枠が上限）"
+  },
+  {
+   "t": "09-04 06:43",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-04 06:13",
+ "last_run_at": "2026-09-04 06:43",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
