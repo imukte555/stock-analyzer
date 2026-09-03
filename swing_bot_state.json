@@ -222,18 +222,10 @@
   },
   {
    "date": "2026-09-03",
-   "equity": 965142
+   "equity": 965343
   }
  ],
  "log": [
-  {
-   "t": "09-02 08:59",
-   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 08:59",
-   "msg": "👀 巡回完了・変化なし"
-  },
   {
    "t": "09-02 09:07",
    "msg": "⚠️ データ取得失敗: 東京エレクトロン, Palantir, 住友電工, ソニーG, リクルート, 富士通, 中外製薬, Lam Research, レーザーテック, KDDI, Applied Materials, Intel, Alphabet, ソフトバンクG, Arm, フジクラ, Micron, Apple, HOYA, ディスコ, Oracle, 任天堂, Netflix, MicroStrategy, SMC, AMD, アドバンテスト, 第一三共, 三菱重工, Microsoft, ダイキン, Adobe, IHI, KLA, NVIDIA, 信越化学, Synopsys, 村田製作所, Qualcomm, Uber, Coinbase, Salesforce, オリエンタルランド, 日立, Amazon, Super Micro, Meta, 三菱商事, ServiceNow, Palo Alto, Airbnb, Texas Instruments, Broadcom, Tesla（54/54銘柄）"
@@ -1025,10 +1017,18 @@
   {
    "t": "09-03 11:02",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-03 11:32",
+   "msg": "⏭ SMC 見送り（reversal戦略の枠が上限）"
+  },
+  {
+   "t": "09-03 11:32",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-03 11:02",
+ "last_run_at": "2026-09-03 11:32",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
