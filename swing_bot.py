@@ -137,7 +137,11 @@ DEFAULT = {
         # 2026-08-31: 1→3に緩和。54銘柄でのバックテストでセクタ3〜8が+27〜29%の台地を形成し、
         # セクタ1(+23.28%/DD-28.4%)より年率もDDも改善。26年長期でもほぼ同等(+8.85% vs +9.37%)。
         'max_per_sector': 3,     # 同一セクターは3銘柄まで
-        'max_per_strategy': 4,   # 1戦略あたり最大4ポジション
+        # 2026-09-04: 4→8（＝max_positionsと同値＝実質撤廃）。ユニバースを54銘柄に拡大したのに
+        # 戦略枠が4のままで、シグナルが出ているのに「枠が上限」で見送る事象が多発していた。
+        # 7年半・695取引の検証で 年率+24.60%→+34.86%、シャープ1.61→1.92、
+        # 最弱区間(2021-2022)が+7.41%→+14.23%。代償は最大DDが-18.2%→-27.0%に拡大すること。
+        'max_per_strategy': 8,   # 1戦略あたりの上限（max_positionsと同値＝実質制限なし）
         'earnings_guard': True,  # 決算をまたがない（株のみ。FXは決算がないので無効）
         'earnings_buffer': 2,    # 決算の何日前に手仕舞うか（データ遅延・時差の余裕を見て2日）
         'max_exposure_pct': 100, # レバ適用後の建玉合計の上限（対資産%）
@@ -203,7 +207,7 @@ def _load(acct='stock'):
         d['settings']['new_entries']=ACCOUNTS[acct]['new_entries']
         # 戦略パラメータはコード側を正とする（stateに残った旧値で上書きされないように）。
         # 既存の建玉の損切り/利確は建てた時の値のまま。途中で動かすのは恣意的なので触らない。
-        for _k in ('sl_atr','tp_atr','max_hold','max_per_sector'):
+        for _k in ('sl_atr','tp_atr','max_hold','max_per_sector','max_per_strategy'):
             d['settings'][_k]=DEFAULT['settings'][_k]
         d['account']=acct; d['label']=ACCOUNTS[acct]['label']
         return d
