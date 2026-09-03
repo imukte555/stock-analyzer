@@ -1,6 +1,6 @@
 {
  "initial_capital": 1000000,
- "cash": 295967.28270594176,
+ "cash": 232504.39219881166,
  "positions": {
   "COIN": {
    "side": "S",
@@ -58,7 +58,7 @@
    "opened": "2026-09-01",
    "name": "ソニーG",
    "market": "jp",
-   "bars": 1,
+   "bars": 2,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX32)"
   },
@@ -90,24 +90,28 @@
    "opened": "2026-09-02",
    "name": "任天堂",
    "market": "jp",
-   "bars": 0,
+   "bars": 1,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX34)"
-  }
- },
- "pending": {
+  },
   "6146.T": {
    "side": "L",
+   "entry": 54620.0,
+   "sl": 46258.10461325397,
+   "tp": 88067.58154698412,
    "atr": 3344.7581546984115,
-   "signal_date": "2026-09-02",
+   "be": false,
+   "qty": 1.1618983981532425,
+   "cost": 63462.8905071301,
+   "opened": "2026-09-03",
    "name": "ディスコ",
    "market": "jp",
-   "close": 55170.0,
-   "rsi": 21.6,
+   "bars": 0,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI22・下限割れ)"
   }
  },
+ "pending": {},
  "history": [
   {
    "sym": "MSTR",
@@ -218,18 +222,10 @@
   },
   {
    "date": "2026-09-03",
-   "equity": 965592
+   "equity": 966541
   }
  ],
  "log": [
-  {
-   "t": "09-02 08:30",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-02 08:59",
-   "msg": "⚠️ データ取得失敗: AMD, MSFT, NVIDIA, Coinbase, IHI, MicroStrategy, Palantir, Tesla, 第一三共, ソフトバンクG, ディスコ, フジクラ, アドバンテスト, Super Micro, 任天堂, 住友電工, AMAT, Arm, レーザーテック, Micron, Intel, 三菱重工, 東京エレクトロン, ソニーG, 6098.T（25/25銘柄）"
-  },
   {
    "t": "09-02 08:59",
    "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
@@ -1021,10 +1017,18 @@
   {
    "t": "09-03 09:01",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-03 09:31",
+   "msg": "🟢 約定[逆張り] ディスコ 買 @54,620.00 損切46,258.10 利確88,067.58 投入¥63,463（想定損失9,716円/損切幅15.3%）"
+  },
+  {
+   "t": "09-03 09:31",
+   "msg": "⏭ SMC 見送り（reversal戦略の枠が上限）"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-03 09:01",
+ "last_run_at": "2026-09-03 09:31",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
