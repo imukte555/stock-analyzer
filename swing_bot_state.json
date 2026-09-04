@@ -1,6 +1,6 @@
 {
  "initial_capital": 1000000,
- "cash": 94869.88605229402,
+ "cash": 34529.407011167226,
  "positions": {
   "MSFT": {
    "side": "L",
@@ -14,7 +14,7 @@
    "opened": "2026-08-31",
    "name": "Microsoft",
    "market": "us",
-   "bars": 3,
+   "bars": 4,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX37)"
   },
@@ -46,7 +46,7 @@
    "opened": "2026-09-01",
    "name": "Applied Materials",
    "market": "us",
-   "bars": 2,
+   "bars": 3,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI25・下限割れ)"
   },
@@ -94,7 +94,7 @@
    "opened": "2026-09-03",
    "name": "Netflix",
    "market": "us",
-   "bars": 0,
+   "bars": 1,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX21)"
   },
@@ -113,21 +113,25 @@
    "bars": 0,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX26)"
-  }
- },
- "pending": {
+  },
   "MSTR": {
    "side": "L",
+   "entry": 137.22000122070312,
+   "sl": 115.39488656794562,
+   "tp": 224.52045983173315,
    "atr": 8.730045861103003,
-   "signal_date": "2026-09-03",
+   "be": false,
+   "qty": 439.73530465194966,
+   "cost": 60340.4790411268,
+   "opened": "2026-09-04",
    "name": "MicroStrategy",
    "market": "us",
-   "close": 144.82000732421875,
-   "rsi": 71.6,
+   "bars": 0,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX36)"
   }
  },
+ "pending": {},
  "history": [
   {
    "sym": "MSTR",
@@ -273,17 +277,13 @@
   {
    "date": "2026-09-04",
    "equity": 959727
+  },
+  {
+   "date": "2026-09-05",
+   "equity": 946526
   }
  ],
  "log": [
-  {
-   "t": "09-02 14:51",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 14:51",
-   "msg": "⚠️ ソニーG の当日データ取得失敗、この巡回はスキップ"
-  },
   {
    "t": "09-02 14:51",
    "msg": "⚠️ リクルート の当日データ取得失敗、この巡回はスキップ"
@@ -1075,10 +1075,18 @@
   {
    "t": "09-04 18:30",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-05 04:23",
+   "msg": "🟢 約定[順張り] MicroStrategy 買 @137.22 損切115.39 利確224.52 投入¥60,340（想定損失9,597円/損切幅15.9%）"
+  },
+  {
+   "t": "09-05 04:23",
+   "msg": "⏭ Tesla 見送り（全体のポジション上限）"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-04 18:30",
+ "last_run_at": "2026-09-05 04:23",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -1112,7 +1120,7 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 54,
+ "last_fetch_fail_count": 0,
  "last_fetch_total": 54,
  "forward_test": {
   "start_date": "2026-08-29",
