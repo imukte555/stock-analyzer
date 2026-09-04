@@ -28,10 +28,26 @@ RAW  = 'https://raw.githubusercontent.com/imukte555/stock-analyzer/main/scalp_bo
 IS_RENDER = bool(os.environ.get('RENDER'))
 _lock = threading.Lock()
 
-# 5分足は流動性が要る。米国大型のみ（日本株は5分足の板が薄く滑りが読めない）
-UNIVERSE = [("NVDA","NVIDIA"),("AAPL","Apple"),("MSFT","Microsoft"),("AMD","AMD"),("TSLA","Tesla"),
-            ("META","Meta"),("AMZN","Amazon"),("GOOGL","Alphabet"),("AVGO","Broadcom"),("NFLX","Netflix"),
-            ("PLTR","Palantir"),("COIN","Coinbase"),("MU","Micron"),("ARM","Arm"),("QCOM","Qualcomm")]
+# 5分足は流動性が要る。日米それぞれの大型のみ。
+# 日本株は当初「板が薄い」として除外したが、それだと東京時間(09:00-15:00)に一切動けず
+# 稼働が米国時間(22:30-05:00)だけになってしまうため、売買代金上位の大型に限って追加した。
+US = [("NVDA","NVIDIA"),("AAPL","Apple"),("MSFT","Microsoft"),("AMD","AMD"),("TSLA","Tesla"),
+      ("META","Meta"),("AMZN","Amazon"),("GOOGL","Alphabet"),("AVGO","Broadcom"),("NFLX","Netflix"),
+      ("PLTR","Palantir"),("COIN","Coinbase"),("MU","Micron"),("ARM","Arm"),("QCOM","Qualcomm")]
+JP = [("8035.T","東京エレクトロン"),("6857.T","アドバンテスト"),("9984.T","ソフトバンクG"),
+      ("6758.T","ソニーG"),("7203.T","トヨタ"),("6146.T","ディスコ"),("6920.T","レーザーテック"),
+      ("8306.T","三菱UFJ"),("9983.T","ファーストリテイリング"),("6501.T","日立"),
+      ("7974.T","任天堂"),("6098.T","リクルート")]
+UNIVERSE = US + JP
+
+def _market_open_now():
+    """今どの市場が開いているか。開いている市場の銘柄だけを対象にする"""
+    n=_now(); hm=n.hour*60+n.minute
+    if n.weekday()>=5: return []
+    out=[]
+    if 9*60 <= hm <= 15*60: out += JP
+    if hm >= 22*60+30 or hm <= 5*60: out += US
+    return out
 NAME = dict(UNIVERSE)
 
 DEFAULT = {
@@ -95,7 +111,12 @@ def run_once():
     with _lock:
         st=_load(); S=st['settings']; actions=[]
         if not st['started_at']: st['started_at']=_now().strftime('%Y-%m-%d %H:%M')
-        syms=set(list(st['positions'])+list(st['pending'])+[s for s,_ in UNIVERSE])
+        live=_market_open_now()
+        if not live:
+            _log(st,'💤 東京も米国も閉場中。巡回スキップ')
+            st['last_run_at']=_now().strftime('%Y-%m-%d %H:%M'); _save(st)
+            return dict(actions=[], note='閉場中', equity=round(st['cash']+sum(p['cost'] for p in st['positions'].values())))
+        syms=set(list(st['positions'])+list(st['pending'])+[s for s,_ in live])
         data={}; fail=[]
         for s in syms:
             h=_fetch(s,S['interval'])
@@ -157,7 +178,7 @@ def run_once():
         used_sec={}
         for s in list(st['positions'])+list(st['pending']):
             sec=sb._sector_of(s); used_sec[sec]=used_sec.get(sec,0)+1
-        for s,name in UNIVERSE:
+        for s,name in live:
             if s in st['positions'] or s in st['pending']: continue
             h=data.get(s)
             if h is None or len(h)<40: continue
