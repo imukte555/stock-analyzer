@@ -277,42 +277,6 @@
  ],
  "log": [
   {
-   "t": "09-02 14:33",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 14:33",
-   "msg": "⚠️ ソニーG の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 14:33",
-   "msg": "⚠️ リクルート の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 14:33",
-   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 14:33",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-02 14:51",
-   "msg": "⚠️ データ取得失敗: アドバンテスト, Intel, 村田製作所, Netflix, MicroStrategy, ソニーG, KDDI, Palo Alto, SMC, 日立, ソフトバンクG, リクルート, Micron, Arm, Uber, Super Micro, Applied Materials, 富士通, Palantir, 第一三共, 信越化学, 三菱商事, NVIDIA, Coinbase, Salesforce, KLA, オリエンタルランド, ダイキン, Texas Instruments, Airbnb, IHI, 東京エレクトロン, AMD, Qualcomm, Alphabet, Tesla, Broadcom, Adobe, Oracle, Synopsys, ディスコ, Amazon, HOYA, フジクラ, Lam Research, レーザーテック, 住友電工, 中外製薬, ServiceNow, Microsoft, 三菱重工, Meta, 任天堂, Apple（54/54銘柄）"
-  },
-  {
-   "t": "09-02 14:51",
-   "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 14:51",
-   "msg": "⚠️ Tesla の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 14:51",
-   "msg": "⚠️ Palantir の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
    "t": "09-02 14:51",
    "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
   },
@@ -1075,10 +1039,46 @@
   {
    "t": "09-04 17:57",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-04 18:30",
+   "msg": "⚠️ データ取得失敗: Broadcom, Lam Research, Arm, Meta, Adobe, MicroStrategy, Airbnb, Super Micro, ディスコ, 日立, Palantir, Qualcomm, 東京エレクトロン, Microsoft, 三菱重工, Apple, フジクラ, Alphabet, Palo Alto, Applied Materials, HOYA, ソフトバンクG, IHI, 三菱商事, Coinbase, 中外製薬, 第一三共, オリエンタルランド, SMC, AMD, Synopsys, Salesforce, ダイキン, アドバンテスト, Amazon, レーザーテック, 信越化学, 村田製作所, ソニーG, NVIDIA, Intel, 富士通, Uber, Oracle, Micron, 任天堂, Texas Instruments, Netflix, KLA, KDDI, リクルート, ServiceNow, Tesla, 住友電工（54/54銘柄）"
+  },
+  {
+   "t": "09-04 18:30",
+   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-04 18:30",
+   "msg": "⚠️ ソニーG の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-04 18:30",
+   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-04 18:30",
+   "msg": "⚠️ 任天堂 の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-04 18:30",
+   "msg": "⚠️ ディスコ の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-04 18:30",
+   "msg": "⚠️ Netflix の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-04 18:30",
+   "msg": "⚠️ オリエンタルランド の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-04 18:30",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-04 17:57",
+ "last_run_at": "2026-09-04 18:30",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
