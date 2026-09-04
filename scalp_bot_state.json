@@ -1,0 +1,96 @@
+{
+ "label": "⚡5分足 短期トレード（仮想）",
+ "initial_capital": 1000000,
+ "cash": 1000000,
+ "positions": {},
+ "pending": {
+  "NVDA": {
+   "atr": 0.43392851174579883,
+   "name": "NVIDIA",
+   "strategy": "reversal",
+   "reason": "売られすぎ(RSI23・下限割れ)",
+   "bar": "2026-09-03 15:50:00",
+   "close": 228.62510681152344
+  },
+  "AAPL": {
+   "atr": 0.43737040661339055,
+   "name": "Apple",
+   "strategy": "breakout",
+   "reason": "20日高値ブレイク(ADX22)",
+   "bar": "2026-09-03 15:50:00",
+   "close": 328.6199951171875
+  },
+  "TSLA": {
+   "atr": 0.9607152500689701,
+   "name": "Tesla",
+   "strategy": "reversal",
+   "reason": "売られすぎ(RSI16・下限割れ)",
+   "bar": "2026-09-03 15:50:00",
+   "close": 377.64569091796875
+  },
+  "META": {
+   "atr": 1.0726857084041963,
+   "name": "Meta",
+   "strategy": "reversal",
+   "reason": "売られすぎ(RSI17・下限割れ)",
+   "bar": "2026-09-03 15:50:00",
+   "close": 611.0399780273438
+  },
+  "QCOM": {
+   "atr": 0.2912028341512398,
+   "name": "Qualcomm",
+   "strategy": "reversal",
+   "reason": "売られすぎ(RSI10・下限割れ)",
+   "bar": "2026-09-03 15:50:00",
+   "close": 168.37399291992188
+  }
+ },
+ "history": [],
+ "equity_curve": [
+  {
+   "t": "09-04 14:08",
+   "equity": 1000000
+  }
+ ],
+ "log": [
+  {
+   "t": "09-04 14:08",
+   "msg": "📡 シグナル[逆張り] NVIDIA 買候補 売られすぎ(RSI23・下限割れ) 終値228.63 → 次バーで約定予定"
+  },
+  {
+   "t": "09-04 14:08",
+   "msg": "📡 シグナル[順張り] Apple 買候補 20日高値ブレイク(ADX22) 終値328.62 → 次バーで約定予定"
+  },
+  {
+   "t": "09-04 14:08",
+   "msg": "📡 シグナル[逆張り] Tesla 買候補 売られすぎ(RSI16・下限割れ) 終値377.65 → 次バーで約定予定"
+  },
+  {
+   "t": "09-04 14:08",
+   "msg": "📡 シグナル[逆張り] Meta 買候補 売られすぎ(RSI17・下限割れ) 終値611.04 → 次バーで約定予定"
+  },
+  {
+   "t": "09-04 14:08",
+   "msg": "📡 シグナル[逆張り] Qualcomm 買候補 売られすぎ(RSI10・下限割れ) 終値168.37 → 次バーで約定予定"
+  }
+ ],
+ "started_at": "2026-09-04 14:08",
+ "last_run_at": "2026-09-04 14:08",
+ "settings": {
+  "interval": "5m",
+  "risk_pct": 1.0,
+  "min_position_pct": 3,
+  "max_position_pct": 25,
+  "max_positions": 8,
+  "max_per_sector": 3,
+  "sl_atr": 2.5,
+  "tp_atr": 10.0,
+  "max_hold": 30,
+  "cost_pct": 0.1,
+  "strategies": [
+   "reversal",
+   "breakout"
+  ]
+ },
+ "backtest_warning": "バックテストでは年率換算-51.6%。負ける想定で稼働中"
+}

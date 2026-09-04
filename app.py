@@ -3042,6 +3042,15 @@ def swing_status(acct='stock'):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/scalp/status', methods=['GET'])
+def scalp_status():
+    """⚡5分足の短期トレードbot（swing_botとは独立した別口座）"""
+    try:
+        import scalp_bot as _sc
+        return jsonify(_sc.status())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/swing/run', methods=['POST'])
 @app.route('/api/swing-<acct>/run', methods=['POST'])
 def swing_run(acct='stock'):
@@ -3058,6 +3067,11 @@ def swing_reset(acct='stock'):
     cap = float(data.get('capital', 1_000_000))
     _swing.reset(cap, None, _swing_acct(acct))
     return jsonify({'ok': True, 'capital': cap, 'account': _swing_acct(acct)})
+
+@app.route('/scalp')
+def scalp_page():
+    from flask import send_from_directory
+    return send_from_directory(app.template_folder, 'swing.html')
 
 @app.route('/swing')
 @app.route('/swing-fx')

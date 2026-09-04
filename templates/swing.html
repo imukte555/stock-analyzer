@@ -56,12 +56,13 @@ th{color:var(--sub);font-weight:600;font-size:11px}td:first-child,th:first-child
 </div>
 <script>
 const IS_FX=location.pathname.endsWith('/swing-fx');
-const API=location.origin+(IS_FX?'/api/swing-fx':'/api/swing');
+const IS_SCALP=location.pathname.endsWith('/scalp');
+const API=location.origin+(IS_SCALP?'/api/scalp':(IS_FX?'/api/swing-fx':'/api/swing'));
 const yen=n=>'¥'+Math.round(n).toLocaleString();
 const pct=n=>(n>=0?'+':'')+Number(n).toFixed(2)+'%';
 let chart;
-document.title=IS_FX?'💱 FX自動スイングbot':'📈 株 自動スイングbot';
-document.getElementById('ttl').textContent=IS_FX?'💱 FX 完全自動スイングbot（仮想・レバ5倍）':'📈 株 完全自動スイングbot（仮想）';
+document.title=IS_SCALP?'⚡5分足 短期トレードbot':(IS_FX?'💱 FX自動スイングbot':'📈 株 自動スイングbot');
+document.getElementById('ttl').textContent=IS_SCALP?'⚡ 5分足 短期トレードbot（仮想）':(IS_FX?'💱 FX 完全自動スイングbot（仮想・レバ5倍）':'📈 株 完全自動スイングbot（仮想）');
 (IS_FX?document.getElementById('lnkF'):document.getElementById('lnkS')).style.borderColor='var(--blue)';
 async function load(){
   let d;
