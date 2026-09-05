@@ -285,22 +285,6 @@
  ],
  "log": [
   {
-   "t": "09-02 15:40",
-   "msg": "⚠️ ソニーG の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 15:40",
-   "msg": "⚠️ リクルート の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 15:40",
-   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-02 15:40",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
    "t": "09-02 15:58",
    "msg": "⚠️ データ取得失敗: KDDI, Apple, ソフトバンクG, Tesla, HOYA, Microsoft, Salesforce, Palo Alto, Amazon, Qualcomm, 三菱商事, IHI, Applied Materials, Broadcom, Intel, 三菱重工, 信越化学, 富士通, 東京エレクトロン, Synopsys, Oracle, レーザーテック, 中外製薬, KLA, Airbnb, Micron, 第一三共, Netflix, SMC, Palantir, Lam Research, 日立, MicroStrategy, Coinbase, NVIDIA, Alphabet, リクルート, Uber, 住友電工, ダイキン, ソニーG, Super Micro, Arm, ServiceNow, 村田製作所, オリエンタルランド, フジクラ, Texas Instruments, AMD, アドバンテスト, 任天堂, Meta, ディスコ, Adobe（54/54銘柄）"
   },
@@ -1083,10 +1067,26 @@
   {
    "t": "09-05 09:04",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-05 09:20",
+   "msg": "⏭ Tesla 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-05 09:20",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-05 09:34",
+   "msg": "⏭ Tesla 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-05 09:34",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-05 09:04",
+ "last_run_at": "2026-09-05 09:34",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
