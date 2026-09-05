@@ -285,18 +285,6 @@
  ],
  "log": [
   {
-   "t": "09-02 22:39",
-   "msg": "⏭ SMC 見送り（reversal戦略の枠が上限）"
-  },
-  {
-   "t": "09-03 01:26",
-   "msg": "⚠️ データ取得失敗: Synopsys, Tesla, 日立, Adobe, ソフトバンクG, Netflix, ダイキン, 三菱商事, 村田製作所, Amazon, Microsoft, 中外製薬, 東京エレクトロン, Coinbase, ソニーG, 三菱重工, オリエンタルランド, MicroStrategy, Alphabet, Broadcom, 第一三共, Intel, Uber, Palo Alto, 任天堂, NVIDIA, HOYA, ServiceNow, Texas Instruments, Qualcomm, IHI, Applied Materials, AMD, Palantir, Arm, Oracle, KLA, 信越化学, Meta, Micron, Apple, Airbnb, Lam Research, KDDI, フジクラ, ディスコ, SMC, アドバンテスト, Salesforce, Super Micro, レーザーテック, リクルート, 富士通, 住友電工（54/54銘柄）"
-  },
-  {
-   "t": "09-03 01:26",
-   "msg": "⚠️ Coinbase の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
    "t": "09-03 01:26",
    "msg": "⚠️ Tesla の当日データ取得失敗、この巡回はスキップ"
   },
@@ -1083,10 +1071,22 @@
   {
    "t": "09-05 12:35",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-05 12:51",
+   "msg": "⏭ Tesla 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-05 12:51",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-05 13:05",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-05 12:35",
+ "last_run_at": "2026-09-05 13:05",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
