@@ -285,13 +285,13 @@
   {
    "date": "2026-09-06",
    "equity": 944917
+  },
+  {
+   "date": "2026-09-07",
+   "equity": 944917
   }
  ],
  "log": [
-  {
-   "t": "09-05 06:19",
-   "msg": "👀 巡回完了・変化なし"
-  },
   {
    "t": "09-05 06:33",
    "msg": "⏭ Tesla 見送り（全体のポジション上限）"
@@ -1082,15 +1082,19 @@
   },
   {
    "t": "09-06 23:52",
-   "msg": "⚠️ データ取得失敗: Micron, アドバンテスト, Uber, AMD, Alphabet, Texas Instruments, 三菱商事, 富士通（8/54銘柄）"
+   "msg": "⚠️ データ取得失敗: 第一三共（1/54銘柄）"
   },
   {
    "t": "09-06 23:52",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-07 00:23",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-06 23:52",
+ "last_run_at": "2026-09-07 00:23",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -1124,7 +1128,7 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 8,
+ "last_fetch_fail_count": 0,
  "last_fetch_total": 54,
  "forward_test": {
   "start_date": "2026-08-29",
