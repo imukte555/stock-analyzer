@@ -293,22 +293,6 @@
  ],
  "log": [
   {
-   "t": "09-05 18:22",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-05 21:05",
-   "msg": "⚠️ データ取得失敗: Palantir, Intel, Lam Research, 富士通, ディスコ, Netflix, ServiceNow, 住友電工, 信越化学, Apple, NVIDIA, 第一三共, Salesforce, 三菱商事, Arm, 日立, HOYA, Oracle, 中外製薬, Alphabet, SMC, ダイキン, フジクラ, Broadcom, Micron, Adobe, Uber, Amazon, リクルート, 村田製作所, オリエンタルランド, Applied Materials, Coinbase, 任天堂, Tesla, Texas Instruments, Qualcomm, KLA, ソフトバンクG, レーザーテック, Microsoft, Meta, ソニーG, MicroStrategy, アドバンテスト, Super Micro, AMD, Palo Alto, Synopsys, Airbnb, KDDI, 三菱重工, 東京エレクトロン, IHI（54/54銘柄）"
-  },
-  {
-   "t": "09-05 21:05",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-05 21:05",
-   "msg": "⚠️ ソニーG の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
    "t": "09-05 21:05",
    "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
   },
@@ -1091,10 +1075,26 @@
   {
    "t": "09-07 17:27",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-07 17:55",
+   "msg": "⏭ 中外製薬 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-07 17:55",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-07 17:57",
+   "msg": "⏭ 中外製薬 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-07 17:57",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-07 17:27",
+ "last_run_at": "2026-09-07 17:57",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
