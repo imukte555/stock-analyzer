@@ -31,13 +31,26 @@ _lock = threading.Lock()
 # 5分足は流動性が要る。日米それぞれの大型のみ。
 # 日本株は当初「板が薄い」として除外したが、それだと東京時間(09:00-15:00)に一切動けず
 # 稼働が米国時間(22:30-05:00)だけになってしまうため、売買代金上位の大型に限って追加した。
+# 2026-09-09: 27→56銘柄に拡大（sho指示「色んなのでやれ／落ちても良い、リスクヘッジ」）。
+# 27銘柄では利益が1件(ソフトバンクG +29,102円)に依存し、それを除くと18件で-2,596円だった。
+# ⚠️実測では56銘柄の方が成績は落ちる: 累計+36.51%→+25.28%、最大DDも-5.0%→-10.5%と悪化。
+#   分散させたのにDDが増えたので「リスクが下がる」根拠は取れていない。
+#   それでも1件依存を解消する目的で採用した、という位置づけ。
 US = [("NVDA","NVIDIA"),("AAPL","Apple"),("MSFT","Microsoft"),("AMD","AMD"),("TSLA","Tesla"),
       ("META","Meta"),("AMZN","Amazon"),("GOOGL","Alphabet"),("AVGO","Broadcom"),("NFLX","Netflix"),
-      ("PLTR","Palantir"),("COIN","Coinbase"),("MU","Micron"),("ARM","Arm"),("QCOM","Qualcomm")]
+      ("PLTR","Palantir"),("COIN","Coinbase"),("MU","Micron"),("ARM","Arm"),("QCOM","Qualcomm"),
+      ("INTC","Intel"),("SMCI","Super Micro"),("MSTR","MicroStrategy"),("TXN","Texas Instruments"),
+      ("ADBE","Adobe"),("CRM","Salesforce"),("ORCL","Oracle"),("NOW","ServiceNow"),("PANW","Palo Alto"),
+      ("SNPS","Synopsys"),("KLAC","KLA"),("LRCX","Lam Research"),("AMAT","Applied Materials"),
+      ("UBER","Uber"),("ABNB","Airbnb")]
 JP = [("8035.T","東京エレクトロン"),("6857.T","アドバンテスト"),("9984.T","ソフトバンクG"),
       ("6758.T","ソニーG"),("7203.T","トヨタ"),("6146.T","ディスコ"),("6920.T","レーザーテック"),
       ("8306.T","三菱UFJ"),("9983.T","ファーストリテイリング"),("6501.T","日立"),
-      ("7974.T","任天堂"),("6098.T","リクルート")]
+      ("7974.T","任天堂"),("6098.T","リクルート"),
+      ("5803.T","フジクラ"),("7013.T","IHI"),("7011.T","三菱重工"),("5802.T","住友電工"),
+      ("4568.T","第一三共"),("6702.T","富士通"),("4063.T","信越化学"),("6981.T","村田製作所"),
+      ("8058.T","三菱商事"),("9433.T","KDDI"),("4661.T","オリエンタルランド"),("6367.T","ダイキン"),
+      ("7741.T","HOYA"),("4519.T","中外製薬")]
 UNIVERSE = US + JP
 
 def _market_open_now():
@@ -74,7 +87,7 @@ DEFAULT = {
     'settings': {
         'interval': '5m',
         'risk_pct': 1.0, 'min_position_pct': 3, 'max_position_pct': 25,
-        'max_positions': 8, 'max_per_sector': 3,
+        'max_positions': 24, 'max_per_sector': 5,
         'sl_atr': 4.0, 'tp_atr': 15.0,
         'max_hold': 120,         # 120本＝10時間（複数日にまたがる）
         'cost_pct': 0.10,
