@@ -297,22 +297,6 @@
  ],
  "log": [
   {
-   "t": "09-06 20:24",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-06 22:25",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-06 22:28",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-06 22:57",
-   "msg": "⚠️ データ取得失敗: ダイキン, 三菱重工, AMD, Intel, Alphabet, 第一三共, SMC, Qualcomm, 住友電工, ソフトバンクG, Synopsys, Arm, Amazon, Palantir, Oracle, ソニーG, HOYA, リクルート, 日立, Tesla, Texas Instruments, 任天堂, 信越化学, レーザーテック, MicroStrategy, Netflix, Applied Materials, Micron, Salesforce, Uber, フジクラ, アドバンテスト, Palo Alto, Microsoft, Adobe, KDDI, NVIDIA, 中外製薬, 三菱商事, Broadcom, 東京エレクトロン, ディスコ, 村田製作所, Super Micro, KLA, Meta, Apple, ServiceNow, Lam Research, IHI, Airbnb, Coinbase, 富士通, オリエンタルランド（54/54銘柄）"
-  },
-  {
    "t": "09-06 22:57",
    "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
   },
@@ -1095,10 +1079,26 @@
   {
    "t": "09-08 08:34",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-08 09:01",
+   "msg": "⏭ 中外製薬 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-08 09:01",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-08 09:04",
+   "msg": "⏭ 中外製薬 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-08 09:04",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-08 08:34",
+ "last_run_at": "2026-09-08 09:04",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
