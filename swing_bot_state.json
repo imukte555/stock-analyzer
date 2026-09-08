@@ -1,6 +1,6 @@
 {
  "initial_capital": 1000000,
- "cash": 34529.407011167226,
+ "cash": 167853.95208940352,
  "positions": {
   "MSFT": {
    "side": "L",
@@ -14,7 +14,7 @@
    "opened": "2026-08-31",
    "name": "Microsoft",
    "market": "us",
-   "bars": 4,
+   "bars": 5,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX37)"
   },
@@ -46,7 +46,7 @@
    "opened": "2026-09-01",
    "name": "Applied Materials",
    "market": "us",
-   "bars": 3,
+   "bars": 4,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI25・下限割れ)"
   },
@@ -82,22 +82,6 @@
    "strategy": "reversal",
    "reason": "売られすぎ(RSI22・下限割れ)"
   },
-  "NFLX": {
-   "side": "L",
-   "entry": 83.18000030517578,
-   "sl": 77.53584278732647,
-   "tp": 105.756630376573,
-   "atr": 2.257663007139722,
-   "be": false,
-   "qty": 1721.368127069447,
-   "cost": 143183.40133495646,
-   "opened": "2026-09-03",
-   "name": "Netflix",
-   "market": "us",
-   "bars": 1,
-   "strategy": "breakout",
-   "reason": "20日高値ブレイク(ADX21)"
-  },
   "4661.T": {
    "side": "L",
    "entry": 3138.0,
@@ -126,12 +110,24 @@
    "opened": "2026-09-04",
    "name": "MicroStrategy",
    "market": "us",
-   "bars": 0,
+   "bars": 1,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX36)"
   }
  },
- "pending": {},
+ "pending": {
+  "4519.T": {
+   "side": "L",
+   "atr": 157.98626480839968,
+   "signal_date": "2026-09-07",
+   "name": "中外製薬",
+   "market": "jp",
+   "close": 6564.0,
+   "rsi": 25.2,
+   "strategy": "reversal",
+   "reason": "売られすぎ(RSI25・下限割れ)"
+  }
+ },
  "history": [
   {
    "sym": "MSTR",
@@ -207,6 +203,21 @@
    "closed": "2026-09-03",
    "days": 8,
    "strategy": "reversal"
+  },
+  {
+   "sym": "NFLX",
+   "name": "Netflix",
+   "market": "us",
+   "side": "L",
+   "entry": 83.18000030517578,
+   "exit": 77.53584278732647,
+   "pnl_pct": -6.89,
+   "pnl_yen": -9859,
+   "reason": "SL",
+   "opened": "2026-09-03",
+   "closed": "2026-09-08",
+   "days": 2,
+   "strategy": "breakout"
   }
  ],
  "equity_curve": [
@@ -293,21 +304,13 @@
   {
    "date": "2026-09-08",
    "equity": 959727
+  },
+  {
+   "date": "2026-09-09",
+   "equity": 937213
   }
  ],
  "log": [
-  {
-   "t": "09-07 20:56",
-   "msg": "⏭ 中外製薬 見送り（全体のポジション上限）"
-  },
-  {
-   "t": "09-07 20:56",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-07 20:58",
-   "msg": "⏭ 中外製薬 見送り（全体のポジション上限）"
-  },
   {
    "t": "09-07 20:58",
    "msg": "👀 巡回完了・変化なし"
@@ -1095,10 +1098,22 @@
   {
    "t": "09-08 23:13",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-09 03:02",
+   "msg": "🔴 決済 Netflix SL @77.54 損益 -6.89% (¥-9,859)"
+  },
+  {
+   "t": "09-09 03:02",
+   "msg": "📡 シグナル[逆張り] 中外製薬 買候補 売られすぎ(RSI25・下限割れ) 終値6,564.00 → 翌寄付で約定予定"
+  },
+  {
+   "t": "09-09 03:07",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-08 23:13",
+ "last_run_at": "2026-09-09 03:07",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -1132,7 +1147,7 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 54,
+ "last_fetch_fail_count": 0,
  "last_fetch_total": 54,
  "forward_test": {
   "start_date": "2026-08-29",
