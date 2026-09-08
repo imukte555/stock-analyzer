@@ -423,11 +423,18 @@ def run_once(acct='stock'):
             if h is None:
                 _log(state, f"⚠️ {pos['name']} の当日データ取得失敗、この巡回はスキップ")
                 continue
-            bars=[(d,r) for d,r in h.iterrows() if d.strftime('%Y-%m-%d')>pos['opened']]
+            # 「処理済み本数のカウンタ」で進めると、未確定の当日足を処理済みにした瞬間に
+            # その足が二度と再評価されず、後から損切り/利確に達しても素通りする。
+            # (2026-09-08 ソニーG: 場中に処理→その後 安値3,654 が損切3,720 を割ったのに未決済)
+            # カウンタを進める方式をやめ、毎回エントリー以降の確定足を全部見直す。
+            # 同じ足を何度評価しても結果は変わらない（決済したらループを抜ける）ので安全。
+            hc,_i=_last_completed_bar(h, pos['market'])
+            bars=[(d,r) for d,r in hc.iterrows() if d.strftime('%Y-%m-%d')>pos['opened']]
             # 建値判定は「前日終値」ベース、SL/TPは当日高安ベースで順に
             closed=False
-            for d,r in bars[pos.get('bars',0):]:
-                pos['bars']=pos.get('bars',0)+1
+            pos['bars']=0
+            for d,r in bars:
+                pos['bars']+=1
                 side=pos['side']; e=pos['entry']
                 # 建値ストップ（前バーで含み益ATR×be_atr以上）
                 if S.get('use_be_stop', False) and not pos['be']:

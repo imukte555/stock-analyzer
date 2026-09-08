@@ -1,6 +1,6 @@
 {
  "initial_capital": 1000000,
- "cash": 10474.716827007302,
+ "cash": 147113.16921533868,
  "positions": {
   "MSFT": {
    "side": "L",
@@ -14,25 +14,9 @@
    "opened": "2026-08-31",
    "name": "Microsoft",
    "market": "us",
-   "bars": 5,
+   "bars": 4,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX37)"
-  },
-  "6758.T": {
-   "side": "L",
-   "entry": 3990.0,
-   "sl": 3720.2857066264232,
-   "tp": 5068.857173494308,
-   "atr": 107.88571734943079,
-   "be": false,
-   "qty": 36.76737891032061,
-   "cost": 146701.84185217923,
-   "opened": "2026-09-01",
-   "name": "ソニーG",
-   "market": "jp",
-   "bars": 5,
-   "strategy": "breakout",
-   "reason": "20日高値ブレイク(ADX32)"
   },
   "AMAT": {
    "side": "L",
@@ -46,7 +30,7 @@
    "opened": "2026-09-01",
    "name": "Applied Materials",
    "market": "us",
-   "bars": 4,
+   "bars": 3,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI25・下限割れ)"
   },
@@ -110,7 +94,7 @@
    "opened": "2026-09-04",
    "name": "MicroStrategy",
    "market": "us",
-   "bars": 1,
+   "bars": 0,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX36)"
   },
@@ -222,6 +206,21 @@
    "closed": "2026-09-08",
    "days": 2,
    "strategy": "breakout"
+  },
+  {
+   "sym": "6758.T",
+   "name": "ソニーG",
+   "market": "jp",
+   "side": "L",
+   "entry": 3990.0,
+   "exit": 3720.2857066264232,
+   "pnl_pct": -6.86,
+   "pnl_yen": -10063,
+   "reason": "SL",
+   "opened": "2026-09-01",
+   "closed": "2026-09-08",
+   "days": 5,
+   "strategy": "breakout"
   }
  ],
  "equity_curve": [
@@ -311,18 +310,10 @@
   },
   {
    "date": "2026-09-09",
-   "equity": 933330
+   "equity": 935621
   }
  ],
  "log": [
-  {
-   "t": "09-07 22:57",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-07 22:59",
-   "msg": "⏭ 中外製薬 見送り（全体のポジション上限）"
-  },
   {
    "t": "09-07 22:59",
    "msg": "👀 巡回完了・変化なし"
@@ -1114,10 +1105,18 @@
   {
    "t": "09-09 05:45",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-09 05:57",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-09 05:58",
+   "msg": "🔴 決済 ソニーG SL @3,720.29 損益 -6.86% (¥-10,063)"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-09 05:45",
+ "last_run_at": "2026-09-09 05:58",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,

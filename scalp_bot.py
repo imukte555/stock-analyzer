@@ -172,8 +172,13 @@ def run_once():
         for s,p in list(st['positions'].items()):
             h=data.get(s)
             if h is None: continue
-            bars=h[h.index > pd.Timestamp(p['opened'])]
-            for t,r in bars.iloc[p['bars']:].iterrows():
+            # 「処理済み本数のカウンタ」で進めると、未確定の最新足を処理済みにした瞬間に
+            # その足が二度と再評価されず、後から損切り/利確に達しても素通りする。
+            # (2026-09-09 に日足bot側で同じ構造の取りこぼしが実際に発生したため同時に修正)
+            # 最新の未確定足を除いた確定足を、毎回エントリー以降まとめて見直す。
+            bars=h[h.index > pd.Timestamp(p['opened'])].iloc[:-1]
+            p['bars']=0
+            for t,r in bars.iterrows():
                 p['bars']+=1
                 hit=None
                 if float(r['Low'])<=p['sl']: hit=('SL',p['sl'])
