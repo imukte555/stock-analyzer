@@ -88,6 +88,8 @@ SECTOR = {
     'AAPL':'us_bigtech', 'MSFT':'us_bigtech', 'GOOGL':'us_bigtech', 'AMZN':'us_bigtech', 'META':'us_bigtech',
     'ADBE':'us_soft', 'CRM':'us_soft', 'ORCL':'us_soft', 'NOW':'us_soft', 'PANW':'us_soft',
     'NFLX':'us_consumer', 'UBER':'us_consumer', 'ABNB':'us_consumer',
+    # 5分足bot専用（日足ユニバースには入っていないが、セクター分散を効かせるため定義）
+    '7203.T':'jp_auto', '8306.T':'jp_bank', '9983.T':'jp_retail',
     # FX: 通貨ごとにグループ化（円ペア/ドルストレートで相関が高い）
     'USDJPY=X':'jpy', 'GBPJPY=X':'jpy', 'AUDJPY=X':'jpy', 'EURJPY=X':'jpy',
     'NZDJPY=X':'jpy', 'MXNJPY=X':'jpy',
