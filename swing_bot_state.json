@@ -14,7 +14,7 @@
    "opened": "2026-08-31",
    "name": "Microsoft",
    "market": "us",
-   "bars": 4,
+   "bars": 5,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX37)"
   },
@@ -30,7 +30,7 @@
    "opened": "2026-09-01",
    "name": "Applied Materials",
    "market": "us",
-   "bars": 3,
+   "bars": 4,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI25・下限割れ)"
   },
@@ -46,7 +46,7 @@
    "opened": "2026-09-02",
    "name": "任天堂",
    "market": "jp",
-   "bars": 4,
+   "bars": 5,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX34)"
   },
@@ -62,7 +62,7 @@
    "opened": "2026-09-03",
    "name": "ディスコ",
    "market": "jp",
-   "bars": 3,
+   "bars": 4,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI22・下限割れ)"
   },
@@ -78,7 +78,7 @@
    "opened": "2026-09-04",
    "name": "オリエンタルランド",
    "market": "jp",
-   "bars": 2,
+   "bars": 3,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX26)"
   },
@@ -94,7 +94,7 @@
    "opened": "2026-09-04",
    "name": "MicroStrategy",
    "market": "us",
-   "bars": 0,
+   "bars": 1,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX36)"
   },
@@ -110,7 +110,7 @@
    "opened": "2026-09-08",
    "name": "中外製薬",
    "market": "jp",
-   "bars": 0,
+   "bars": 1,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI25・下限割れ)"
   }
@@ -310,14 +310,10 @@
   },
   {
    "date": "2026-09-09",
-   "equity": 939805
+   "equity": 926835
   }
  ],
  "log": [
-  {
-   "t": "09-08 10:01",
-   "msg": "👀 巡回完了・変化なし"
-  },
   {
    "t": "09-08 10:04",
    "msg": "⏭ 中外製薬 見送り（全体のポジション上限）"
@@ -1113,10 +1109,14 @@
   {
    "t": "09-09 15:19",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-09 15:57",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-09 15:19",
+ "last_run_at": "2026-09-09 15:57",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
@@ -1150,7 +1150,7 @@
  },
  "account": "stock",
  "label": "株（日本+米国）",
- "last_fetch_fail_count": 54,
+ "last_fetch_fail_count": 0,
  "last_fetch_total": 54,
  "forward_test": {
   "start_date": "2026-08-29",
