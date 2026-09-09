@@ -46,7 +46,7 @@
    "opened": "2026-09-02",
    "name": "任天堂",
    "market": "jp",
-   "bars": 4,
+   "bars": 5,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX34)"
   },
@@ -62,7 +62,7 @@
    "opened": "2026-09-03",
    "name": "ディスコ",
    "market": "jp",
-   "bars": 3,
+   "bars": 4,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI22・下限割れ)"
   },
@@ -78,7 +78,7 @@
    "opened": "2026-09-04",
    "name": "オリエンタルランド",
    "market": "jp",
-   "bars": 2,
+   "bars": 3,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX26)"
   },
@@ -110,7 +110,7 @@
    "opened": "2026-09-08",
    "name": "中外製薬",
    "market": "jp",
-   "bars": 0,
+   "bars": 1,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI25・下限割れ)"
   }
@@ -314,14 +314,10 @@
   },
   {
    "date": "2026-09-10",
-   "equity": 933356
+   "equity": 923964
   }
  ],
  "log": [
-  {
-   "t": "09-08 13:02",
-   "msg": "👀 巡回完了・変化なし"
-  },
   {
    "t": "09-08 13:05",
    "msg": "⏭ 中外製薬 見送り（全体のポジション上限）"
@@ -1117,10 +1113,14 @@
   {
    "t": "09-10 03:25",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-10 04:01",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-10 03:25",
+ "last_run_at": "2026-09-10 04:01",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
