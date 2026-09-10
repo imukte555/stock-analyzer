@@ -46,7 +46,7 @@
    "opened": "2026-09-03",
    "name": "ディスコ",
    "market": "jp",
-   "bars": 5,
+   "bars": 4,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI22・下限割れ)"
   },
@@ -62,7 +62,7 @@
    "opened": "2026-09-04",
    "name": "オリエンタルランド",
    "market": "jp",
-   "bars": 4,
+   "bars": 3,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX26)"
   },
@@ -94,7 +94,7 @@
    "opened": "2026-09-08",
    "name": "中外製薬",
    "market": "jp",
-   "bars": 2,
+   "bars": 1,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI25・下限割れ)"
   },
@@ -342,17 +342,13 @@
   {
    "date": "2026-09-10",
    "equity": 916275
+  },
+  {
+   "date": "2026-09-11",
+   "equity": 916761
   }
  ],
  "log": [
-  {
-   "t": "09-08 20:16",
-   "msg": "⚠️ データ取得失敗: 第一三共, Meta, Adobe, オリエンタルランド, Broadcom, Coinbase, 東京エレクトロン, IHI, ソフトバンクG, NVIDIA, Tesla, Arm, Intel, Oracle, Lam Research, Micron, SMC, Alphabet, Salesforce, Uber, Texas Instruments, Palo Alto, アドバンテスト, ディスコ, Microsoft, レーザーテック, リクルート, AMD, 日立, MicroStrategy, Synopsys, 村田製作所, 三菱商事, フジクラ, 中外製薬, KDDI, KLA, ソニーG, Airbnb, Qualcomm, Applied Materials, Super Micro, Apple, Palantir, 任天堂, 三菱重工, 住友電工, Amazon, Netflix, 富士通, ServiceNow, HOYA, ダイキン, 信越化学（54/54銘柄）"
-  },
-  {
-   "t": "09-08 20:16",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
   {
    "t": "09-08 20:16",
    "msg": "⚠️ ソニーG の当日データ取得失敗、この巡回はスキップ"
@@ -1144,10 +1140,18 @@
   {
    "t": "09-10 23:30",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-11 00:01",
+   "msg": "⏭ Airbnb 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-11 00:01",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-10 23:30",
+ "last_run_at": "2026-09-11 00:01",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
