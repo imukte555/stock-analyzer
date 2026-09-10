@@ -345,18 +345,10 @@
   },
   {
    "date": "2026-09-11",
-   "equity": 917675
+   "equity": 917457
   }
  ],
  "log": [
-  {
-   "t": "09-08 22:18",
-   "msg": "⚠️ MicroStrategy の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-08 22:18",
-   "msg": "👀 巡回完了・変化なし"
-  },
   {
    "t": "09-08 23:13",
    "msg": "⚠️ データ取得失敗: Salesforce, Meta, 三菱商事, 東京エレクトロン, Palo Alto, Lam Research, Uber, Tesla, NVIDIA, Intel, KLA, Coinbase, アドバンテスト, 住友電工, Synopsys, 信越化学, MicroStrategy, Micron, 三菱重工, SMC, 村田製作所, Apple, Qualcomm, Applied Materials, Texas Instruments, Netflix, Broadcom, 富士通, AMD, ソニーG, フジクラ, ソフトバンクG, IHI, Microsoft, KDDI, レーザーテック, Arm, ServiceNow, HOYA, 日立, オリエンタルランド, Amazon, 任天堂, ダイキン, Palantir, Alphabet, Oracle, Super Micro, ディスコ, 中外製薬, Adobe, 第一三共, Airbnb, リクルート（54/54銘柄）"
@@ -1148,10 +1140,18 @@
   {
    "t": "09-11 04:33",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-11 05:03",
+   "msg": "⏭ Airbnb 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-11 05:03",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-11 04:33",
+ "last_run_at": "2026-09-11 05:03",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
