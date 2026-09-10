@@ -341,18 +341,10 @@
   },
   {
    "date": "2026-09-10",
-   "equity": 913971
+   "equity": 916275
   }
  ],
  "log": [
-  {
-   "t": "09-08 19:49",
-   "msg": "⏭ 中外製薬 見送り（全体のポジション上限）"
-  },
-  {
-   "t": "09-08 19:49",
-   "msg": "👀 巡回完了・変化なし"
-  },
   {
    "t": "09-08 20:16",
    "msg": "⚠️ データ取得失敗: 第一三共, Meta, Adobe, オリエンタルランド, Broadcom, Coinbase, 東京エレクトロン, IHI, ソフトバンクG, NVIDIA, Tesla, Arm, Intel, Oracle, Lam Research, Micron, SMC, Alphabet, Salesforce, Uber, Texas Instruments, Palo Alto, アドバンテスト, ディスコ, Microsoft, レーザーテック, リクルート, AMD, 日立, MicroStrategy, Synopsys, 村田製作所, 三菱商事, フジクラ, 中外製薬, KDDI, KLA, ソニーG, Airbnb, Qualcomm, Applied Materials, Super Micro, Apple, Palantir, 任天堂, 三菱重工, 住友電工, Amazon, Netflix, 富士通, ServiceNow, HOYA, ダイキン, 信越化学（54/54銘柄）"
@@ -1144,10 +1136,18 @@
   {
    "t": "09-10 23:00",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-10 23:30",
+   "msg": "⏭ Airbnb 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-10 23:30",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-10 23:00",
+ "last_run_at": "2026-09-10 23:30",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
