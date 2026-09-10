@@ -1,6 +1,6 @@
 {
  "initial_capital": 1000000,
- "cash": 147113.16921533868,
+ "cash": 262752.0956576271,
  "positions": {
   "MSFT": {
    "side": "L",
@@ -14,7 +14,7 @@
    "opened": "2026-08-31",
    "name": "Microsoft",
    "market": "us",
-   "bars": 5,
+   "bars": 6,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX37)"
   },
@@ -30,25 +30,9 @@
    "opened": "2026-09-01",
    "name": "Applied Materials",
    "market": "us",
-   "bars": 4,
+   "bars": 5,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI25・下限割れ)"
-  },
-  "7974.T": {
-   "side": "L",
-   "entry": 8960.0,
-   "sl": 8266.245029359037,
-   "tp": 11735.019882563849,
-   "atr": 277.5019882563849,
-   "be": false,
-   "qty": 14.00447314476012,
-   "cost": 125480.07937705067,
-   "opened": "2026-09-02",
-   "name": "任天堂",
-   "market": "jp",
-   "bars": 5,
-   "strategy": "breakout",
-   "reason": "20日高値ブレイク(ADX34)"
   },
   "6146.T": {
    "side": "L",
@@ -62,7 +46,7 @@
    "opened": "2026-09-03",
    "name": "ディスコ",
    "market": "jp",
-   "bars": 4,
+   "bars": 5,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI22・下限割れ)"
   },
@@ -78,7 +62,7 @@
    "opened": "2026-09-04",
    "name": "オリエンタルランド",
    "market": "jp",
-   "bars": 3,
+   "bars": 4,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX26)"
   },
@@ -94,7 +78,7 @@
    "opened": "2026-09-04",
    "name": "MicroStrategy",
    "market": "us",
-   "bars": 1,
+   "bars": 2,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX36)"
   },
@@ -110,12 +94,35 @@
    "opened": "2026-09-08",
    "name": "中外製薬",
    "market": "jp",
-   "bars": 1,
+   "bars": 2,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI25・下限割れ)"
   }
  },
- "pending": {},
+ "pending": {
+  "7974.T": {
+   "side": "L",
+   "atr": 288.71287830742875,
+   "signal_date": "2026-09-10",
+   "name": "任天堂",
+   "market": "jp",
+   "close": 7996.0,
+   "rsi": 20.7,
+   "strategy": "reversal",
+   "reason": "売られすぎ(RSI21・下限割れ)"
+  },
+  "UBER": {
+   "side": "L",
+   "atr": 2.5451498787619364,
+   "signal_date": "2026-09-09",
+   "name": "Uber",
+   "market": "us",
+   "close": 71.08000183105469,
+   "rsi": 25.5,
+   "strategy": "reversal",
+   "reason": "売られすぎ(RSI26・下限割れ)"
+  }
+ },
  "history": [
   {
    "sym": "MSTR",
@@ -221,6 +228,21 @@
    "closed": "2026-09-08",
    "days": 5,
    "strategy": "breakout"
+  },
+  {
+   "sym": "7974.T",
+   "name": "任天堂",
+   "market": "jp",
+   "side": "L",
+   "entry": 8960.0,
+   "exit": 8266.245029359037,
+   "pnl_pct": -7.84,
+   "pnl_yen": -9841,
+   "reason": "SL",
+   "opened": "2026-09-02",
+   "closed": "2026-09-10",
+   "days": 6,
+   "strategy": "breakout"
   }
  ],
  "equity_curve": [
@@ -314,26 +336,10 @@
   },
   {
    "date": "2026-09-10",
-   "equity": 914779
+   "equity": 921318
   }
  ],
  "log": [
-  {
-   "t": "09-08 15:06",
-   "msg": "⏭ 中外製薬 見送り（全体のポジション上限）"
-  },
-  {
-   "t": "09-08 15:06",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-08 15:33",
-   "msg": "⏭ 中外製薬 見送り（全体のポジション上限）"
-  },
-  {
-   "t": "09-08 15:33",
-   "msg": "👀 巡回完了・変化なし"
-  },
   {
    "t": "09-08 15:37",
    "msg": "⏭ 中外製薬 見送り（全体のポジション上限）"
@@ -1117,10 +1123,26 @@
   {
    "t": "09-10 12:19",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-10 15:38",
+   "msg": "🔴 決済 任天堂 SL @8,266.25 損益 -7.84% (¥-9,841)"
+  },
+  {
+   "t": "09-10 15:38",
+   "msg": "📡 シグナル[逆張り] 任天堂 買候補 売られすぎ(RSI21・下限割れ) 終値7,996.00 → 翌寄付で約定予定"
+  },
+  {
+   "t": "09-10 15:38",
+   "msg": "📡 シグナル[逆張り] Uber 買候補 売られすぎ(RSI26・下限割れ) 終値71.08 → 翌寄付で約定予定"
+  },
+  {
+   "t": "09-10 15:38",
+   "msg": "⏭ Airbnb 見送り（全体のポジション上限）"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-10 12:19",
+ "last_run_at": "2026-09-10 15:38",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
