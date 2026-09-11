@@ -353,18 +353,10 @@
   },
   {
    "date": "2026-09-12",
-   "equity": 922010
+   "equity": 920380
   }
  ],
  "log": [
-  {
-   "t": "09-09 15:14",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-09 15:19",
-   "msg": "⚠️ データ取得失敗: Palo Alto, ディスコ, 中外製薬, ソフトバンクG, 信越化学, ダイキン, Coinbase, Alphabet, Qualcomm, フジクラ, リクルート, ServiceNow, レーザーテック, 日立, 東京エレクトロン, Amazon, アドバンテスト, Texas Instruments, Tesla, Arm, KLA, SMC, NVIDIA, AMD, Intel, ソニーG, Netflix, Meta, Palantir, Uber, 村田製作所, Super Micro, Adobe, Oracle, Synopsys, Lam Research, Salesforce, 富士通, MicroStrategy, KDDI, 第一三共, Microsoft, 住友電工, 任天堂, 三菱重工, Airbnb, IHI, 三菱商事, オリエンタルランド, Apple, HOYA, Broadcom, Applied Materials, Micron（54/54銘柄）"
-  },
   {
    "t": "09-09 15:19",
    "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
@@ -1156,10 +1148,18 @@
   {
    "t": "09-12 02:54",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-12 03:24",
+   "msg": "⏭ Airbnb 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-12 03:24",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-12 02:54",
+ "last_run_at": "2026-09-12 03:24",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
