@@ -353,22 +353,10 @@
   },
   {
    "date": "2026-09-12",
-   "equity": 915810
+   "equity": 915684
   }
  ],
  "log": [
-  {
-   "t": "09-09 15:19",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-09 15:57",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-09 16:53",
-   "msg": "⚠️ データ取得失敗: Super Micro, ディスコ, 日立, HOYA, Lam Research, Micron, Airbnb, AMD, KLA, Qualcomm, Amazon, Microsoft, Apple, MicroStrategy, Arm, SMC, Tesla, Meta, 富士通, ダイキン, Applied Materials, ServiceNow, 三菱商事, リクルート（24/54銘柄）"
-  },
   {
    "t": "09-09 16:53",
    "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
@@ -1156,10 +1144,22 @@
   {
    "t": "09-12 04:55",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-12 05:26",
+   "msg": "⏭ KDDI 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-12 05:26",
+   "msg": "⏭ Airbnb 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-12 05:26",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-12 04:55",
+ "last_run_at": "2026-09-12 05:26",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
