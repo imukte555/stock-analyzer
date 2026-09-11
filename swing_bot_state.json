@@ -354,18 +354,6 @@
  ],
  "log": [
   {
-   "t": "09-09 09:28",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-09 10:07",
-   "msg": "⚠️ データ取得失敗: KDDI, Synopsys, ソニーG, レーザーテック, 任天堂, Uber, Amazon, ServiceNow, Lam Research, Microsoft, NVIDIA, Texas Instruments, 住友電工, Broadcom, 三菱商事, Adobe, 三菱重工, 信越化学, ダイキン, IHI, 富士通, リクルート, Apple, 日立, HOYA, KLA, Super Micro, Palo Alto, Salesforce, 村田製作所, 第一三共, Applied Materials, Intel, Alphabet, Tesla, Netflix, MicroStrategy, Micron, オリエンタルランド, 東京エレクトロン, Qualcomm, アドバンテスト, ソフトバンクG, Arm, Meta, Airbnb, AMD, Coinbase, Palantir, フジクラ, Oracle, SMC, 中外製薬, ディスコ（54/54銘柄）"
-  },
-  {
-   "t": "09-09 10:07",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
    "t": "09-09 10:07",
    "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
   },
@@ -1152,10 +1140,22 @@
   {
    "t": "09-11 16:49",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-11 17:19",
+   "msg": "⏭ KDDI 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-11 17:19",
+   "msg": "⏭ Airbnb 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-11 17:19",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-11 16:49",
+ "last_run_at": "2026-09-11 17:19",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
