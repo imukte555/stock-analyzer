@@ -349,22 +349,10 @@
   },
   {
    "date": "2026-09-11",
-   "equity": 917943
+   "equity": 918453
   }
  ],
  "log": [
-  {
-   "t": "09-09 12:58",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-09 14:07",
-   "msg": "⚠️ データ取得失敗: Salesforce, 富士通, KDDI, Oracle, Synopsys, Meta, Arm, Micron, Adobe, Palo Alto, Broadcom, MicroStrategy, ソニーG, Netflix, Airbnb, アドバンテスト, 任天堂, Applied Materials, 住友電工, 信越化学, オリエンタルランド, ソフトバンクG, Coinbase, ServiceNow, フジクラ, Apple, SMC, IHI, Lam Research, ディスコ, KLA, レーザーテック, NVIDIA, 三菱重工, ダイキン, Palantir, Tesla, 村田製作所, AMD, Qualcomm, HOYA, 東京エレクトロン, Alphabet, Amazon, Uber, 三菱商事, Microsoft, 第一三共, Intel, Texas Instruments, 日立, リクルート, Super Micro, 中外製薬（54/54銘柄）"
-  },
-  {
-   "t": "09-09 14:07",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
   {
    "t": "09-09 14:07",
    "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
@@ -1152,10 +1140,22 @@
   {
    "t": "09-11 22:52",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-11 23:22",
+   "msg": "⏭ KDDI 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-11 23:22",
+   "msg": "⏭ Airbnb 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-11 23:22",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-11 22:52",
+ "last_run_at": "2026-09-11 23:22",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
