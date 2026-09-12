@@ -14,7 +14,7 @@
    "opened": "2026-08-31",
    "name": "Microsoft",
    "market": "us",
-   "bars": 7,
+   "bars": 8,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX37)"
   },
@@ -30,7 +30,7 @@
    "opened": "2026-09-01",
    "name": "Applied Materials",
    "market": "us",
-   "bars": 6,
+   "bars": 7,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI25・下限割れ)"
   },
@@ -78,7 +78,7 @@
    "opened": "2026-09-04",
    "name": "MicroStrategy",
    "market": "us",
-   "bars": 3,
+   "bars": 4,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX36)"
   },
@@ -110,7 +110,7 @@
    "opened": "2026-09-10",
    "name": "Uber",
    "market": "us",
-   "bars": 0,
+   "bars": 1,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI26・下限割れ)"
   },
@@ -357,14 +357,6 @@
   }
  ],
  "log": [
-  {
-   "t": "09-10 15:38",
-   "msg": "⏭ Airbnb 見送り（全体のポジション上限）"
-  },
-  {
-   "t": "09-10 16:09",
-   "msg": "⏭ Airbnb 見送り（全体のポジション上限）"
-  },
   {
    "t": "09-10 16:09",
    "msg": "👀 巡回完了・変化なし"
@@ -1156,10 +1148,18 @@
   {
    "t": "09-12 12:29",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-12 13:00",
+   "msg": "⏭ KDDI 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-12 13:00",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-12 12:29",
+ "last_run_at": "2026-09-12 13:00",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
