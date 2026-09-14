@@ -384,6 +384,11 @@ def run_once(acct='stock'):
                 lo_cap = equity_base*S.get('min_position_pct',3)/100
                 hi_cap = equity_base*S.get('max_position_pct',25)/100
                 budget = max(lo_cap, min(hi_cap, budget))
+                # 🔴 現金が下限に満たないなら残りカスで建てず見送る（5分足botで実害が出た構造）。
+                # max(下限,...) の直後に min(budget, cash) を当てると下限が無効化される。
+                if state['cash'] < lo_cap:
+                    _log(state,f"⏭ {p['name']} 約定見送り（現金{state['cash']:,.0f}円 < 下限{lo_cap:,.0f}円）")
+                    del state['pending'][sym]; continue
                 budget = min(budget, state['cash'])   # 現金以上は使えない
                 size_note = f"想定損失{risk_amount:,.0f}円/損切幅{stop_dist_pct*100*lev:.1f}%"
             else:

@@ -88,6 +88,9 @@ DEFAULT = {
         'interval': '5m',
         'risk_pct': 1.0, 'min_position_pct': 3, 'max_position_pct': 25,
         'max_positions': 24, 'max_per_sector': 5,
+        # 24玉×1銘柄25% = 600% と矛盾していたため、合計建玉の上限を明示する。
+        # 現金が尽きたら新規を見送るので、実際に埋まる玉数は 100/25 = 4〜8程度になる。
+        'max_exposure_pct': 100,
         'sl_atr': 4.0, 'tp_atr': 15.0,
         'max_hold': 120,         # 120本＝10時間（複数日にまたがる）
         'cost_pct': 0.10,
@@ -168,7 +171,15 @@ def run_once():
             a=p['atr']; eq=st['cash']+sum(x['cost'] for x in st['positions'].values())
             sd=(a*S['sl_atr'])/entry if entry>0 else 0
             budget=(eq*S['risk_pct']/100)/sd if sd>0 else 0
-            budget=max(eq*S['min_position_pct']/100, min(eq*S['max_position_pct']/100, budget))
+            lo=eq*S['min_position_pct']/100
+            budget=max(lo, min(eq*S['max_position_pct']/100, budget))
+            # 🔴 現金が下限に満たないなら「残りカスで建てる」のではなく見送る。
+            # 以前は max(下限,...) の直後に min(budget, cash) を当てていたため下限が無効化され、
+            # 671円・1,667円といった無意味な建玉が量産されていた（2026-09-14に実測して修正）。
+            # そのサイズだと +10% 動いても損益が数十円にしかならず、シグナルが当たっても意味がない。
+            if st['cash'] < lo:
+                _log(st,f"⏭ {p['name']} 見送り（現金{st['cash']:,.0f}円 < 下限{lo:,.0f}円）")
+                del st['pending'][s]; continue
             budget=min(budget, st['cash'])
             if budget<=0:
                 _log(st,f"⏭ {p['name']} 見送り（資金不足）"); del st['pending'][s]; continue
