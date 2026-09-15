@@ -369,58 +369,10 @@
   },
   {
    "date": "2026-09-16",
-   "equity": 910218
+   "equity": 910130
   }
  ],
  "log": [
-  {
-   "t": "09-15 14:41",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-15 17:35",
-   "msg": "⚠️ データ取得失敗: Coinbase, SMC, Uber, Adobe, 村田製作所, Texas Instruments, ServiceNow, レーザーテック, NVIDIA, Microsoft, Palantir, Super Micro, ディスコ, MicroStrategy, Meta, HOYA, 第一三共, リクルート, 中外製薬, KDDI, Arm, Netflix, 日立, Amazon, Tesla, Applied Materials, オリエンタルランド, 信越化学, Alphabet, ソフトバンクG, Lam Research, Qualcomm, Salesforce, Oracle, Synopsys, Broadcom, アドバンテスト, フジクラ, Palo Alto, KLA, ダイキン, ソニーG, Micron, AMD, 三菱商事, Intel, IHI, 三菱重工, 富士通, Airbnb, Apple, 任天堂, 東京エレクトロン, 住友電工（54/54銘柄）"
-  },
-  {
-   "t": "09-15 17:35",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-15 17:35",
-   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-15 17:35",
-   "msg": "⚠️ ディスコ の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-15 17:35",
-   "msg": "⚠️ オリエンタルランド の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-15 17:35",
-   "msg": "⚠️ MicroStrategy の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-15 17:35",
-   "msg": "⚠️ 中外製薬 の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-15 17:35",
-   "msg": "⚠️ Uber の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-15 17:35",
-   "msg": "⚠️ 任天堂 の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-15 17:35",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-15 18:11",
-   "msg": "⚠️ データ取得失敗: MicroStrategy, Uber, オリエンタルランド, 住友電工, ソフトバンクG, Intel, ディスコ, Lam Research, NVIDIA, Micron, 富士通, Oracle, Palantir, Meta, Microsoft, フジクラ, KLA, Palo Alto, ServiceNow, 三菱商事, Apple, 中外製薬, Coinbase, Broadcom, Netflix, レーザーテック, 信越化学, AMD, 村田製作所, KDDI, Salesforce, Synopsys, 第一三共, Applied Materials, IHI, アドバンテスト, リクルート, ダイキン, Arm, 日立, Super Micro, Adobe, SMC, 任天堂, Airbnb, 東京エレクトロン, ソニーG, Tesla, Amazon, Alphabet, 三菱重工, Texas Instruments, Qualcomm, HOYA（54/54銘柄）"
-  },
   {
    "t": "09-15 18:11",
    "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
@@ -1172,10 +1124,58 @@
   {
    "t": "09-16 05:06",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-16 05:36",
+   "msg": "⏭ 東京エレクトロン 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-16 05:36",
+   "msg": "⏭ アドバンテスト 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-16 05:36",
+   "msg": "⏭ Meta 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-16 05:36",
+   "msg": "⏭ Broadcom 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-16 05:36",
+   "msg": "⏭ Lam Research 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-16 05:36",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-16 05:37",
+   "msg": "⏭ 東京エレクトロン 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-16 05:37",
+   "msg": "⏭ アドバンテスト 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-16 05:37",
+   "msg": "⏭ Meta 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-16 05:37",
+   "msg": "⏭ Broadcom 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-16 05:37",
+   "msg": "⏭ Lam Research 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-16 05:37",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-16 05:06",
+ "last_run_at": "2026-09-16 05:37",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
