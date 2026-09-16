@@ -8,6 +8,26 @@
 cd /Users/sho/stock_analyzer || exit 1
 export TZ=Asia/Tokyo
 LOG=/tmp/swing_local.log
+
+# --- タイムアウト付き実行（macOSに timeout コマンドが無いので自前） ---
+# 2026-09-17: ネット断時に git push が75秒ブロックし、リトライ込みで巡回間隔を潰して
+# botが3.5時間止まった（同種の事故は3回目）。gitの低速切断もTCP接続段階には効かないため、
+# シェル側でプロセスごと打ち切る。stateは次回巡回でまとめてpushすればよい。
+run_with_timeout() {
+  local secs="$1"; shift
+  local flag; flag=$(mktemp)
+  "$@" &
+  local pid=$!
+  ( sleep "$secs"; if kill -0 "$pid" 2>/dev/null; then echo timeout > "$flag"; kill -9 "$pid" 2>/dev/null; fi ) &
+  local killer=$!
+  wait "$pid" 2>/dev/null; local rc=$?
+  kill -9 "$killer" 2>/dev/null; wait "$killer" 2>/dev/null
+  # 打ち切った場合は失敗(124)を返す。wait が 0 を返しても成功扱いにしない
+  if [ -s "$flag" ]; then rc=124; fi
+  rm -f "$flag"
+  return $rc
+}
+
 HEARTBEAT=/tmp/swing_last_success
 
 # --- 起床直後を想定してネット復帰を待つ（最大60秒） ---
@@ -31,10 +51,13 @@ if git diff --cached --quiet 2>/dev/null; then
   PUSH_OK=1   # 変更なし＝pushの必要なし
 else
   git commit -q -m "bot: state $(date '+%m-%d %H:%M')"
-  for attempt in 1 2 3; do
-    if git push -q origin main 2>>"$LOG"; then PUSH_OK=1; break; fi
-    git pull -q --rebase origin main 2>>"$LOG"
-    sleep 5
+  # 🔴 git push にタイムアウトを入れる。
+  # 2026-09-17: ネット断時に push 1回が263秒かかり、3回リトライで13分超を消費。
+  # 巡回間隔(30分)を圧迫して bot が3.5時間止まった（同種の事故は3回目）。
+  # state は次回巡回でまとめて push すればよいので、通信に粘る価値はない。
+  for attempt in 1 2; do
+    if run_with_timeout 30 git push -q origin main 2>>"$LOG"; then PUSH_OK=1; break; fi
+    run_with_timeout 30 git pull -q --rebase origin main 2>>"$LOG"
   done
 fi
 
