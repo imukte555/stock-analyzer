@@ -399,22 +399,6 @@
  "log": [
   {
    "t": "09-20 21:14",
-   "msg": "⚠️ データ取得失敗: Intel, Super Micro, IHI, アドバンテスト, 三菱重工, Micron, 富士通, Alphabet, Broadcom, ServiceNow, AMD, 東京エレクトロン, Palo Alto, ソフトバンクG, Applied Materials, ソニーG, レーザーテック, フジクラ, Uber, 第一三共, リクルート, Airbnb, Netflix, Salesforce, Lam Research, Synopsys, 中外製薬, Coinbase, Adobe, SMC, Palantir, 村田製作所, Texas Instruments, Oracle, Tesla, Amazon, 三菱商事, 日立, MicroStrategy, 任天堂, Arm, オリエンタルランド, Qualcomm, KDDI, KLA, Microsoft, Apple, ダイキン, HOYA, Meta, 住友電工, NVIDIA, 信越化学, ディスコ（54/54銘柄）"
-  },
-  {
-   "t": "09-20 21:14",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-20 21:14",
-   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-20 21:14",
-   "msg": "⚠️ ディスコ の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-20 21:14",
    "msg": "⚠️ オリエンタルランド の当日データ取得失敗、この巡回はスキップ"
   },
   {
@@ -1196,10 +1180,26 @@
   {
    "t": "09-22 06:36",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-22 06:50",
+   "msg": "⏭ Netflix 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-22 06:50",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-22 07:08",
+   "msg": "⏭ Netflix 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-22 07:08",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-22 06:36",
+ "last_run_at": "2026-09-22 07:08",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
