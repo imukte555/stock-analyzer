@@ -402,86 +402,6 @@
  ],
  "log": [
   {
-   "t": "09-22 23:49",
-   "msg": "⚠️ データ取得失敗: ディスコ, 任天堂, Coinbase, KLA, Oracle, Micron, 住友電工, Arm, Airbnb, Microsoft, Intel, Synopsys, KDDI, Texas Instruments, Palantir, 村田製作所, Uber, 富士通, Palo Alto, リクルート, 東京エレクトロン, MicroStrategy, Applied Materials, レーザーテック, 第一三共, Netflix, 中外製薬, Broadcom, Salesforce, フジクラ, Adobe, Lam Research, NVIDIA, IHI, オリエンタルランド, Apple, ソニーG, AMD, Super Micro, Meta, SMC, 信越化学, ソフトバンクG, 三菱重工, ダイキン, HOYA, Qualcomm, Alphabet, 三菱商事, 日立, ServiceNow, Tesla, Amazon, アドバンテスト（54/54銘柄）"
-  },
-  {
-   "t": "09-22 23:49",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:49",
-   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:49",
-   "msg": "⚠️ ディスコ の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:49",
-   "msg": "⚠️ オリエンタルランド の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:49",
-   "msg": "⚠️ MicroStrategy の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:49",
-   "msg": "⚠️ 中外製薬 の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:49",
-   "msg": "⚠️ Uber の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:49",
-   "msg": "⚠️ 任天堂 の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:49",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-22 23:50",
-   "msg": "⚠️ データ取得失敗: MicroStrategy, Uber, オリエンタルランド, 住友電工, ソフトバンクG, Intel, ディスコ, Lam Research, NVIDIA, Micron, 富士通, Oracle, Palantir, Meta, Microsoft, フジクラ, KLA, Palo Alto, ServiceNow, 三菱商事, Apple, 中外製薬, Coinbase, Broadcom, Netflix, レーザーテック, 信越化学, AMD, 村田製作所, KDDI, Salesforce, Synopsys, 第一三共, Applied Materials, IHI, アドバンテスト, リクルート, ダイキン, Arm, 日立, Super Micro, Adobe, SMC, 任天堂, Airbnb, 東京エレクトロン, ソニーG, Tesla, Amazon, Alphabet, 三菱重工, Texas Instruments, Qualcomm, HOYA（54/54銘柄）"
-  },
-  {
-   "t": "09-22 23:50",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:50",
-   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:50",
-   "msg": "⚠️ ディスコ の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:50",
-   "msg": "⚠️ オリエンタルランド の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:50",
-   "msg": "⚠️ MicroStrategy の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:50",
-   "msg": "⚠️ 中外製薬 の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:50",
-   "msg": "⚠️ Uber の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:50",
-   "msg": "⚠️ 任天堂 の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-22 23:50",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
    "t": "09-23 00:56",
    "msg": "⚠️ データ取得失敗: MicroStrategy, Uber, オリエンタルランド, 住友電工, ソフトバンクG, Intel, ディスコ, Lam Research, NVIDIA, Micron, 富士通, Oracle, Palantir, Meta, Microsoft, フジクラ, KLA, Palo Alto, ServiceNow, 三菱商事, Apple, 中外製薬, Coinbase, Broadcom, Netflix, レーザーテック, 信越化学, AMD, 村田製作所, KDDI, Salesforce, Synopsys, 第一三共, Applied Materials, IHI, アドバンテスト, リクルート, ダイキン, Arm, 日立, Super Micro, Adobe, SMC, 任天堂, Airbnb, 東京エレクトロン, ソニーG, Tesla, Amazon, Alphabet, 三菱重工, Texas Instruments, Qualcomm, HOYA（54/54銘柄）"
   },
@@ -1200,10 +1120,90 @@
   {
    "t": "09-23 06:46",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-23 07:08",
+   "msg": "⚠️ データ取得失敗: MicroStrategy, Uber, オリエンタルランド, 住友電工, ソフトバンクG, Intel, ディスコ, Lam Research, NVIDIA, Micron, 富士通, Oracle, Palantir, Meta, Microsoft, フジクラ, KLA, Palo Alto, ServiceNow, 三菱商事, Apple, 中外製薬, Coinbase, Broadcom, Netflix, レーザーテック, 信越化学, AMD, 村田製作所, KDDI, Salesforce, Synopsys, 第一三共, Applied Materials, IHI, アドバンテスト, リクルート, ダイキン, Arm, 日立, Super Micro, Adobe, SMC, 任天堂, Airbnb, 東京エレクトロン, ソニーG, Tesla, Amazon, Alphabet, 三菱重工, Texas Instruments, Qualcomm, HOYA（54/54銘柄）"
+  },
+  {
+   "t": "09-23 07:08",
+   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:08",
+   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:08",
+   "msg": "⚠️ ディスコ の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:08",
+   "msg": "⚠️ オリエンタルランド の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:08",
+   "msg": "⚠️ MicroStrategy の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:08",
+   "msg": "⚠️ 中外製薬 の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:08",
+   "msg": "⚠️ Uber の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:08",
+   "msg": "⚠️ 任天堂 の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:08",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-23 07:22",
+   "msg": "⚠️ データ取得失敗: ServiceNow, 村田製作所, ソフトバンクG, Texas Instruments, オリエンタルランド, Synopsys, Palantir, Amazon, SMC, KLA, 日立, 中外製薬, 信越化学, Arm, Uber, Intel, AMD, Airbnb, KDDI, IHI, Salesforce, ディスコ, MicroStrategy, HOYA, Netflix, 東京エレクトロン, 住友電工, Apple, Qualcomm, 富士通, Oracle, Applied Materials, Lam Research, ダイキン, Meta, ソニーG, 第一三共, レーザーテック, アドバンテスト, NVIDIA, Palo Alto, 三菱重工, Adobe, Microsoft, 三菱商事, Alphabet, 任天堂, Micron, リクルート, Tesla, Broadcom, フジクラ, Super Micro, Coinbase（54/54銘柄）"
+  },
+  {
+   "t": "09-23 07:22",
+   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:22",
+   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:22",
+   "msg": "⚠️ ディスコ の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:22",
+   "msg": "⚠️ オリエンタルランド の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:22",
+   "msg": "⚠️ MicroStrategy の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:22",
+   "msg": "⚠️ 中外製薬 の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:22",
+   "msg": "⚠️ Uber の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:22",
+   "msg": "⚠️ 任天堂 の当日データ取得失敗、この巡回はスキップ"
+  },
+  {
+   "t": "09-23 07:22",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-23 06:46",
+ "last_run_at": "2026-09-23 07:22",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
