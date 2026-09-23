@@ -406,22 +406,6 @@
  ],
  "log": [
   {
-   "t": "09-23 05:28",
-   "msg": "⚠️ 中外製薬 の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-23 05:28",
-   "msg": "⚠️ Uber の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-23 05:28",
-   "msg": "⚠️ 任天堂 の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-23 05:28",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
    "t": "09-23 05:55",
    "msg": "⚠️ データ取得失敗: Salesforce, MicroStrategy, 第一三共, ディスコ, 信越化学, ソフトバンクG, 三菱重工, Uber, Oracle, Lam Research, フジクラ, Qualcomm, 富士通, Adobe, 三菱商事, Airbnb, 任天堂, Synopsys, オリエンタルランド, 中外製薬, リクルート, アドバンテスト, Super Micro, Texas Instruments, レーザーテック, KLA, 東京エレクトロン, Meta, Applied Materials, ソニーG, Microsoft, Alphabet, HOYA, Arm, Micron, NVIDIA, Coinbase, Broadcom, Palantir, ダイキン, SMC, Tesla, IHI, Apple, Palo Alto, 日立, Netflix, AMD, 住友電工, 村田製作所, Intel, ServiceNow, KDDI, Amazon（54/54銘柄）"
   },
@@ -1204,10 +1188,26 @@
   {
    "t": "09-24 08:18",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-24 08:33",
+   "msg": "⏭ Qualcomm 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-24 08:33",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-24 08:48",
+   "msg": "⏭ Qualcomm 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-24 08:48",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-24 08:18",
+ "last_run_at": "2026-09-24 08:48",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
