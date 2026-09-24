@@ -37,7 +37,8 @@ def push(title, body, priority=5):
 
 def check():
     problems = []
-    for f, lab in [("swing_bot_state.json", "株"), ("swing_bot_fx_state.json", "FX")]:
+    # 2026-09-25: shoさんの指示で株スイング・FXを停止。監視対象は5分足のみ。
+    for f, lab in [("scalp_bot_state.json", "5分足")]:
         p = os.path.join(BASE, f)
         if not os.path.exists(p):
             problems.append(f"{lab}: stateファイルが無い"); continue
