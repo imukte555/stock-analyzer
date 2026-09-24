@@ -405,35 +405,11 @@
   },
   {
    "date": "2026-09-25",
-   "equity": 928422
+   "equity": 930361
   }
  ],
  "log": [
   {
-   "t": "09-23 22:32",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-23 22:51",
-   "msg": "⚠️ データ取得失敗: MicroStrategy, Uber, オリエンタルランド, 住友電工, ソフトバンクG, Intel, ディスコ, Lam Research, NVIDIA, Micron, 富士通, Oracle, Palantir, Meta, Microsoft, フジクラ, KLA, Palo Alto, ServiceNow, 三菱商事, Apple, 中外製薬, Coinbase, Broadcom, Netflix, レーザーテック, 信越化学, AMD, 村田製作所, KDDI, Salesforce, Synopsys, 第一三共, Applied Materials, IHI, アドバンテスト, リクルート, ダイキン, Arm, 日立, Super Micro, Adobe, SMC, 任天堂, Airbnb, 東京エレクトロン, ソニーG, Tesla, Amazon, Alphabet, 三菱重工, Texas Instruments, Qualcomm, HOYA（54/54銘柄）"
-  },
-  {
-   "t": "09-23 22:51",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-23 22:51",
-   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-23 22:51",
-   "msg": "⚠️ ディスコ の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-23 22:51",
-   "msg": "⚠️ オリエンタルランド の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
    "t": "09-23 22:51",
    "msg": "⚠️ MicroStrategy の当日データ取得失敗、この巡回はスキップ"
   },
@@ -1207,11 +1183,35 @@
   },
   {
    "t": "09-25 00:46",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-25 00:52",
+   "msg": "⏭ Palantir 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-25 00:52",
+   "msg": "⏭ Airbnb 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-25 00:52",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-25 01:17",
+   "msg": "⏭ Palantir 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-25 01:17",
+   "msg": "⏭ Airbnb 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-25 01:17",
    "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-25 00:46",
+ "last_run_at": "2026-09-25 01:17",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
