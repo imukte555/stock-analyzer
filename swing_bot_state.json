@@ -14,7 +14,7 @@
    "opened": "2026-08-31",
    "name": "Microsoft",
    "market": "us",
-   "bars": 15,
+   "bars": 16,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX37)"
   },
@@ -30,7 +30,7 @@
    "opened": "2026-09-01",
    "name": "Applied Materials",
    "market": "us",
-   "bars": 14,
+   "bars": 15,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI25・下限割れ)"
   },
@@ -78,7 +78,7 @@
    "opened": "2026-09-04",
    "name": "MicroStrategy",
    "market": "us",
-   "bars": 11,
+   "bars": 12,
    "strategy": "breakout",
    "reason": "20日高値ブレイク(ADX36)"
   },
@@ -110,7 +110,7 @@
    "opened": "2026-09-10",
    "name": "Uber",
    "market": "us",
-   "bars": 8,
+   "bars": 9,
    "strategy": "reversal",
    "reason": "売られすぎ(RSI26・下限割れ)"
   },
@@ -401,34 +401,10 @@
   },
   {
    "date": "2026-09-24",
-   "equity": 934488
+   "equity": 933016
   }
  ],
  "log": [
-  {
-   "t": "09-23 06:46",
-   "msg": "⚠️ 任天堂 の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-23 06:46",
-   "msg": "👀 巡回完了・変化なし"
-  },
-  {
-   "t": "09-23 07:08",
-   "msg": "⚠️ データ取得失敗: MicroStrategy, Uber, オリエンタルランド, 住友電工, ソフトバンクG, Intel, ディスコ, Lam Research, NVIDIA, Micron, 富士通, Oracle, Palantir, Meta, Microsoft, フジクラ, KLA, Palo Alto, ServiceNow, 三菱商事, Apple, 中外製薬, Coinbase, Broadcom, Netflix, レーザーテック, 信越化学, AMD, 村田製作所, KDDI, Salesforce, Synopsys, 第一三共, Applied Materials, IHI, アドバンテスト, リクルート, ダイキン, Arm, 日立, Super Micro, Adobe, SMC, 任天堂, Airbnb, 東京エレクトロン, ソニーG, Tesla, Amazon, Alphabet, 三菱重工, Texas Instruments, Qualcomm, HOYA（54/54銘柄）"
-  },
-  {
-   "t": "09-23 07:08",
-   "msg": "⚠️ Microsoft の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-23 07:08",
-   "msg": "⚠️ Applied Materials の当日データ取得失敗、この巡回はスキップ"
-  },
-  {
-   "t": "09-23 07:08",
-   "msg": "⚠️ ディスコ の当日データ取得失敗、この巡回はスキップ"
-  },
   {
    "t": "09-23 07:08",
    "msg": "⚠️ オリエンタルランド の当日データ取得失敗、この巡回はスキップ"
@@ -1204,10 +1180,34 @@
   {
    "t": "09-24 12:56",
    "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-24 13:10",
+   "msg": "⏭ Palantir 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-24 13:10",
+   "msg": "⏭ Airbnb 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-24 13:10",
+   "msg": "👀 巡回完了・変化なし"
+  },
+  {
+   "t": "09-24 13:26",
+   "msg": "⏭ Palantir 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-24 13:26",
+   "msg": "⏭ Airbnb 見送り（全体のポジション上限）"
+  },
+  {
+   "t": "09-24 13:26",
+   "msg": "👀 巡回完了・変化なし"
   }
  ],
  "started_at": "2026-08-19 16:51",
- "last_run_at": "2026-09-24 12:56",
+ "last_run_at": "2026-09-24 13:26",
  "settings": {
   "position_pct": 10,
   "max_positions": 8,
